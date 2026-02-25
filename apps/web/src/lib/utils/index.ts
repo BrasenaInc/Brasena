@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { BUSINESS } from "@/config"
+import { BUSINESS, config } from "@/config"
 
 /**
  * Merge Tailwind classes safely.
@@ -45,7 +45,7 @@ export function calcSavingsPercent(base: number, sale: number): number {
 export function getDeliveryProvider(
   totalWeightLbs: number
 ): "uber_direct" | "doordash" | "private_van" {
-  if (totalWeightLbs > BUSINESS.maxWeightForUber) {
+  if (totalWeightLbs > config.delivery.maxWeightForUber) {
     return "private_van"
   }
   // Under 30lb - Uber Direct preferred, DoorDash as fallback
@@ -56,7 +56,7 @@ export function getDeliveryProvider(
  * Check if a zip code is in the current service area.
  */
 export function isZipCodeServiced(zip: string): boolean {
-  return BUSINESS.SERVICE_ZIPCODES.includes(zip)
+  return (BUSINESS.SERVICE_ZIPCODES as readonly string[]).includes(zip)
 }
 
 /**
