@@ -1,0 +1,3 @@
+module.exports=[37009,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(24320);a.n(d("[project]/Developer/brasena/Brasena/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},4120,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(24320);a.n(d("[project]/Developer/brasena/Brasena/node_modules/next/dist/client/components/builtin/global-error.js"))},71180,a=>{"use strict";a.i(37009);var b=a.i(4120);a.n(b)}];
+
+//# sourceMappingURL=db3c6_next_dist_client_components_builtin_global-error_e86d299d.js.map

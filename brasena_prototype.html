@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brasena — Language & Auth Screens</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:   #0A0F0B;
+    --surface: #0F1410;
+    --card:    #171D18;
+    --card2:   #1E2820;
+    --border:  #263028;
+    --sage:    #8BAF8E;
+    --sage-lt: #A8C5A0;
+    --sage-dk: #5A7D5E;
+    --gold:    #B8953A;
+    --gold-lt: #D4AE52;
+    --text:    #F0F5F0;
+    --text2:   #9BAD9B;
+    --text3:   #627062;
+    --error:   #E05C5C;
+    --success: #4CAF7D;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* ── Phone frame ── */
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--surface);
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 0 0 1px rgba(139,175,142,0.15),
+      0 40px 120px rgba(0,0,0,0.8),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  /* Notch */
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 34px;
+    background: var(--black);
+    border-radius: 0 0 20px 20px;
+    z-index: 100;
+  }
+
+  /* ── Screen ── */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+  .screen.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ── Noise texture overlay ── */
+  .screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* ════════════════════════════════
+     SCREEN 1 — LANGUAGE SELECT
+  ════════════════════════════════ */
+  #lang-screen {
+    background: var(--surface);
+    align-items: center;
+    justify-content: space-between;
+    padding: 80px 32px 48px;
+  }
+
+  .lang-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .logo-lockup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 72px;
+    height: 56px;
+  }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--sage);
+    line-height: 1;
+  }
+
+  .lang-tagline {
+    font-size: 13px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .lang-middle {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeUp 0.8s 0.15s ease both;
+  }
+
+  .lang-prompt {
+    text-align: center;
+  }
+
+  .lang-prompt h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .lang-prompt p {
+    font-size: 13px;
+    color: var(--text3);
+  }
+
+  .lang-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .lang-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lang-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(139,175,142,0.08) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .lang-card:hover { border-color: rgba(139,175,142,0.4); }
+  .lang-card:hover::before { opacity: 1; }
+
+  .lang-card.selected {
+    border-color: var(--sage);
+    background: rgba(139,175,142,0.08);
+  }
+  .lang-card.selected::before { opacity: 1; }
+
+  .lang-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.04em;
+  }
+
+  .lang-native {
+    font-size: 12px;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .lang-check {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 20px; height: 20px;
+    background: var(--sage);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s ease;
+  }
+  .lang-card.selected .lang-check {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .lang-check svg { width: 10px; height: 10px; }
+
+  .lang-bottom {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    width: 100%;
+    height: 54px;
+    background: var(--sage);
+    color: var(--black);
+    border: none;
+    border-radius: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%);
+  }
+
+  .btn-primary:hover { background: var(--sage-lt); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(139,175,142,0.25); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-ghost {
+    width: 100%;
+    height: 48px;
+    background: transparent;
+    color: var(--text2);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-ghost:hover { border-color: rgba(139,175,142,0.3); color: var(--sage); }
+
+  /* ════════════════════════════════
+     SCREEN 2 — LOGIN
+  ════════════════════════════════ */
+  #login-screen {
+    background: var(--surface);
+  }
+
+  .auth-header {
+    padding: 52px 32px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 20px;
+    transition: color 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .back-btn:hover { color: var(--sage); }
+
+  .auth-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .auth-header p {
+    font-size: 14px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  /* Language toggle pill */
+  .lang-toggle {
+    position: absolute;
+    top: 52px;
+    right: 24px;
+    display: flex;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px;
+    gap: 2px;
+    z-index: 50;
+  }
+
+  .lang-pill {
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text3);
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .lang-pill.active {
+    background: var(--sage);
+    color: var(--black);
+  }
+
+  .auth-body {
+    padding: 28px 32px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .field-wrap {
+    position: relative;
+  }
+
+  .field input {
+    width: 100%;
+    height: 52px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 0 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--sage); }
+  .field input::placeholder { color: var(--text3); font-size: 14px; }
+
+  .field-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .field-icon:hover { color: var(--sage); }
+
+  .forgot {
+    text-align: right;
+    font-size: 12px;
+    color: var(--sage);
+    cursor: pointer;
+    text-decoration: none;
+    margin-top: -8px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text3);
+    font-size: 12px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .auth-footer {
+    padding: 16px 32px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .signup-link {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text3);
+  }
+  .signup-link span {
+    color: var(--sage);
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* ════════════════════════════════
+     SCREEN 3 — PROFILE TYPE
+  ════════════════════════════════ */
+  #type-screen {
+    background: var(--surface);
+    padding: 52px 28px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .type-header {
+    animation: fadeUp 0.6s ease both;
+    margin-bottom: 32px;
+  }
+
+  .step-indicator {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .step-dot {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: all 0.3s ease;
+  }
+  .step-dot.active { background: var(--sage); width: 24px; }
+  .step-dot.inactive { width: 12px; }
+
+  .type-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+
+  .type-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 22px 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+  }
+
+  .type-card:hover { border-color: rgba(139,175,142,0.4); }
+
+  .type-card.selected {
+    border-color: var(--sage);
+    background: rgba(139,175,142,0.07);
+  }
+
+  .type-icon-wrap {
+    width: 52px; height: 52px;
+    background: var(--card2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.25s;
+  }
+  .type-card.selected .type-icon-wrap { background: rgba(139,175,142,0.15); }
+
+  .type-icon-wrap svg { width: 26px; height: 26px; }
+
+  .type-text { flex: 1; }
+  .type-text h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .type-text p {
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.5;
+  }
+
+  .type-radio {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .type-card.selected .type-radio {
+    border-color: var(--sage);
+    background: var(--sage);
+  }
+  .type-radio-dot {
+    width: 8px; height: 8px;
+    background: var(--black);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .type-card.selected .type-radio-dot { opacity: 1; }
+
+  /* Bilingual label on type card */
+  .bilingual-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(184,149,58,0.12);
+    border: 1px solid rgba(184,149,58,0.25);
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-size: 10px;
+    color: var(--gold-lt);
+    letter-spacing: 0.04em;
+  }
+
+  .type-bottom {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  /* ════════════════════════════════
+     SCREEN 4 — HOME PREVIEW
+  ════════════════════════════════ */
+  #home-screen {
+    background: var(--surface);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  #home-screen::-webkit-scrollbar { display: none; }
+
+  .home-nav {
+    padding: 52px 24px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(15,20,16,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 40;
+    border-bottom: 1px solid rgba(38,48,40,0.5);
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--sage);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .nav-icon {
+    width: 36px; height: 36px;
+    background: var(--card);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .nav-icon svg { width: 16px; height: 16px; color: var(--text2); }
+
+  .hero-banner {
+    margin: 16px;
+    background: linear-gradient(135deg, #1a2e1c 0%, #0f1a10 50%, #162218 100%);
+    border-radius: 20px;
+    padding: 28px 22px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(139,175,142,0.15);
+  }
+
+  .hero-banner::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(139,175,142,0.12) 0%, transparent 70%);
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-lt);
+    margin-bottom: 8px;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+
+  .hero-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--sage);
+    color: var(--black);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .section-head {
+    padding: 20px 20px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .section-head h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .section-head span {
+    font-size: 12px;
+    color: var(--sage);
+    cursor: pointer;
+  }
+
+  .cats {
+    display: flex;
+    gap: 10px;
+    padding: 0 20px 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cats::-webkit-scrollbar { display: none; }
+
+  .cat-pill {
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cat-pill.active {
+    background: rgba(139,175,142,0.12);
+    border-color: var(--sage);
+    color: var(--sage);
+  }
+
+  .products {
+    display: flex;
+    gap: 12px;
+    padding: 8px 20px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .products::-webkit-scrollbar { display: none; }
+
+  .product-card {
+    flex-shrink: 0;
+    width: 160px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .product-card:hover { border-color: rgba(139,175,142,0.3); transform: translateY(-2px); }
+
+  .product-img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    background: var(--card2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+  }
+
+  .product-info { padding: 10px 12px 12px; }
+  .product-info h4 {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .product-weight {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  .product-price {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--sage);
+  }
+
+  .savings-tag {
+    display: inline-block;
+    background: rgba(139,175,142,0.12);
+    border: 1px solid rgba(139,175,142,0.2);
+    color: var(--sage-lt);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 4px;
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: sticky;
+    bottom: 0;
+    background: rgba(15,20,16,0.96);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 12px 0 24px;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: color 0.2s;
+    color: var(--text3);
+  }
+  .nav-item.active { color: var(--sage); }
+  .nav-item svg { width: 22px; height: 22px; }
+  .nav-item span { font-size: 10px; font-weight: 500; }
+
+  /* ── Transitions ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── Nav dots ── */
+  .nav-dots {
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+  }
+  .nav-dot.active {
+    background: var(--sage);
+    height: 20px;
+    border-radius: 3px;
+  }
+
+  /* Screen label */
+  .screen-label {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateX(-220px);
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<!-- Nav dots -->
+<div class="nav-dots">
+  <button class="nav-dot active" onclick="goTo(0)"></button>
+  <button class="nav-dot" onclick="goTo(1)"></button>
+  <button class="nav-dot" onclick="goTo(2)"></button>
+  <button class="nav-dot" onclick="goTo(3)"></button>
+</div>
+
+<div class="screen-label" id="screenLabel">Language Selection</div>
+
+<div class="phone">
+
+  <!-- ══ SCREEN 1: LANGUAGE SELECT ══ -->
+  <div class="screen active" id="lang-screen">
+    <div class="lang-top">
+      <div class="logo-lockup">
+        <!-- Brasena SVG logo (simplified outline) -->
+        <svg class="logo-icon" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Cow outline -->
+          <path d="M15 55 Q10 50 12 40 Q14 30 25 28 L35 26 Q45 24 55 28 L70 30 Q82 32 85 42 Q88 52 82 58 L75 62 L70 68 L60 70 L50 68 L45 62 L35 62 L30 68 L22 68 L18 62 Z" stroke="#8BAF8E" stroke-width="2" fill="none" stroke-linejoin="round"/>
+          <!-- Cow head -->
+          <path d="M82 42 L90 38 Q96 36 98 40 L96 46 Q94 50 88 50 L82 48" stroke="#8BAF8E" stroke-width="2" fill="none"/>
+          <!-- Cow ear -->
+          <path d="M90 38 L94 32 L98 36" stroke="#8BAF8E" stroke-width="1.5" fill="none"/>
+          <!-- Cow tail -->
+          <path d="M18 55 Q10 50 8 42 Q6 38 10 36" stroke="#8BAF8E" stroke-width="1.5" fill="none"/>
+          <!-- Chicken (inside cow) -->
+          <path d="M45 48 Q42 44 44 40 Q46 36 52 36 Q58 36 60 40 Q62 44 60 48 L58 54 L52 56 L46 54 Z" stroke="#8BAF8E" stroke-width="1.5" fill="none"/>
+          <!-- Chicken head -->
+          <path d="M52 36 Q52 30 56 28 Q58 32 56 36" stroke="#8BAF8E" stroke-width="1.5" fill="none"/>
+          <!-- Chicken legs -->
+          <path d="M48 56 L46 64 M56 56 L58 64" stroke="#8BAF8E" stroke-width="1.5"/>
+          <!-- Pig (small, right side) -->
+          <ellipse cx="68" cy="50" rx="7" ry="5" stroke="#8BAF8E" stroke-width="1.5" fill="none"/>
+          <path d="M64 46 Q63 42 65 41 Q67 40 68 42" stroke="#8BAF8E" stroke-width="1.5" fill="none"/>
+          <path d="M63 52 L61 57 M73 52 L75 57" stroke="#8BAF8E" stroke-width="1.5"/>
+        </svg>
+        <div class="logo-text">BRASENA</div>
+      </div>
+      <div class="lang-tagline">Bronx · Queens · NYC</div>
+    </div>
+
+    <div class="lang-middle">
+      <div class="lang-prompt">
+        <h2>Choose your language</h2>
+        <p>Elige tu idioma · Select to continue</p>
+      </div>
+
+      <div class="lang-cards">
+        <div class="lang-card selected" id="lang-en" onclick="selectLang('en')">
+          <div class="lang-check">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#0A0F0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="lang-name">English</div>
+          <div class="lang-native">EN</div>
+        </div>
+
+        <div class="lang-card" id="lang-es" onclick="selectLang('es')">
+          <div class="lang-check">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#0A0F0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="lang-name">Español</div>
+          <div class="lang-native">ES</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lang-bottom">
+      <button class="btn-primary" onclick="goTo(1)" id="lang-continue">
+        Continue · Continuar →
+      </button>
+      <div class="signup-link" style="text-align:center; font-size:12px; color: var(--text3);">
+        You can change this anytime in settings
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 2: LOGIN ══ -->
+  <div class="screen" id="login-screen">
+    <!-- Language toggle always visible -->
+    <div class="lang-toggle">
+      <button class="lang-pill active" id="pill-en" onclick="toggleLang('en')">EN</button>
+      <button class="lang-pill" id="pill-es" onclick="toggleLang('es')">ES</button>
+    </div>
+
+    <div class="auth-header">
+      <button class="back-btn" onclick="goTo(0)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back
+      </button>
+      <h1 id="login-title">Welcome back</h1>
+      <p id="login-sub">Sign in to your account</p>
+    </div>
+
+    <div class="auth-body">
+      <div class="field">
+        <label id="label-email">EMAIL ADDRESS</label>
+        <div class="field-wrap">
+          <input type="email" id="input-email" placeholder="you@email.com">
+        </div>
+      </div>
+
+      <div class="field">
+        <label id="label-password">PASSWORD</label>
+        <div class="field-wrap">
+          <input type="password" id="input-password" placeholder="••••••••">
+          <span class="field-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <a class="forgot" id="forgot-link">Forgot password?</a>
+
+      <div class="divider" id="divider-or">or</div>
+    </div>
+
+    <div class="auth-footer">
+      <button class="btn-primary" onclick="goTo(3)" id="signin-btn">Sign In</button>
+      <button class="btn-ghost" onclick="goTo(2)" id="create-btn">Create Account</button>
+      <div class="signup-link" id="signup-link">
+        New to Brasena? <span onclick="goTo(2)">Create a free account</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 3: PROFILE TYPE ══ -->
+  <div class="screen" id="type-screen">
+    <div class="lang-toggle">
+      <button class="lang-pill active" id="pill-en2" onclick="toggleLang('en')">EN</button>
+      <button class="lang-pill" id="pill-es2" onclick="toggleLang('es')">ES</button>
+    </div>
+
+    <div class="type-header">
+      <button class="back-btn" onclick="goTo(1)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="back-label">Back</span>
+      </button>
+      <div class="step-indicator">
+        <div class="step-dot active"></div>
+        <div class="step-dot inactive"></div>
+      </div>
+      <h1 id="type-title" style="font-family:'Playfair Display',serif; font-size:26px; font-weight:700; margin-bottom:6px;">Who are you shopping for?</h1>
+      <p id="type-sub" style="font-size:13px; color:var(--text3);">Choose your account type to get started</p>
+    </div>
+
+    <div class="type-cards">
+      <div class="type-card selected" id="card-personal" onclick="selectType('personal')">
+        <div class="type-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#8BAF8E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="type-text">
+          <h3 id="personal-title">Personal / Family</h3>
+          <p id="personal-sub">Bulk savings for your household. 10lb–40lb packages delivered next day.</p>
+        </div>
+        <div class="type-radio">
+          <div class="type-radio-dot"></div>
+        </div>
+      </div>
+
+      <div class="type-card" id="card-business" onclick="selectType('business')">
+        <div class="bilingual-badge" id="b2b-badge">B2B</div>
+        <div class="type-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#8BAF8E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </div>
+        <div class="type-text">
+          <h3 id="business-title">Restaurant / Business</h3>
+          <p id="business-sub">Wholesale pricing, recurring orders, invoicing, and Net-30 terms.</p>
+        </div>
+        <div class="type-radio">
+          <div class="type-radio-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="type-bottom">
+      <button class="btn-primary" onclick="goTo(3)" id="type-continue">Continue →</button>
+      <div class="signup-link" id="have-account">Already have an account? <span onclick="goTo(1)">Sign in</span></div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN 4: HOME PREVIEW ══ -->
+  <div class="screen" id="home-screen">
+    <div class="home-nav">
+      <div>
+        <div class="nav-logo">BRASENA</div>
+        <div style="font-size:11px; color:var(--text3); margin-top:1px;" id="nav-greeting">Good morning, Andres 👋</div>
+      </div>
+      <div class="nav-right">
+        <div class="lang-toggle" style="position:relative; top:auto; right:auto;">
+          <button class="lang-pill active" onclick="toggleLang('en')">EN</button>
+          <button class="lang-pill" onclick="toggleLang('es')">ES</button>
+        </div>
+        <div class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero-banner">
+      <div class="hero-eyebrow" id="hero-eyebrow">🔥 THIS WEEK'S DEAL</div>
+      <div class="hero-title" id="hero-title">Buy More,<br>Save More</div>
+      <div class="hero-sub" id="hero-sub">Chicken breast 40lb bags — save up to $18 this week only.</div>
+      <button class="hero-cta" id="hero-cta">
+        Shop Now
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Categories -->
+    <div class="section-head">
+      <h2 id="cat-title">Categories</h2>
+      <span id="see-all">See all</span>
+    </div>
+    <div class="cats">
+      <div class="cat-pill active">🥩 All</div>
+      <div class="cat-pill">🐄 Beef</div>
+      <div class="cat-pill">🐷 Pork</div>
+      <div class="cat-pill">🍗 Chicken</div>
+    </div>
+
+    <!-- Products -->
+    <div class="section-head" style="padding-top:16px;">
+      <h2 id="popular-title">Popular</h2>
+      <span id="view-more">View more</span>
+    </div>
+    <div class="products">
+      <div class="product-card">
+        <div class="product-img">🍗</div>
+        <div class="product-info">
+          <h4>Chicken Breast</h4>
+          <div class="product-weight">10lb – 40lb bags</div>
+          <div class="product-price">$2.49<span style="font-size:10px; color:var(--text3)">/lb</span><span class="savings-tag">-15%</span></div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img">🥩</div>
+        <div class="product-info">
+          <h4>Chuck Roast</h4>
+          <div class="product-weight">10lb – 40lb bags</div>
+          <div class="product-price">$4.99<span style="font-size:10px; color:var(--text3)">/lb</span><span class="savings-tag">-12%</span></div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img">🐷</div>
+        <div class="product-info">
+          <h4>Pork Shoulder</h4>
+          <div class="product-weight">10lb – 40lb bags</div>
+          <div class="product-price">$2.89<span style="font-size:10px; color:var(--text3)">/lb</span><span class="savings-tag">-18%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 16px;"></div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span id="nav-home">Home</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span id="nav-browse">Browse</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <span id="nav-cart">Cart</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="nav-account">Account</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+  let currentScreen = 0;
+  let currentLang = 'en';
+  let selectedLang = 'en';
+
+  const screens = ['lang-screen','login-screen','type-screen','home-screen'];
+  const labels  = ['Language Selection','Login','Account Type','Home Feed Preview'];
+
+  const copy = {
+    en: {
+      loginTitle: 'Welcome back',
+      loginSub: 'Sign in to your account',
+      labelEmail: 'EMAIL ADDRESS',
+      labelPassword: 'PASSWORD',
+      forgotLink: 'Forgot password?',
+      dividerOr: 'or',
+      signinBtn: 'Sign In',
+      createBtn: 'Create Account',
+      signupLink: 'New to Brasena? <span onclick="goTo(2)">Create a free account</span>',
+      backLabel: 'Back',
+      typeTitle: 'Who are you shopping for?',
+      typeSub: 'Choose your account type to get started',
+      personalTitle: 'Personal / Family',
+      personalSub: 'Bulk savings for your household. 10lb–40lb packages delivered next day.',
+      businessTitle: 'Restaurant / Business',
+      businessSub: 'Wholesale pricing, recurring orders, invoicing, and Net-30 terms.',
+      typeContinue: 'Continue →',
+      haveAccount: 'Already have an account? <span onclick="goTo(1)">Sign in</span>',
+      navGreeting: 'Good morning, Andres 👋',
+      heroEyebrow: '🔥 THIS WEEK\'S DEAL',
+      heroTitle: 'Buy More,<br>Save More',
+      heroSub: 'Chicken breast 40lb bags — save up to $18 this week only.',
+      heroCta: 'Shop Now',
+      catTitle: 'Categories',
+      seeAll: 'See all',
+      popularTitle: 'Popular',
+      viewMore: 'View more',
+      navHome: 'Home',
+      navBrowse: 'Browse',
+      navCart: 'Cart',
+      navAccount: 'Account',
+    },
+    es: {
+      loginTitle: 'Bienvenido de vuelta',
+      loginSub: 'Inicia sesión en tu cuenta',
+      labelEmail: 'CORREO ELECTRÓNICO',
+      labelPassword: 'CONTRASEÑA',
+      forgotLink: '¿Olvidaste tu contraseña?',
+      dividerOr: 'o',
+      signinBtn: 'Iniciar Sesión',
+      createBtn: 'Crear Cuenta',
+      signupLink: '¿Nuevo en Brasena? <span onclick="goTo(2)">Crea una cuenta gratis</span>',
+      backLabel: 'Atrás',
+      typeTitle: '¿Para quién estás comprando?',
+      typeSub: 'Elige tu tipo de cuenta para comenzar',
+      personalTitle: 'Personal / Familia',
+      personalSub: 'Ahorro en bulto para tu hogar. Paquetes de 10lb–40lb entregados al día siguiente.',
+      businessTitle: 'Restaurante / Negocio',
+      businessSub: 'Precios al por mayor, pedidos recurrentes, facturación y términos Net-30.',
+      typeContinue: 'Continuar →',
+      haveAccount: '¿Ya tienes cuenta? <span onclick="goTo(1)">Inicia sesión</span>',
+      navGreeting: 'Buenos días, Andres 👋',
+      heroEyebrow: '🔥 OFERTA DE LA SEMANA',
+      heroTitle: 'Compra Más,<br>Ahorra Más',
+      heroSub: 'Bolsas de pechuga de pollo 40lb — ahorra hasta $18 solo esta semana.',
+      heroCta: 'Comprar Ahora',
+      catTitle: 'Categorías',
+      seeAll: 'Ver todo',
+      popularTitle: 'Popular',
+      viewMore: 'Ver más',
+      navHome: 'Inicio',
+      navBrowse: 'Explorar',
+      navCart: 'Carrito',
+      navAccount: 'Cuenta',
+    }
+  };
+
+  function applyLang(lang) {
+    currentLang = lang;
+    const t = copy[lang];
+    const set = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
+
+    set('login-title', t.loginTitle);
+    set('login-sub', t.loginSub);
+    set('label-email', t.labelEmail);
+    set('label-password', t.labelPassword);
+    set('forgot-link', t.forgotLink);
+    set('divider-or', t.dividerOr);
+    set('signin-btn', t.signinBtn);
+    set('create-btn', t.createBtn);
+    set('signup-link', t.signupLink);
+    set('back-label', t.backLabel);
+    set('type-title', t.typeTitle);
+    set('type-sub', t.typeSub);
+    set('personal-title', t.personalTitle);
+    set('personal-sub', t.personalSub);
+    set('business-title', t.businessTitle);
+    set('business-sub', t.businessSub);
+    set('type-continue', t.typeContinue);
+    set('have-account', t.haveAccount);
+    set('nav-greeting', t.navGreeting);
+    set('hero-eyebrow', t.heroEyebrow);
+    set('hero-title', t.heroTitle);
+    set('hero-sub', t.heroSub);
+    set('hero-cta', t.heroCta + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>');
+    set('cat-title', t.catTitle);
+    set('see-all', t.seeAll);
+    set('popular-title', t.popularTitle);
+    set('view-more', t.viewMore);
+    set('nav-home', t.navHome);
+    set('nav-browse', t.navBrowse);
+    set('nav-cart', t.navCart);
+    set('nav-account', t.navAccount);
+
+    // Update input placeholder
+    const emailInput = document.getElementById('input-email');
+    if(emailInput) emailInput.placeholder = lang === 'es' ? 'tu@correo.com' : 'you@email.com';
+
+    // Update all pills
+    ['pill-en','pill-en2'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.className = 'lang-pill' + (lang === 'en' ? ' active' : '');
+    });
+    ['pill-es','pill-es2'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.className = 'lang-pill' + (lang === 'es' ? ' active' : '');
+    });
+  }
+
+  function selectLang(lang) {
+    selectedLang = lang;
+    document.getElementById('lang-en').classList.toggle('selected', lang === 'en');
+    document.getElementById('lang-es').classList.toggle('selected', lang === 'es');
+    applyLang(lang);
+  }
+
+  function toggleLang(lang) {
+    applyLang(lang);
+  }
+
+  function selectType(type) {
+    document.getElementById('card-personal').classList.toggle('selected', type === 'personal');
+    document.getElementById('card-business').classList.toggle('selected', type === 'business');
+  }
+
+  function goTo(index) {
+    screens.forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.classList.toggle('active', i === index);
+    });
+    currentScreen = index;
+    document.getElementById('screenLabel').textContent = labels[index];
+    document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+    // If moving to home and spanish is selected, apply
+    if (index === 3) applyLang(currentLang);
+  }
+</script>
+</body>
+</html>

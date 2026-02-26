@@ -1,59 +1,37 @@
-import { createServerClient } from "@supabase/ssr"
-import { NextResponse, type NextRequest } from "next/server"
-import { config as appConfig, ROUTES } from "@/config"
-
 /**
  * Middleware runs on every request BEFORE the page renders.
  * It does two things:
- * 1. Refreshes the Supabase auth session (prevents expiry)
+ * 1. Refreshes the Supabase auth session (prevents expiry) via updateSession
  * 2. Protects routes that require authentication
  *
  * Why middleware vs page-level auth checks:
  * Middleware runs at the edge (before any JS executes), so
  * unauthenticated users never see a flash of protected content.
  */
+
+import { NextResponse, type NextRequest } from "next/server"
+import { ROUTES } from "@/config"
+import { updateSession } from "@/lib/supabase/middleware"
+
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
-  const supabase = createServerClient(
-    appConfig.supabase.url,
-    appConfig.supabase.anonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
-          cookiesToSet.forEach(({ name, value }: { name: string; value: string }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options?: Record<string, unknown> }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // Refresh session - must be called before any auth checks
-  const { data: { user } } = await supabase.auth.getUser()
+  const { response, user } = await updateSession(request)
 
   const pathname = request.nextUrl.pathname
 
   // ── Protected route groups ──────────────────────────
-  const isShopRoute    = pathname.startsWith("/home") ||
-                         pathname.startsWith("/categories") ||
-                         pathname.startsWith("/products") ||
-                         pathname.startsWith("/cart") ||
-                         pathname.startsWith("/checkout") ||
-                         pathname.startsWith("/orders") ||
-                         pathname.startsWith("/account")
+  const isShopRoute =
+    pathname.startsWith("/home") ||
+    pathname.startsWith("/categories") ||
+    pathname.startsWith("/products") ||
+    pathname.startsWith("/cart") ||
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/orders") ||
+    pathname.startsWith("/account")
 
-  const isVendorRoute  = pathname.startsWith("/vendor")
-  const isAdminRoute   = pathname.startsWith("/admin")
-  const isAuthRoute    = pathname.startsWith("/login") ||
-                         pathname.startsWith("/signup")
+  const isVendorRoute = pathname.startsWith("/vendor")
+  const isAdminRoute = pathname.startsWith("/admin")
+  const isAuthRoute =
+    pathname.startsWith("/login") || pathname.startsWith("/signup")
 
   // ── Redirect unauthenticated users ─────────────────
   if (!user && (isShopRoute || isVendorRoute || isAdminRoute)) {
@@ -70,12 +48,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  return supabaseResponse
+  return response
 }
 
 export const config = {
   matcher: [
-    // Skip static files and API routes that handle their own auth
     "/((?!_next/static|_next/image|favicon.ico|api/webhooks).*)",
   ],
 }

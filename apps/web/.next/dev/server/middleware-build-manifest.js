@@ -1,0 +1,26 @@
+globalThis.__BUILD_MANIFEST = {
+  "pages": {
+    "/_app": []
+  },
+  "devFiles": [],
+  "polyfillFiles": [
+    "static/chunks/db3c6_next_dist_build_polyfills_polyfill-nomodule.js"
+  ],
+  "lowPriorityFiles": [],
+  "rootMainFiles": [
+    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_78bdd00a._.js",
+    "static/chunks/db3c6_next_dist_compiled_react-dom_86f5ee9f._.js",
+    "static/chunks/db3c6_next_dist_compiled_react-server-dom-turbopack_32d6106a._.js",
+    "static/chunks/db3c6_next_dist_compiled_next-devtools_index_708d031e.js",
+    "static/chunks/db3c6_next_dist_compiled_c9718587._.js",
+    "static/chunks/db3c6_next_dist_client_4a4c47ef._.js",
+    "static/chunks/db3c6_next_dist_511bcbc8._.js",
+    "static/chunks/db3c6_a64ecac9._.js",
+    "static/chunks/Developer_brasena_Brasena_apps_web_a0ff3932._.js",
+    "static/chunks/turbopack-Developer_brasena_Brasena_apps_web_3462a55f._.js"
+  ]
+};
+globalThis.__BUILD_MANIFEST.lowPriorityFiles = [
+"/static/" + process.env.__NEXT_BUILD_ID + "/_buildManifest.js",
+"/static/" + process.env.__NEXT_BUILD_ID + "/_ssgManifest.js"
+];

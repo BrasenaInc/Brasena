@@ -1,0 +1,3 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["chunks/db3c6_next_dist_esm_build_templates_edge-wrapper_8bd1294d.js",57620,(e,t,l)=>{self._ENTRIES||={};let h=Promise.resolve().then(()=>e.i(16114));h.catch(()=>{}),self._ENTRIES.middleware_middleware=new Proxy(h,{get(e,t){if("then"===t)return(t,l)=>e.then(t,l);let l=(...l)=>e.then(e=>(0,e[t])(...l));return l.then=(l,h)=>e.then(e=>e[t]).then(l,h),l}})}]);
+
+//# sourceMappingURL=db3c6_next_dist_esm_build_templates_edge-wrapper_8bd1294d.js.map

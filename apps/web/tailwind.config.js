@@ -28,6 +28,7 @@ module.exports = {
           sage:  "#8BAF8E",   // primary - extracted from logo
           mint:  "#A8C5A0",   // lighter variant
           forest:"#4A7C59",   // darker variant
+          gold:  "#B8953A",   // accent for badges / eyebrow labels
         },
         // Semantic aliases
         primary:   "#8BAF8E",

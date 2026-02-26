@@ -1,0 +1,27 @@
+# Brasena Supabase project config.
+# Link to your hosted project: supabase link --project-ref <your-ref>
+# Push migrations: supabase db push
+# Generate types: supabase gen types typescript --project-id <ref> > apps/web/src/types/supabase.ts
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[storage]
+enabled = true

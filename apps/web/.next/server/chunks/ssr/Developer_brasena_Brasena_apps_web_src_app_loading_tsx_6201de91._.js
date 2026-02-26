@@ -1,0 +1,3 @@
+module.exports=[75452,a=>{"use strict";var b=a.i(36454);function c(){return(0,b.jsx)("div",{className:"min-h-screen bg-surface flex items-center justify-center",children:(0,b.jsxs)("div",{className:"relative flex items-center justify-center w-32 h-32",children:[(0,b.jsx)("div",{className:"absolute inset-0 rounded-full border-2 border-brand-sage animate-pulse-ring","aria-hidden":!0}),(0,b.jsx)("span",{className:"font-display text-2xl font-semibold text-brand-sage relative z-10",children:"Brasena"})]})})}a.s(["default",()=>c])}];
+
+//# sourceMappingURL=Developer_brasena_Brasena_apps_web_src_app_loading_tsx_6201de91._.js.map

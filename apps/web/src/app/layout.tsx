@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Playfair_Display, DM_Sans, DM_Mono } from "next/font/google"
 import "@/styles/globals.css"
+import { Providers } from "@/components/providers"
 
 // ─── Font Setup ───────────────────────────────────────
 const playfair = Playfair_Display({
@@ -57,7 +58,7 @@ export default function RootLayout({
       className={`${playfair.variable} ${dmSans.variable} ${dmMono.variable}`}
     >
       <body className="font-body bg-surface text-text-primary antialiased">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

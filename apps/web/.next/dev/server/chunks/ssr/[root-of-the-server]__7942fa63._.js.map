@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 26, "column": 0}, "map": {"version":3,"sources":["file:///Users/dre/Developer/brasena/Brasena/apps/web/src/app/page.tsx"],"sourcesContent":["/**\n * Root page (/). Redirects unauthenticated users to the login page so that\n * the app always lands on a valid route. Auth and shop routing are handled\n * by middleware and layout groups.\n */\n\nimport { redirect } from \"next/navigation\"\nimport { ROUTES } from \"@/config\"\n\nexport default function RootPage(): never {\n  redirect(ROUTES.LOGIN)\n}\n"],"names":[],"mappings":";;;;AAAA;;;;CAIC,GAED;AAAA;AACA;;;AAEe,SAAS;IACtB,IAAA,oOAAQ,EAAC,kLAAM,CAAC,KAAK;AACvB"}}]
+}

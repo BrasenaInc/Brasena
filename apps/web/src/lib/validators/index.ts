@@ -2,7 +2,7 @@ import { z } from "zod"
 
 // ─── Auth Schemas ──────────────────────────────────────
 
-export const signupSchema = z.object({
+const signupBaseSchema = z.object({
   name: z
     .string()
     .min(2, "Name must be at least 2 characters")
@@ -30,23 +30,25 @@ export const signupSchema = z.object({
   businessName: z.string().optional(),
   ein: z.string().optional(),
 
-  // Agreement
-  agreeToTerms: z.literal(true, {
-    errorMap: () => ({ message: "You must agree to the terms" }),
-  }),
-}).refine(
-  (data) => {
-    // If business profile, require business fields
-    if (data.profileType === "business") {
-      return !!data.businessName && !!data.ein
-    }
-    return true
-  },
-  {
-    message: "Business name and EIN are required for business accounts",
-    path: ["businessName"],
+  // Agreement (boolean so form can default to false; validation requires true)
+  agreeToTerms: z
+    .boolean()
+    .refine((v) => v === true, { message: "You must agree to the terms" }),
+})
+
+const businessRefine = (
+  data: { profileType: string; businessName?: string; ein?: string }
+) => {
+  if (data.profileType === "business") {
+    return !!data.businessName && !!data.ein
   }
-)
+  return true
+}
+
+export const signupSchema = signupBaseSchema.refine(businessRefine, {
+  message: "Business name and EIN are required for business accounts",
+  path: ["businessName"],
+})
 
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -80,6 +82,17 @@ export const addressSchema = z.object({
     .optional(),
 })
 
+// Signup with address and birthday (for residential/business form pages)
+export const signupWithAddressSchema = signupBaseSchema
+  .extend({
+    birthday: z.string().min(1, "Birthday is required"),
+    deliveryAddress: addressSchema,
+  })
+  .refine(businessRefine, {
+    message: "Business name and EIN are required for business accounts",
+    path: ["businessName"],
+  })
+
 // ─── Checkout Schema ───────────────────────────────────
 
 export const checkoutSchema = z.object({
@@ -112,8 +125,9 @@ export const phoneOrderSchema = z.object({
 
 // ─── Type Exports ──────────────────────────────────────
 
-export type SignupFormData   = z.infer<typeof signupSchema>
-export type LoginFormData    = z.infer<typeof loginSchema>
+export type SignupFormData        = z.infer<typeof signupSchema>
+export type SignupWithAddressFormData = z.infer<typeof signupWithAddressSchema>
+export type LoginFormData         = z.infer<typeof loginSchema>
 export type AddressFormData  = z.infer<typeof addressSchema>
 export type CheckoutFormData = z.infer<typeof checkoutSchema>
 export type PhoneOrderData   = z.infer<typeof phoneOrderSchema>

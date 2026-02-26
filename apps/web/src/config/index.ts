@@ -1,6 +1,9 @@
 // ─── Environment Variables ─────────────────────────────
 // All env vars flow through here. Never import process.env directly
 // in components - always use this config object instead.
+// Required vars are validated at boot via @/lib/env.
+
+import { env } from "@/lib/env"
 
 export const config = {
   app: {
@@ -10,12 +13,12 @@ export const config = {
   },
 
   supabase: {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url: env.NEXT_PUBLIC_SUPABASE_URL,
+    anonKey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
 
   stripe: {
-    publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+    publishableKey: env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
     // secretKey only on server - never expose to client
   },
 
@@ -58,9 +61,10 @@ export const BUSINESS = {
 // ─── Route Constants ───────────────────────────────────
 export const ROUTES = {
   // Public
-  HOME:    "/",
-  LOGIN:   "/login",
-  SIGNUP:  "/signup",
+  HOME:     "/",
+  LANGUAGE: "/language",
+  LOGIN:    "/login",
+  SIGNUP:   "/signup",
 
   // Shop (authenticated)
   SHOP:       "/home",

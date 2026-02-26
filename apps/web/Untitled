@@ -1,0 +1,23 @@
+## Error Type
+Runtime Error
+
+## Error Message
+Missing required environment variable: NEXT_PUBLIC_SUPABASE_URL - check your .env.local file
+
+
+    at validateEnv (src/lib/env.ts:31:11)
+    at module evaluation (src/lib/env.ts:60:20)
+    at module evaluation (src/config/index.ts:6:1)
+    at module evaluation (src/lib/utils/index.ts:3:1)
+    at module evaluation (src/app/error.tsx:10:1)
+
+## Code Frame
+  29 |   if (missing.length > 0) {
+  30 |     const first = missing[0]
+> 31 |     throw new Error(
+     |           ^
+  32 |       `Missing required environment variable: ${first} - check your .env.local file`
+  33 |     )
+  34 |   }
+
+Next.js version: 16.1.6 (Turbopack)

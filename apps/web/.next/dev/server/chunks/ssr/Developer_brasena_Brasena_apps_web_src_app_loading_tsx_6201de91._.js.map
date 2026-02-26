@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/dre/Developer/brasena/Brasena/apps/web/src/app/loading.tsx"],"sourcesContent":["/**\n * Global loading UI shown while any page or layout is suspending.\n * Branded with Brasena wordmark and a sage pulse ring; uses only Tailwind and globals.css animations.\n */\n\nexport default function Loading(): JSX.Element {\n  return (\n    <div className=\"min-h-screen bg-surface flex items-center justify-center\">\n      <div className=\"relative flex items-center justify-center w-32 h-32\">\n        <div\n          className=\"absolute inset-0 rounded-full border-2 border-brand-sage animate-pulse-ring\"\n          aria-hidden\n        />\n        <span className=\"font-display text-2xl font-semibold text-brand-sage relative z-10\">\n          Brasena\n        </span>\n      </div>\n    </div>\n  )\n}\n"],"names":[],"mappings":"AAAA;;;CAGC;;;;;;AAEc,SAAS;IACtB,qBACE,iRAAC;QAAI,WAAU;kBACb,cAAA,iRAAC;YAAI,WAAU;;8BACb,iRAAC;oBACC,WAAU;oBACV,aAAW;;;;;;8BAEb,iRAAC;oBAAK,WAAU;8BAAoE;;;;;;;;;;;;;;;;;AAM5F"}}]
+}

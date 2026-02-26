@@ -13,6 +13,7 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "dev:web": "turbo run dev --filter=@brasena/web",
+    "dev:web:3001": "turbo run dev:3001 --filter=@brasena/web",
     "dev:api": "turbo run dev --filter=@brasena/api"
   },
   "devDependencies": {
