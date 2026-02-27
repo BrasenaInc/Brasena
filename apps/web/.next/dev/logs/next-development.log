@@ -73,3 +73,11 @@
 [01:02:38.697] Server  LOG     ✓ Compiled in 59ms
 [01:02:39.327] Server  LOG     ✓ Compiled in 4ms
 [01:02:41.891] Server  LOG     ✓ Compiled in 216ms
+[01:04:30.608] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[01:04:31.100] Browser WARN    Image with src "/logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:04:38.168] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[01:05:47.539] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[01:08:37.045] Server  LOG     ✓ Compiled in 74ms
+[01:08:37.559] Server  LOG     ✓ Compiled in 28ms
+[01:08:40.723] Server  LOG     ✓ Compiled in 37ms
+[01:09:30.930] Server  LOG     ✓ Compiled in 166ms

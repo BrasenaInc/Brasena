@@ -9,10 +9,10 @@ import { useCartStore } from "@/store/cart.store"
 import { cn } from "@/lib/utils"
 
 const ITEMS = [
-  { href: ROUTES.SHOP, icon: Home, key: "nav.home" },
-  { href: ROUTES.CATEGORIES, icon: Search, key: "nav.browse" },
-  { href: ROUTES.CART, icon: ShoppingBag, key: "nav.cart" },
-  { href: ROUTES.ACCOUNT, icon: User, key: "nav.account" },
+  { href: ROUTES.SHOP, icon: Home, key: "nav.home", isActive: (p: string) => p === ROUTES.SHOP },
+  { href: ROUTES.CATEGORIES, icon: Search, key: "nav.browse", isActive: (p: string) => p === ROUTES.CATEGORIES || p.startsWith("/products/") },
+  { href: ROUTES.CART, icon: ShoppingBag, key: "nav.cart", isActive: (p: string) => p === ROUTES.CART || p === ROUTES.CHECKOUT },
+  { href: ROUTES.ACCOUNT, icon: User, key: "nav.account", isActive: (p: string) => p === ROUTES.ACCOUNT || p.startsWith("/orders") || p.startsWith("/account/") },
 ] as const
 
 export function BottomNav(): JSX.Element {
@@ -30,8 +30,8 @@ export function BottomNav(): JSX.Element {
         padding: "10px 0 24px",
       }}
     >
-      {ITEMS.map(({ href, icon: Icon, key }) => {
-        const active = pathname === href
+      {ITEMS.map(({ href, icon: Icon, key, isActive }) => {
+        const active = isActive(pathname)
         const isCart = href === ROUTES.CART
         return (
           <Link

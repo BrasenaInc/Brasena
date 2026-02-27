@@ -80,6 +80,8 @@ export default function SignupBusinessPage(): JSX.Element {
             phone: data.phone,
             profile_type: "business",
             preferred_language: data.preferredLanguage,
+            business_name: data.businessName,
+            ein: data.ein,
           },
         },
       })
@@ -93,21 +95,7 @@ export default function SignupBusinessPage(): JSX.Element {
         return
       }
 
-      // Profile row is created by DB trigger on auth.users; no client insert.
-
-      const businessProfile: TablesInsert<"business_profiles"> = {
-        user_id: userId,
-        business_name: data.businessName,
-        ein: data.ein,
-        verified: false,
-      }
-      const { error: bizError } = await supabase
-        .from("business_profiles")
-        .insert(businessProfile)
-      if (bizError) {
-        setSubmitError(bizError.message)
-        return
-      }
+      // Profile and business_profiles rows are created by DB trigger on auth.users (avoids RLS when session not yet set).
 
       const address: TablesInsert<"addresses"> = {
         user_id: userId,

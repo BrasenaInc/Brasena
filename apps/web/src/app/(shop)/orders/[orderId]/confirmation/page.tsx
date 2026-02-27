@@ -5,8 +5,6 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useSupabase } from "@/lib/hooks/useSupabase"
 import { useLanguage } from "@/lib/context/language"
-import { getNextDeliveryDate } from "@/lib/utils"
-import { cn } from "@/lib/utils"
 
 interface OrderRow {
   id: string
