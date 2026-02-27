@@ -167,6 +167,8 @@ var ROUTES = {
     },
     // Account
     ACCOUNT: "/account",
+    ACCOUNT_ADDRESSES: "/account/addresses",
+    ACCOUNT_PASSWORD: "/account/password",
     // Vendor (iPad interface)
     VENDOR_QUEUE: "/vendor/queue",
     VENDOR_ORDER: function(id) {
@@ -209,6 +211,8 @@ __turbopack_context__.s([
     ()=>formatPricePerLb,
     "generateOrderNumber",
     ()=>generateOrderNumber,
+    "generateOrderNumberForInsert",
+    ()=>generateOrderNumberForInsert,
     "getDeliveryProvider",
     ()=>getDeliveryProvider,
     "getNextDeliveryDate",
@@ -258,6 +262,11 @@ function isZipCodeServiced(zip) {
 function generateOrderNumber(id) {
     var year = new Date().getFullYear();
     return "BR-".concat(year, "-").concat(String(id).padStart(5, "0"));
+}
+function generateOrderNumberForInsert() {
+    var year = new Date().getFullYear();
+    var suffix = String(Date.now() % 100000).padStart(5, "0");
+    return "BR-".concat(year, "-").concat(suffix);
 }
 function formatDeliveryDate(isoString) {
     return new Intl.DateTimeFormat("en-US", {

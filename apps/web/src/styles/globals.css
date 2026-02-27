@@ -26,7 +26,7 @@
   --color-error:   #E05C5C;
   --color-info:    #5B9BD5;
 
-  /* Default = dark (deep forest) until data-theme is set */
+  /* Default = light until data-theme is set; dark = deep forest */
   --bg:       #080E09;
   --surface:  #111814;
   --card:     #192019;

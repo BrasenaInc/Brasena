@@ -10,6 +10,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { ROUTES } from "@/config"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { Spinner } from "@/components/ui/spinner"
+import { ToastContainer } from "@/components/ui"
 import { cn } from "@/lib/utils"
 
 export default function ShopLayout({
@@ -50,7 +51,8 @@ export default function ShopLayout({
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell relative">
+      <ToastContainer />
       {children}
     </div>
   )

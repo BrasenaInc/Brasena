@@ -69,6 +69,16 @@ export function generateOrderNumber(id: number): string {
 }
 
 /**
+ * Generate a unique order number for insert (timestamp-based).
+ * e.g. "BR-2025-12345"
+ */
+export function generateOrderNumberForInsert(): string {
+  const year = new Date().getFullYear()
+  const suffix = String(Date.now() % 100000).padStart(5, "0")
+  return `BR-${year}-${suffix}`
+}
+
+/**
  * Format a date for display in order tracking.
  */
 export function formatDeliveryDate(isoString: string): string {

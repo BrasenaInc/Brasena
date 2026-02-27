@@ -121,6 +121,68 @@ export const translations = {
     "account.changePasswordDesc": "Update your password",
     "account.logout": "Sign out",
     "account.logoutDesc": "Sign out of your account",
+    "account.saveChanges": "Save Changes",
+    "account.saveSuccess": "Changes saved",
+    "account.saveError": "Could not save. Try again.",
+
+    // Browse / categories
+    "browse.searchPlaceholder": "Search cuts...",
+    "browse.noResults": "No results",
+    "browse.tryDifferentSearch": "Try a different search",
+
+    // Product detail
+    "product.selectWeight": "Select Weight",
+    "product.addToCart": "Add to Cart",
+    "product.addedToCart": "Added to cart",
+    "product.estDelivery": "Est. delivery",
+    "product.nextDay": "Next day",
+    "product.subtotal": "Subtotal",
+
+    // Cart
+    "cart.title": "Cart",
+    "cart.emptyTitle": "Your cart is empty",
+    "cart.emptySub": "Add some cuts to get started",
+    "cart.browseProducts": "Browse Products",
+    "cart.promoPlaceholder": "Promo code",
+    "cart.apply": "Apply",
+    "cart.invalidCode": "Invalid code",
+    "cart.orderSummary": "Order Summary",
+    "cart.deliveryFreeOver50": "Free over $50",
+    "cart.proceedToCheckout": "Proceed to Checkout",
+
+    // Checkout
+    "checkout.title": "Checkout",
+    "checkout.deliverTo": "Deliver to",
+    "checkout.change": "Change",
+    "checkout.deliveryInstructions": "Leave at door, ring bell, etc.",
+    "checkout.itemsInOrder": "items in your order",
+    "checkout.payment": "Payment",
+    "checkout.securePaymentStripe": "Secure payment powered by Stripe",
+    "checkout.placeOrder": "Place Order",
+    "checkout.placeOrderError": "Could not place order. Please try again.",
+
+    // Order confirmation
+    "order.placed": "Order placed!",
+    "order.weSendUpdates": "We'll send updates to your phone",
+    "order.estimatedDeliveryTomorrow": "Estimated delivery: Tomorrow",
+    "order.estimatedDelivery": "Estimated delivery",
+    "order.tomorrow": "Tomorrow",
+    "order.trackOrder": "Track Order",
+    "order.continueShopping": "Continue Shopping",
+
+    // Order tracking
+    "orderTracking.title": "Order",
+    "orderTracking.orderPlaced": "Order Placed",
+    "orderTracking.confirmed": "Confirmed",
+    "orderTracking.outForDelivery": "Out for Delivery",
+    "orderTracking.delivered": "Delivered",
+    "orderTracking.yourOrder": "Your Order",
+    "orderTracking.needHelp": "Need help with this order?",
+
+    // Orders list
+    "orders.title": "Orders",
+    "orders.emptyTitle": "No orders yet",
+    "orders.emptySub": "Your order history will appear here",
 
     // Common
     "common.back": "Back",
@@ -163,6 +225,61 @@ export const translations = {
     "account.changePasswordDesc": "Actualizar tu contraseña",
     "account.logout": "Cerrar sesión",
     "account.logoutDesc": "Salir de tu cuenta",
+    "account.saveChanges": "Guardar Cambios",
+    "account.saveSuccess": "Cambios guardados",
+    "account.saveError": "No se pudo guardar. Intenta de nuevo.",
+
+    "browse.searchPlaceholder": "Buscar cortes...",
+    "browse.noResults": "Sin resultados",
+    "browse.tryDifferentSearch": "Intenta con otra búsqueda",
+
+    "product.selectWeight": "Seleccionar Peso",
+    "product.addToCart": "Agregar al Carrito",
+    "product.addedToCart": "Agregado al carrito",
+    "product.estDelivery": "Entrega est.",
+    "product.nextDay": "Al día siguiente",
+    "product.subtotal": "Subtotal",
+
+    "cart.title": "Carrito",
+    "cart.emptyTitle": "Tu carrito está vacío",
+    "cart.emptySub": "Agrega algunos cortes para comenzar",
+    "cart.browseProducts": "Ver Productos",
+    "cart.promoPlaceholder": "Código promocional",
+    "cart.apply": "Aplicar",
+    "cart.invalidCode": "Código inválido",
+    "cart.orderSummary": "Resumen del Pedido",
+    "cart.deliveryFreeOver50": "Gratis en pedidos mayores a $50",
+    "cart.proceedToCheckout": "Proceder al Pago",
+
+    "checkout.title": "Pago",
+    "checkout.deliverTo": "Entregar a",
+    "checkout.change": "Cambiar",
+    "checkout.deliveryInstructions": "Dejar en la puerta, tocar el timbre, etc.",
+    "checkout.itemsInOrder": "artículos en tu pedido",
+    "checkout.payment": "Pago",
+    "checkout.securePaymentStripe": "Pago seguro con Stripe",
+    "checkout.placeOrder": "Realizar Pedido",
+    "checkout.placeOrderError": "No se pudo realizar el pedido. Intenta de nuevo.",
+
+    "order.placed": "Pedido realizado!",
+    "order.weSendUpdates": "Te enviaremos actualizaciones a tu teléfono",
+    "order.estimatedDeliveryTomorrow": "Entrega estimada: Mañana",
+    "order.estimatedDelivery": "Entrega estimada",
+    "order.tomorrow": "Mañana",
+    "order.trackOrder": "Rastrear Pedido",
+    "order.continueShopping": "Seguir Comprando",
+
+    "orderTracking.title": "Pedido",
+    "orderTracking.orderPlaced": "Pedido Realizado",
+    "orderTracking.confirmed": "Confirmado",
+    "orderTracking.outForDelivery": "En Camino",
+    "orderTracking.delivered": "Entregado",
+    "orderTracking.yourOrder": "Tu Pedido",
+    "orderTracking.needHelp": "Necesitas ayuda con este pedido?",
+
+    "orders.title": "Pedidos",
+    "orders.emptyTitle": "Aún no hay pedidos",
+    "orders.emptySub": "Tu historial de pedidos aparecerá aquí",
 
     "lang.choose": "Elige tu idioma",
     "lang.subtitle": "Select to continue · Selecciona para continuar",

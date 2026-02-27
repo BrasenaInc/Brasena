@@ -28,14 +28,14 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function getStoredTheme(): Theme {
-  if (typeof window === "undefined") return "dark"
+  if (typeof window === "undefined") return "light"
   const stored = window.localStorage.getItem(STORAGE_KEY)
   if (stored === "light" || stored === "dark") return stored
-  return "dark"
+  return "light"
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }): JSX.Element {
-  const [theme, setThemeState] = useState<Theme>("dark")
+  const [theme, setThemeState] = useState<Theme>("light")
 
   useEffect(() => {
     setThemeState(getStoredTheme())

@@ -38,22 +38,25 @@ function buildProductWithTiers(
   return { ...product, weight_tiers }
 }
 
-export function useProducts(category?: string): {
+export function useProducts(category?: string, options?: { limit?: number }): {
   data: ProductWithTiers[] | undefined
   isLoading: boolean
   error: Error | null
 } {
   const supabase = useSupabase()
+  const limit = options?.limit
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["products", category ?? "all"],
+    queryKey: ["products", category ?? "all", limit ?? "none"],
     queryFn: async (): Promise<ProductWithTiers[]> => {
       let q = supabase
         .from("products")
         .select("*")
         .eq("in_stock", true)
         .order("created_at", { ascending: false })
-        .limit(12)
+      if (typeof limit === "number") {
+        q = q.limit(limit)
+      }
       if (category && category !== "All") {
         q = q.eq("category", category)
       }

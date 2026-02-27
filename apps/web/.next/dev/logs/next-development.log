@@ -43,3 +43,33 @@
 [00:13:54.110] Browser WARN    Image with src "/logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
 [00:15:54.778] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 [00:15:59.961] Browser WARN    Image with src "/logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:22:13.477] Server  LOG     ✓ Compiled in 42ms
+[00:22:27.145] Server  LOG     ✓ Compiled in 4ms
+[00:22:54.617] Server  LOG     ✓ Compiled in 111ms
+[00:24:05.115] Server  LOG     ✓ Compiled in 42ms
+[00:25:23.790] Server  LOG     ✓ Compiled in 45ms
+[00:26:12.525] Server  LOG     ✓ Compiled in 37ms
+[00:26:57.914] Server  LOG     ✓ Compiled in 40ms
+[00:27:43.324] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:27:43.391] Server  LOG     ✓ Compiled in 69ms
+[00:28:13.055] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:28:13.122] Server  LOG     ✓ Compiled in 35ms
+[00:28:56.315] Server  LOG     ✓ Compiled in 124ms
+[00:30:00.588] Server  LOG     ✓ Compiled in 32ms
+[00:30:11.488] Server  LOG     ✓ Compiled in 22ms
+[00:30:14.815] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:30:18.031] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:30:45.340] Server  LOG     ✓ Compiled in 3ms
+[00:30:46.348] Server  LOG     ✓ Compiled in 3ms
+[00:30:58.796] Server  LOG     ✓ Compiled in 3ms
+[00:30:59.996] Server  LOG     ✓ Compiled in 3ms
+[01:01:04.712] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[01:01:05.172] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[01:01:07.403] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[01:01:07.851] Browser WARN    Image with src "/logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[01:01:16.096] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[01:01:54.275] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[01:02:34.959] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[01:02:38.697] Server  LOG     ✓ Compiled in 59ms
+[01:02:39.327] Server  LOG     ✓ Compiled in 4ms
+[01:02:41.891] Server  LOG     ✓ Compiled in 216ms

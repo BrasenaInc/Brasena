@@ -160,6 +160,8 @@ const ROUTES = {
     ORDER_TRACK: (id)=>`/orders/${id}/track`,
     // Account
     ACCOUNT: "/account",
+    ACCOUNT_ADDRESSES: "/account/addresses",
+    ACCOUNT_PASSWORD: "/account/password",
     // Vendor (iPad interface)
     VENDOR_QUEUE: "/vendor/queue",
     VENDOR_ORDER: (id)=>`/vendor/orders/${id}`,

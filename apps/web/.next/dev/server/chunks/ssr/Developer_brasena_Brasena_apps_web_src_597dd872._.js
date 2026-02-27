@@ -42,17 +42,22 @@ function buildProductWithTiers(product, tiers) {
         weight_tiers
     };
 }
-function useProducts(category) {
+function useProducts(category, options) {
     const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$lib$2f$hooks$2f$useSupabase$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useSupabase"])();
+    const limit = options?.limit;
     const { data, isLoading, error } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$tanstack$2f$react$2d$query$2f$build$2f$modern$2f$useQuery$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useQuery"])({
         queryKey: [
             "products",
-            category ?? "all"
+            category ?? "all",
+            limit ?? "none"
         ],
         queryFn: async ()=>{
             let q = supabase.from("products").select("*").eq("in_stock", true).order("created_at", {
                 ascending: false
-            }).limit(12);
+            });
+            if (typeof limit === "number") {
+                q = q.limit(limit);
+            }
             if (category && category !== "All") {
                 q = q.eq("category", category);
             }
@@ -162,40 +167,46 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Bras
 var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$zustand$2f$esm$2f$middleware$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Developer/brasena/Brasena/node_modules/zustand/esm/middleware.mjs [app-ssr] (ecmascript)");
 ;
 ;
+function cartItemId(productId, weightLbs) {
+    return `${productId}-${weightLbs}`;
+}
+function calcSubtotal(weightLbs, pricePerLb, quantity) {
+    return weightLbs * pricePerLb * quantity;
+}
 const useCartStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$zustand$2f$esm$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["create"])()((0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$zustand$2f$esm$2f$middleware$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["persist"])((set, get)=>({
         items: [],
         isOpen: false,
-        addItem: (product, weightLbs)=>{
+        addItem: (params)=>{
+            const qty = params.quantity ?? 1;
+            const id = cartItemId(params.productId, params.weightLbs);
             const { items } = get();
-            const tier = product.weightTiers.find((t)=>t.weightLbs === weightLbs);
-            if (!tier) {
-                console.error(`No pricing tier found for ${weightLbs}lb`);
-                return;
-            }
-            const existingIndex = items.findIndex((i)=>i.productId === product.id && i.weightLbs === weightLbs);
+            const existingIndex = items.findIndex((i)=>i.id === id);
             if (existingIndex >= 0) {
-                // Increment quantity if already in cart
                 const updated = [
                     ...items
                 ];
                 const existing = updated[existingIndex];
+                const newQty = existing.quantity + qty;
                 updated[existingIndex] = {
                     ...existing,
-                    quantity: existing.quantity + 1,
-                    subtotal: (existing.quantity + 1) * tier.totalPrice
+                    quantity: newQty,
+                    subtotal: calcSubtotal(existing.weightLbs, existing.pricePerLb, newQty)
                 };
                 set({
                     items: updated
                 });
             } else {
-                // Add new cart item
                 const newItem = {
-                    productId: product.id,
-                    product,
-                    weightLbs,
-                    quantity: 1,
-                    unitPrice: tier.totalPrice,
-                    subtotal: tier.totalPrice
+                    id,
+                    productId: params.productId,
+                    productName: params.productName,
+                    productSlug: params.productSlug,
+                    productSku: params.productSku,
+                    category: params.category,
+                    weightLbs: params.weightLbs,
+                    pricePerLb: params.pricePerLb,
+                    quantity: qty,
+                    subtotal: calcSubtotal(params.weightLbs, params.pricePerLb, qty)
                 };
                 set({
                     items: [
@@ -205,21 +216,21 @@ const useCartStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Develop
                 });
             }
         },
-        removeItem: (productId, weightLbs)=>{
+        removeItem: (id)=>{
             set((state)=>({
-                    items: state.items.filter((i)=>!(i.productId === productId && i.weightLbs === weightLbs))
+                    items: state.items.filter((i)=>i.id !== id)
                 }));
         },
-        updateQuantity: (productId, weightLbs, quantity)=>{
+        updateQuantity: (id, quantity)=>{
             if (quantity <= 0) {
-                get().removeItem(productId, weightLbs);
+                get().removeItem(id);
                 return;
             }
             set((state)=>({
-                    items: state.items.map((i)=>i.productId === productId && i.weightLbs === weightLbs ? {
+                    items: state.items.map((i)=>i.id === id ? {
                             ...i,
                             quantity,
-                            subtotal: quantity * i.unitPrice
+                            subtotal: calcSubtotal(i.weightLbs, i.pricePerLb, quantity)
                         } : i)
                 }));
         },
@@ -229,16 +240,10 @@ const useCartStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Develop
         toggleCart: ()=>set((state)=>({
                     isOpen: !state.isOpen
                 })),
-        // Derived values - computed on demand, not stored
         itemCount: ()=>get().items.reduce((sum, item)=>sum + item.quantity, 0),
-        subtotal: ()=>get().items.reduce((sum, item)=>sum + item.subtotal, 0),
-        totalSavings: ()=>get().items.reduce((sum, item)=>{
-                const tier = item.product.weightTiers.find((t)=>t.weightLbs === item.weightLbs);
-                return sum + (tier?.savingsAmount ?? 0) * item.quantity;
-            }, 0)
+        subtotal: ()=>get().items.reduce((sum, item)=>sum + item.subtotal, 0)
     }), {
     name: "brasena-cart",
-    // Only persist items, not UI state like isOpen
     partialize: (state)=>({
             items: state.items
         })

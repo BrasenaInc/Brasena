@@ -55,13 +55,15 @@ function buildProductWithTiers(product, tiers) {
         weight_tiers: weight_tiers
     });
 }
-function useProducts(category) {
+function useProducts(category, options) {
     _s();
     var supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$lib$2f$hooks$2f$useSupabase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSupabase"])();
+    var limit = options === null || options === void 0 ? void 0 : options.limit;
     var _useQuery = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$tanstack$2f$react$2d$query$2f$build$2f$modern$2f$useQuery$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useQuery"])({
         queryKey: [
             "products",
-            category !== null && category !== void 0 ? category : "all"
+            category !== null && category !== void 0 ? category : "all",
+            limit !== null && limit !== void 0 ? limit : "none"
         ],
         queryFn: {
             "useProducts.useQuery[_useQuery]": function() {
@@ -74,7 +76,10 @@ function useProducts(category) {
                                     case 0:
                                         q = supabase.from("products").select("*").eq("in_stock", true).order("created_at", {
                                             ascending: false
-                                        }).limit(12);
+                                        });
+                                        if (typeof limit === "number") {
+                                            q = q.limit(limit);
+                                        }
                                         if (category && category !== "All") {
                                             q = q.eq("category", category);
                                         }
@@ -338,42 +343,47 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Bras
 ;
 ;
 ;
+function cartItemId(productId, weightLbs) {
+    return "".concat(productId, "-").concat(weightLbs);
+}
+function calcSubtotal(weightLbs, pricePerLb, quantity) {
+    return weightLbs * pricePerLb * quantity;
+}
 var useCartStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$zustand$2f$esm$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["create"])()((0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$zustand$2f$esm$2f$middleware$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["persist"])(function(set, get) {
     return {
         items: [],
         isOpen: false,
-        addItem: function(product, weightLbs) {
+        addItem: function(params) {
+            var _params_quantity;
+            var qty = (_params_quantity = params.quantity) !== null && _params_quantity !== void 0 ? _params_quantity : 1;
+            var id = cartItemId(params.productId, params.weightLbs);
             var items = get().items;
-            var tier = product.weightTiers.find(function(t) {
-                return t.weightLbs === weightLbs;
-            });
-            if (!tier) {
-                console.error("No pricing tier found for ".concat(weightLbs, "lb"));
-                return;
-            }
             var existingIndex = items.findIndex(function(i) {
-                return i.productId === product.id && i.weightLbs === weightLbs;
+                return i.id === id;
             });
             if (existingIndex >= 0) {
-                // Increment quantity if already in cart
                 var updated = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_to_consumable_array$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])(items);
                 var existing = updated[existingIndex];
+                var newQty = existing.quantity + qty;
                 updated[existingIndex] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_object_spread_props$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_object_spread$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])({}, existing), {
-                    quantity: existing.quantity + 1,
-                    subtotal: (existing.quantity + 1) * tier.totalPrice
+                    quantity: newQty,
+                    subtotal: calcSubtotal(existing.weightLbs, existing.pricePerLb, newQty)
                 });
                 set({
                     items: updated
                 });
             } else {
-                // Add new cart item
                 var newItem = {
-                    productId: product.id,
-                    product: product,
-                    weightLbs: weightLbs,
-                    quantity: 1,
-                    unitPrice: tier.totalPrice,
-                    subtotal: tier.totalPrice
+                    id: id,
+                    productId: params.productId,
+                    productName: params.productName,
+                    productSlug: params.productSlug,
+                    productSku: params.productSku,
+                    category: params.category,
+                    weightLbs: params.weightLbs,
+                    pricePerLb: params.pricePerLb,
+                    quantity: qty,
+                    subtotal: calcSubtotal(params.weightLbs, params.pricePerLb, qty)
                 };
                 set({
                     items: (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_to_consumable_array$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])(items).concat([
@@ -382,26 +392,26 @@ var useCartStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer
                 });
             }
         },
-        removeItem: function(productId, weightLbs) {
+        removeItem: function(id) {
             set(function(state) {
                 return {
                     items: state.items.filter(function(i) {
-                        return !(i.productId === productId && i.weightLbs === weightLbs);
+                        return i.id !== id;
                     })
                 };
             });
         },
-        updateQuantity: function(productId, weightLbs, quantity) {
+        updateQuantity: function(id, quantity) {
             if (quantity <= 0) {
-                get().removeItem(productId, weightLbs);
+                get().removeItem(id);
                 return;
             }
             set(function(state) {
                 return {
                     items: state.items.map(function(i) {
-                        return i.productId === productId && i.weightLbs === weightLbs ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_object_spread_props$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_object_spread$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])({}, i), {
+                        return i.id === id ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_object_spread_props$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_object_spread$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])({}, i), {
                             quantity: quantity,
-                            subtotal: quantity * i.unitPrice
+                            subtotal: calcSubtotal(i.weightLbs, i.pricePerLb, quantity)
                         }) : i;
                     })
                 };
@@ -419,7 +429,6 @@ var useCartStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer
                 };
             });
         },
-        // Derived values - computed on demand, not stored
         itemCount: function() {
             return get().items.reduce(function(sum, item) {
                 return sum + item.quantity;
@@ -429,20 +438,10 @@ var useCartStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer
             return get().items.reduce(function(sum, item) {
                 return sum + item.subtotal;
             }, 0);
-        },
-        totalSavings: function() {
-            return get().items.reduce(function(sum, item) {
-                var _ref;
-                var tier = item.product.weightTiers.find(function(t) {
-                    return t.weightLbs === item.weightLbs;
-                });
-                return sum + ((_ref = tier === null || tier === void 0 ? void 0 : tier.savingsAmount) !== null && _ref !== void 0 ? _ref : 0) * item.quantity;
-            }, 0);
         }
     };
 }, {
     name: "brasena-cart",
-    // Only persist items, not UI state like isOpen
     partialize: function(state) {
         return {
             items: state.items

@@ -184,6 +184,8 @@ const ROUTES = {
     ORDER_TRACK: (id)=>`/orders/${id}/track`,
     // Account
     ACCOUNT: "/account",
+    ACCOUNT_ADDRESSES: "/account/addresses",
+    ACCOUNT_PASSWORD: "/account/password",
     // Vendor (iPad interface)
     VENDOR_QUEUE: "/vendor/queue",
     VENDOR_ORDER: (id)=>`/vendor/orders/${id}`,
@@ -221,6 +223,8 @@ __turbopack_context__.s([
     ()=>formatPricePerLb,
     "generateOrderNumber",
     ()=>generateOrderNumber,
+    "generateOrderNumberForInsert",
+    ()=>generateOrderNumberForInsert,
     "getDeliveryProvider",
     ()=>getDeliveryProvider,
     "getNextDeliveryDate",
@@ -263,6 +267,11 @@ function isZipCodeServiced(zip) {
 function generateOrderNumber(id) {
     const year = new Date().getFullYear();
     return `BR-${year}-${String(id).padStart(5, "0")}`;
+}
+function generateOrderNumberForInsert() {
+    const year = new Date().getFullYear();
+    const suffix = String(Date.now() % 100000).padStart(5, "0");
+    return `BR-${year}-${suffix}`;
 }
 function formatDeliveryDate(isoString) {
     return new Intl.DateTimeFormat("en-US", {

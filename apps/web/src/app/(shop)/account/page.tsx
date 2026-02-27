@@ -1,13 +1,16 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ChevronRight, LogOut, MapPin, Package, Lock, type LucideIcon } from "lucide-react"
-import { TopNav } from "@/components/features/shop"
-import { BottomNav } from "@/components/features/shop"
+import { TopNav, BottomNav } from "@/components/features/shop"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
+import { FormField } from "@/components/ui/form-field"
 import { ROUTES } from "@/config"
 import { useLanguage } from "@/lib/context/language"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { useToast } from "@/lib/hooks/useToast"
+import { useSupabase } from "@/lib/hooks/useSupabase"
 import { cn } from "@/lib/utils"
 
 function SettingsSection({
@@ -109,20 +112,76 @@ function SettingsLink({
 
 export default function AccountPage(): JSX.Element {
   const { language, setLanguage, t } = useLanguage()
-  const { profile, signOut } = useAuth()
+  const { user, profile, signOut } = useAuth()
+  const { showToast } = useToast()
+  const supabase = useSupabase()
+  const [fullName, setFullName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name ?? "")
+      setEmail(profile.email ?? "")
+      setPhone(profile.phone ?? "")
+    }
+  }, [profile])
+
+  async function handleSaveProfile(): Promise<void> {
+    if (!user?.id) return
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ full_name: fullName || null, email, phone: phone || null })
+        .eq("id", user.id)
+      if (error) throw error
+      showToast({ message: t("account.saveSuccess") ?? "Saved", type: "success" })
+    } catch {
+      showToast({ message: t("account.saveError") ?? "Could not save", type: "error" })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <>
-      <TopNav title={t("nav.account")} showCart />
+      <TopNav title={t("nav.account")} showCart={false} />
       <main className="flex-1 overflow-y-auto w-full">
-        <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8 pb-24">
+        <div className="mx-auto w-full max-w-[480px] px-4 py-6 sm:px-6 pb-24">
           {/* Profile */}
           <SettingsSection title={t("account.profile")}>
-            <SettingsCard>
-              <SettingsRow label={t("form.name")} value={profile?.full_name ?? undefined} />
-              <SettingsRow label={t("form.email")} value={profile?.email ?? undefined} />
-              <SettingsRow label={t("form.phone")} value={profile?.phone ?? undefined} />
-            </SettingsCard>
+            <div className="space-y-4">
+              <FormField
+                label={t("form.name")}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Full name"
+              />
+              <FormField
+                label={t("form.email")}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email address"
+              />
+              <FormField
+                label={t("form.phone")}
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Phone number"
+              />
+              <button
+                type="button"
+                onClick={handleSaveProfile}
+                disabled={saving}
+                className="btn-primary w-full rounded-2xl min-h-[48px]"
+              >
+                {saving ? "..." : t("account.saveChanges")}
+              </button>
+            </div>
           </SettingsSection>
 
           {/* Preferences */}
@@ -184,7 +243,7 @@ export default function AccountPage(): JSX.Element {
                 icon={Package}
               />
               <SettingsLink
-                href="#"
+                href={ROUTES.ACCOUNT_ADDRESSES}
                 label={t("account.addresses")}
                 description={t("account.addressesDesc")}
                 icon={MapPin}
@@ -192,11 +251,12 @@ export default function AccountPage(): JSX.Element {
             </SettingsCard>
           </SettingsSection>
 
-          {/* Security placeholder - optional for later */}
+          {/* Security */}
           <SettingsSection title={t("account.security")}>
             <SettingsCard>
-              <div
-                className="flex items-center gap-4 px-4 py-3"
+              <Link
+                href={ROUTES.ACCOUNT_PASSWORD}
+                className="flex items-center gap-4 px-4 py-3 transition-colors hover:opacity-90"
                 style={{ borderColor: "var(--border)" }}
               >
                 <div
@@ -213,7 +273,8 @@ export default function AccountPage(): JSX.Element {
                     {t("account.changePasswordDesc")}
                   </p>
                 </div>
-              </div>
+                <ChevronRight className="h-5 w-5 shrink-0" style={{ color: "var(--text3)" }} strokeWidth={2} />
+              </Link>
             </SettingsCard>
           </SettingsSection>
 

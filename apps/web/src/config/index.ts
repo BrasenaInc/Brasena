@@ -81,6 +81,8 @@ export const ROUTES = {
 
   // Account
   ACCOUNT: "/account",
+  ACCOUNT_ADDRESSES: "/account/addresses",
+  ACCOUNT_PASSWORD: "/account/password",
 
   // Vendor (iPad interface)
   VENDOR_QUEUE:  "/vendor/queue",

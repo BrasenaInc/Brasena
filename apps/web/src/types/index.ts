@@ -52,12 +52,16 @@ export interface Product {
 
 // ─── Cart ──────────────────────────────────────────────
 export interface CartItem {
+  id: string // `${productId}-${weightLbs}`
   productId: string
-  product: Product
-  weightLbs: 10 | 20 | 30 | 40
+  productName: string
+  productSlug: string
+  productSku: string
+  category: string
+  weightLbs: number
+  pricePerLb: number // cents
   quantity: number
-  unitPrice: number
-  subtotal: number
+  subtotal: number // cents: weightLbs * pricePerLb * quantity
 }
 
 export interface Cart {

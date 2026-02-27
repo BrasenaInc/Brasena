@@ -55,6 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="light"
       className={`${playfair.variable} ${dmSans.variable} ${dmMono.variable}`}
     >
       <body className="font-body bg-surface text-text-primary antialiased">
