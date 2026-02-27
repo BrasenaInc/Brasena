@@ -487,6 +487,36 @@ export type Database = {
           },
         ]
       }
+      promotions: {
+        Row: {
+          id: string
+          description: string
+          code: string
+          is_active: boolean
+          expires_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          description: string
+          code: string
+          is_active?: boolean
+          expires_at: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          description?: string
+          code?: string
+          is_active?: boolean
+          expires_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

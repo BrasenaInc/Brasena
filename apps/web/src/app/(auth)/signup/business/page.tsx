@@ -93,23 +93,7 @@ export default function SignupBusinessPage(): JSX.Element {
         return
       }
 
-      const now = new Date().toISOString()
-      const profile: TablesInsert<"profiles"> = {
-        id: userId,
-        email: data.email,
-        full_name: data.name,
-        phone: data.phone,
-        role: "customer",
-        profile_type: "business",
-        preferred_language: data.preferredLanguage,
-        created_at: now,
-        updated_at: now,
-      }
-      const { error: profileError } = await supabase.from("profiles").insert(profile)
-      if (profileError) {
-        setSubmitError(profileError.message)
-        return
-      }
+      // Profile row is created by DB trigger on auth.users; no client insert.
 
       const businessProfile: TablesInsert<"business_profiles"> = {
         user_id: userId,

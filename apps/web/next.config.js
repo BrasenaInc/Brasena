@@ -6,9 +6,8 @@ const nextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
   },
-  experimental: {
-    typedRoutes: true,
-  },
+  // typedRoutes disabled so ROUTES.* (string) work with Link href
+  // experimental: { typedRoutes: true },
 }
 
 module.exports = nextConfig

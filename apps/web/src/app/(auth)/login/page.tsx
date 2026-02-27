@@ -1,13 +1,13 @@
 "use client"
 
 /**
- * Login page: email/password sign-in with Supabase, validation via loginSchema,
- * and redirect to /home on success. Replaces Sprint 1 smoke test placeholder.
+ * Login page: email/password sign-in with Supabase, validation via loginSchema.
+ * Redirects to ?next= path after success, or /home if no next param.
  */
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Eye, EyeOff } from "lucide-react"
@@ -22,10 +22,17 @@ import { cn } from "@/lib/utils"
 
 export default function LoginPage(): JSX.Element {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useLanguage()
   const supabase = useSupabase()
   const [showPassword, setShowPassword] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const rawNext = searchParams.get("next")
+  const nextUrl =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? rawNext
+      : ROUTES.SHOP
 
   const {
     register,
@@ -47,7 +54,7 @@ export default function LoginPage(): JSX.Element {
         setSubmitError(error.message)
         return
       }
-      router.push(ROUTES.SHOP)
+      router.push(nextUrl)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong")
     }

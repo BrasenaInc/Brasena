@@ -1,12 +1,10 @@
 /**
- * Root page (/). Redirects unauthenticated users to the login page so that
- * the app always lands on a valid route. Auth and shop routing are handled
- * by middleware and layout groups.
+ * Root page (/). Public landing — no auth required.
+ * Shop, cart, account, and ordering require sign-in (handled by (shop) layout).
  */
 
-import { redirect } from "next/navigation"
-import { ROUTES } from "@/config"
+import { LandingPage } from "@/components/landing-page"
 
-export default function RootPage(): never {
-  redirect(ROUTES.LOGIN)
+export default function RootPage(): JSX.Element {
+  return <LandingPage />
 }

@@ -384,8 +384,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Bras
 var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$tslib$2f$tslib$2e$es6$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__$5f$_generator__as__$5f3e$__ = __turbopack_context__.i("[project]/Developer/brasena/Brasena/node_modules/tslib/tslib.es6.mjs [app-client] (ecmascript) <export __generator as _>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Developer/brasena/Brasena/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 /**
- * Login page: email/password sign-in with Supabase, validation via loginSchema,
- * and redirect to /home on success. Replaces Sprint 1 smoke test placeholder.
+ * Login page: email/password sign-in with Supabase, validation via loginSchema.
+ * Redirects to ?next= path after success, or /home if no next param.
  */ var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Developer/brasena/Brasena/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Developer/brasena/Brasena/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/Developer/brasena/Brasena/node_modules/next/navigation.js [app-client] (ecmascript)");
@@ -428,10 +428,13 @@ function LoginPage() {
     var _errors_email;
     _s();
     var router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
+    var searchParams = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"])();
     var t = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$lib$2f$context$2f$language$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLanguage"])().t;
     var supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$lib$2f$hooks$2f$useSupabase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSupabase"])();
     var _useState = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_sliced_to_array$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false), 2), showPassword = _useState[0], setShowPassword = _useState[1];
     var _useState1 = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$swc$2f$helpers$2f$esm$2f$_sliced_to_array$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["_"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null), 2), submitError = _useState1[0], setSubmitError = _useState1[1];
+    var rawNext = searchParams.get("next");
+    var nextUrl = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$config$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ROUTES"].SHOP;
     var _useForm = (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$react$2d$hook$2d$form$2f$dist$2f$index$2e$esm$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useForm"])({
         resolver: (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f40$hookform$2f$resolvers$2f$zod$2f$dist$2f$zod$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["zodResolver"])(__TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$lib$2f$validators$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["loginSchema"]),
         defaultValues: {
@@ -469,7 +472,7 @@ function LoginPage() {
                                 2
                             ];
                         }
-                        router.push(__TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$config$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ROUTES"].SHOP);
+                        router.push(nextUrl);
                         return [
                             3,
                             4
@@ -497,12 +500,12 @@ function LoginPage() {
                     size: "sm"
                 }, void 0, false, {
                     fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                    lineNumber: 59,
+                    lineNumber: 66,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                lineNumber: 58,
+                lineNumber: 65,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -510,7 +513,7 @@ function LoginPage() {
                 children: t("login.title")
             }, void 0, false, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                lineNumber: 61,
+                lineNumber: 68,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -518,7 +521,7 @@ function LoginPage() {
                 children: t("login.subtitle")
             }, void 0, false, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                lineNumber: 64,
+                lineNumber: 71,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -533,7 +536,7 @@ function LoginPage() {
                         error: (_errors_email = errors.email) === null || _errors_email === void 0 ? void 0 : _errors_email.message
                     }, register("email")), void 0, false, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                        lineNumber: 69,
+                        lineNumber: 76,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -549,13 +552,13 @@ function LoginPage() {
                                         children: "*"
                                     }, void 0, false, {
                                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                                        lineNumber: 79,
+                                        lineNumber: 86,
                                         columnNumber: 35
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                                lineNumber: 78,
+                                lineNumber: 85,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -568,7 +571,7 @@ function LoginPage() {
                                         className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$lib$2f$utils$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("input pr-12", errors.password && "border-[color:var(--color-error)]")
                                     }, register("password")), void 0, false, {
                                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                                        lineNumber: 82,
+                                        lineNumber: 89,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -584,24 +587,24 @@ function LoginPage() {
                                             className: "w-5 h-5"
                                         }, void 0, false, {
                                             fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                                            lineNumber: 98,
+                                            lineNumber: 105,
                                             columnNumber: 31
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$eye$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Eye$3e$__["Eye"], {
                                             className: "w-5 h-5"
                                         }, void 0, false, {
                                             fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                                            lineNumber: 98,
+                                            lineNumber: 105,
                                             columnNumber: 64
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                                        lineNumber: 92,
+                                        lineNumber: 99,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                                lineNumber: 81,
+                                lineNumber: 88,
                                 columnNumber: 11
                             }, this),
                             errors.password && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -610,13 +613,13 @@ function LoginPage() {
                                 children: errors.password.message
                             }, void 0, false, {
                                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                                lineNumber: 102,
+                                lineNumber: 109,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                        lineNumber: 77,
+                        lineNumber: 84,
                         columnNumber: 9
                     }, this),
                     submitError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -625,7 +628,7 @@ function LoginPage() {
                         children: submitError
                     }, void 0, false, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                        lineNumber: 109,
+                        lineNumber: 116,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -637,18 +640,18 @@ function LoginPage() {
                             color: "white"
                         }, void 0, false, {
                             fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                            lineNumber: 120,
+                            lineNumber: 127,
                             columnNumber: 13
                         }, this) : t("login.submit")
                     }, void 0, false, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                        lineNumber: 114,
+                        lineNumber: 121,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                lineNumber: 68,
+                lineNumber: 75,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -662,21 +665,22 @@ function LoginPage() {
                         children: t("login.createAccount")
                     }, void 0, false, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                        lineNumber: 129,
+                        lineNumber: 136,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(auth)/login/page.tsx",
-                lineNumber: 127,
+                lineNumber: 134,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true);
 }
-_s(LoginPage, "sAXgJnIlXZT7Drj2robdi6T0iog=", false, function() {
+_s(LoginPage, "sTs8E0dEzS5l4maNC4wzEst2QBQ=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"],
+        __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSearchParams"],
         __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$lib$2f$context$2f$language$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useLanguage"],
         __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$lib$2f$hooks$2f$useSupabase$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useSupabase"],
         __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$react$2d$hook$2d$form$2f$dist$2f$index$2e$esm$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useForm"]

@@ -4,8 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Brasena Design Tokens ─────────────────────────── */
-:root {
+/* ─── Brasena Design Tokens (theme-aware) ────────────── */
+:root,
+[data-theme="dark"] {
   --font-display: 'Playfair Display', serif;
   --font-body:    'DM Sans', sans-serif;
   --font-mono:    'DM Mono', monospace;
@@ -15,23 +16,76 @@
   --color-brand-sage:   #8BAF8E;
   --color-brand-mint:   #A8C5A0;
   --color-brand-forest: #4A7C59;
+  --sage:               #8BAF8E;
+  --gold-lt:             #D4AE52;
+  --gold-bg:             rgba(184, 149, 58, 0.12);
+  --gold-border:         rgba(184, 149, 58, 0.25);
 
   /* Surfaces */
+  --surface:       #0F1410;
+  --surface-muted: #1A2018;
+  --card:           #1E2820;
+  --card2:          #263028;
   --color-surface:        #0F1410;
   --color-surface-muted:  #1A2018;
   --color-surface-card:   #1E2820;
   --color-surface-border: #2A3828;
 
+  /* Nav & hero */
+  --nav-bg:      rgba(15, 20, 16, 0.92);
+  --border:      #2A3828;
+  --border-lt:   rgba(38, 48, 40, 0.5);
+  --hero-bg:     linear-gradient(135deg, #1a2e1c 0%, #0f1a10 50%, #162218 100%);
+  --hero-border: rgba(139, 175, 142, 0.15);
+
   /* Text */
+  --text-primary:   #F5F7F5;
+  --text-secondary: #9BAD9B;
+  --text3:          #627062;
   --color-text-primary:   #F5F7F5;
   --color-text-secondary: #9BAD9B;
   --color-text-muted:     #6B7C6B;
+
+  /* Accents */
+  --sage-bg:     rgba(139, 175, 142, 0.12);
+  --sage-bg-lt:  rgba(139, 175, 142, 0.18);
+  --thumb-bg:    #263028;
 
   /* Feedback */
   --color-success: #4CAF7D;
   --color-warning: #F0A500;
   --color-error:   #E05C5C;
   --color-info:    #5B9BD5;
+}
+
+[data-theme="light"] {
+  --surface:       #f5f7f5;
+  --surface-muted: #e8ede8;
+  --card:          #ffffff;
+  --card2:         #e8ede8;
+  --color-surface:        #f5f7f5;
+  --color-surface-muted:  #e8ede8;
+  --color-surface-card:   #ffffff;
+  --color-surface-border: #d0dcd0;
+
+  --nav-bg:      rgba(245, 247, 245, 0.92);
+  --border:      #d0dcd0;
+  --border-lt:   rgba(0, 0, 0, 0.08);
+  --hero-bg:     linear-gradient(135deg, #e0ede2 0%, #d4e5d6 50%, #c8ddcb 100%);
+  --hero-border: rgba(139, 175, 142, 0.35);
+
+  --text-primary:   #0F1410;
+  --text-secondary: #3d4a3d;
+  --text3:          #627062;
+  --color-text-primary:   #0F1410;
+  --color-text-secondary: #3d4a3d;
+  --color-text-muted:     #627062;
+
+  --sage-bg:     rgba(139, 175, 142, 0.15);
+  --sage-bg-lt:  rgba(139, 175, 142, 0.22);
+  --thumb-bg:    #e0e8e0;
+  --gold-bg:     rgba(184, 149, 58, 0.12);
+  --gold-border: rgba(184, 149, 58, 0.3);
 }
 
 /* ─── Base Reset ─────────────────────────────────────── */
@@ -45,12 +99,21 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
+  background-color: var(--surface);
+  color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ─── App shell (shop: website-first, full-width shell) ─ */
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  background: var(--surface);
+}
+/* Inner content can use max-w in each page for readable width */
 
 /* ─── Typography Scale ───────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {

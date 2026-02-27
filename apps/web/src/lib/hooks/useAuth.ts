@@ -83,7 +83,7 @@ export function useAuth(): {
   const signOut = useCallback(async (): Promise<void> => {
     await supabase.auth.signOut()
     setProfile(null)
-    router.push(ROUTES.LOGIN)
+    router.push("/")
   }, [supabase, router])
 
   return useMemo(() => ({ user, profile, loading, signOut }), [user, profile, loading, signOut])
