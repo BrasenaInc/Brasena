@@ -1,11 +1,5 @@
 {
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(auth)/signup/page": "app/(auth)/signup/page.js",
-  "/(auth)/signup/residential/page": "app/(auth)/signup/residential/page.js",
   "/(shop)/account/page": "app/(shop)/account/page.js",
   "/(shop)/cart/page": "app/(shop)/cart/page.js",
-  "/(shop)/categories/page": "app/(shop)/categories/page.js",
-  "/(shop)/home/page": "app/(shop)/home/page.js",
-  "/(shop)/orders/page": "app/(shop)/orders/page.js",
-  "/page": "app/page.js"
+  "/(shop)/home/page": "app/(shop)/home/page.js"
 }
