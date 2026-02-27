@@ -6,7 +6,6 @@
  */
 
 import Link from "next/link"
-import { ROUTES } from "@/config"
 import { useLanguage } from "@/lib/context/language"
 import { BrasenaLogo } from "@/components/brasena-logo"
 import { cn } from "@/lib/utils"
@@ -33,7 +32,7 @@ export function SiteHeader(): JSX.Element {
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2" aria-label="Main">
           <Link
-            href={ROUTES.SHOP}
+            href="/home"
             className={cn(
               "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               "min-h-[44px] min-w-[44px] sm:min-w-0 sm:px-4 flex items-center justify-center"
@@ -43,7 +42,7 @@ export function SiteHeader(): JSX.Element {
             {t("shop.shopNow")}
           </Link>
           <Link
-            href={ROUTES.LOGIN}
+            href="/login"
             className={cn(
               "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               "min-h-[44px] min-w-[44px] sm:min-w-0 sm:px-4 flex items-center justify-center"
@@ -53,7 +52,7 @@ export function SiteHeader(): JSX.Element {
             {t("landing.ctaSignIn")}
           </Link>
           <Link
-            href={ROUTES.SIGNUP}
+            href="/signup"
             className={cn(
               "rounded-xl px-4 py-2.5 text-sm font-semibold transition-all min-h-[44px] flex items-center justify-center",
               "bg-[var(--sage)] text-[var(--color-brand-black)] hover:opacity-90"

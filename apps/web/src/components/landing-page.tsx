@@ -7,7 +7,6 @@
 
 import Link from "next/link"
 import { Package, Truck, TrendingDown } from "lucide-react"
-import { ROUTES } from "@/config"
 import { useLanguage } from "@/lib/context/language"
 import { SiteHeader } from "@/components/site-header"
 
@@ -42,7 +41,7 @@ export function LandingPage(): JSX.Element {
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <Link
-                href={ROUTES.SHOP}
+                href="/home"
                 className="inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-base font-semibold min-h-[48px] transition-opacity hover:opacity-90"
                 style={{
                   background: "var(--sage)",
@@ -52,7 +51,7 @@ export function LandingPage(): JSX.Element {
                 {t("landing.ctaShop")}
               </Link>
               <Link
-                href={ROUTES.LOGIN}
+                href="/login"
                 className="inline-flex items-center rounded-xl border px-6 py-3.5 text-base font-medium min-h-[48px] transition-colors hover:opacity-90"
                 style={{
                   borderColor: "var(--border)",
@@ -129,7 +128,7 @@ export function LandingPage(): JSX.Element {
           </div>
           <div className="mt-12 text-center">
             <Link
-              href={ROUTES.SIGNUP}
+              href="/signup"
               className="inline-flex items-center rounded-xl px-6 py-3.5 text-base font-semibold min-h-[48px] transition-opacity hover:opacity-90"
               style={{
                 background: "var(--sage)",

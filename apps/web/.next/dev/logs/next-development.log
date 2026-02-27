@@ -1,10 +1,45 @@
-[00:00:00.748] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:00:00.824] Server  LOG     ✓ Ready in 625ms
-[00:00:01.193] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
-[00:00:01.230] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-[00:00:01.849] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-[00:00:01.863] Server  ERROR   (node:72718) Warning: `--localstorage-file` was provided without a valid path
+[00:00:00.884] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:00.955] Server  LOG     ✓ Ready in 743ms
+[00:00:00.984] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:00:01.378] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:00:01.553] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:01.658] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:01:09.327] Server  ERROR   (node:36693) Warning: `--localstorage-file` was provided without a valid path
 (Use `node --trace-warnings ...` to show where the warning was created)
-[00:00:02.088] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-[00:00:02.796] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
-[00:00:19.227] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:01:09.605] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:01:10.849] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:01:13.706] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:02:38.320] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:05:34.150] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:05:38.921] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:05:43.606] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:06:24.585] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:09:00.413] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:09:28.767] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:09:36.009] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:09:38.832] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:09:51.956] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:10:36.150] Server  LOG     ✓ Compiled in 740ms
+[00:10:38.798] Server  LOG     ✓ Compiled in 99ms
+[00:10:46.489] Server  LOG     ✓ Compiled in 25ms
+[00:10:51.061] Server  LOG     ✓ Compiled in 28ms
+[00:10:52.094] Server  LOG     ✓ Compiled in 24ms
+[00:10:57.578] Server  LOG     ✓ Compiled in 55ms
+[00:11:14.150] Server  LOG     ✓ Compiled in 232ms
+[00:11:29.824] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:11:31.089] Server  LOG     ✓ Compiled in 284ms
+[00:11:35.967] Server  LOG     ✓ Compiled in 110ms
+[00:11:36.841] Server  LOG     ✓ Compiled in 63ms
+[00:11:37.782] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:11:38.357] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:11:48.533] Server  LOG     ✓ Compiled in 46ms
+[00:11:50.094] Server  LOG     ✓ Compiled in 8ms
+[00:12:14.652] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:12:14.932] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:13:21.343] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:13:27.793] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:13:40.428] Browser ERROR   Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["featured-product"]
+[00:13:53.678] Server  LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:13:54.110] Browser WARN    Image with src "/logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[00:15:54.778] Browser LOG     [Brasena] Env loaded: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+[00:15:59.961] Browser WARN    Image with src "/logo.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.

@@ -475,6 +475,10 @@ function ShopLayout({ children }) {
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (loading) return;
         if (!user) {
+            if (pathname === "/home") {
+                router.push("/");
+                return;
+            }
             const next = pathname ? `${pathname}` : __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$config$2f$index$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ROUTES"].SHOP;
             router.push(`${__TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$config$2f$index$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ROUTES"].LOGIN}?next=${encodeURIComponent(next)}`);
         }
@@ -494,12 +498,12 @@ function ShopLayout({ children }) {
                 size: "lg"
             }, void 0, false, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-                lineNumber: 35,
+                lineNumber: 39,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-            lineNumber: 34,
+            lineNumber: 38,
             columnNumber: 7
         }, this);
     }
@@ -513,21 +517,21 @@ function ShopLayout({ children }) {
                 size: "lg"
             }, void 0, false, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-                lineNumber: 43,
+                lineNumber: 47,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-            lineNumber: 42,
+            lineNumber: 46,
             columnNumber: 7
         }, this);
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "app-shell min-h-screen overflow-hidden flex flex-col",
+        className: "app-shell",
         children: children
     }, void 0, false, {
         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-        lineNumber: 49,
+        lineNumber: 53,
         columnNumber: 5
     }, this);
 }

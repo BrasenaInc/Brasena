@@ -5,8 +5,7 @@
 @tailwind utilities;
 
 /* ─── Brasena Design Tokens (theme-aware) ────────────── */
-:root,
-[data-theme="dark"] {
+:root {
   --font-display: 'Playfair Display', serif;
   --font-body:    'DM Sans', sans-serif;
   --font-mono:    'DM Mono', monospace;
@@ -21,41 +20,68 @@
   --gold-bg:             rgba(184, 149, 58, 0.12);
   --gold-border:         rgba(184, 149, 58, 0.25);
 
-  /* Surfaces */
-  --surface:       #0F1410;
-  --surface-muted: #1A2018;
-  --card:           #1E2820;
-  --card2:          #263028;
-  --color-surface:        #0F1410;
-  --color-surface-muted:  #1A2018;
-  --color-surface-card:   #1E2820;
-  --color-surface-border: #2A3828;
-
-  /* Nav & hero */
-  --nav-bg:      rgba(15, 20, 16, 0.92);
-  --border:      #2A3828;
-  --border-lt:   rgba(38, 48, 40, 0.5);
-  --hero-bg:     linear-gradient(135deg, #1a2e1c 0%, #0f1a10 50%, #162218 100%);
-  --hero-border: rgba(139, 175, 142, 0.15);
-
-  /* Text */
-  --text-primary:   #F5F7F5;
-  --text-secondary: #9BAD9B;
-  --text3:          #627062;
-  --color-text-primary:   #F5F7F5;
-  --color-text-secondary: #9BAD9B;
-  --color-text-muted:     #6B7C6B;
-
-  /* Accents */
-  --sage-bg:     rgba(139, 175, 142, 0.12);
-  --sage-bg-lt:  rgba(139, 175, 142, 0.18);
-  --thumb-bg:    #263028;
-
   /* Feedback */
   --color-success: #4CAF7D;
   --color-warning: #F0A500;
   --color-error:   #E05C5C;
   --color-info:    #5B9BD5;
+
+  /* Default = dark (deep forest) until data-theme is set */
+  --bg:       #080E09;
+  --surface:  #111814;
+  --card:     #192019;
+  --card2:    #1F2820;
+  --border:   #2A3A2C;
+  --border-lt: rgba(42, 58, 44, 0.6);
+  --nav-bg:   rgba(17, 24, 20, 0.95);
+  --text:     #EFF6F0;
+  --text2:    #8FA48F;
+  --text3:    #5A6E5C;
+  --hero-bg:  linear-gradient(135deg, #1A2E1C 0%, #111814 60%, #162219 100%);
+  --surface-muted: #1A2018;
+  --color-surface:        #111814;
+  --color-surface-muted:  #1A2018;
+  --color-surface-card:   #192019;
+  --color-surface-border: #2A3A2C;
+  --hero-border: rgba(139, 175, 142, 0.15);
+  --text-primary:   #EFF6F0;
+  --text-secondary: #8FA48F;
+  --color-text-primary:   #EFF6F0;
+  --color-text-secondary: #8FA48F;
+  --color-text-muted:     #5A6E5C;
+  --sage-bg:     rgba(139, 175, 142, 0.12);
+  --sage-bg-lt:  rgba(139, 175, 142, 0.18);
+  --thumb-bg:    #1F2820;
+}
+
+[data-theme="dark"] {
+  /* Dark: deep forest green at night — warm, not void */
+  --bg:       #080E09;
+  --surface:  #111814;
+  --card:     #192019;
+  --card2:    #1F2820;
+  --border:   #2A3A2C;
+  --border-lt: rgba(42, 58, 44, 0.6);
+  --nav-bg:   rgba(17, 24, 20, 0.95);
+  --text:     #EFF6F0;
+  --text2:    #8FA48F;
+  --text3:    #5A6E5C;
+  --hero-bg:  linear-gradient(135deg, #1A2E1C 0%, #111814 60%, #162219 100%);
+
+  --surface-muted: #1A2018;
+  --color-surface:        #111814;
+  --color-surface-muted:  #1A2018;
+  --color-surface-card:   #192019;
+  --color-surface-border: #2A3A2C;
+  --hero-border: rgba(139, 175, 142, 0.15);
+  --text-primary:   #EFF6F0;
+  --text-secondary: #8FA48F;
+  --color-text-primary:   #EFF6F0;
+  --color-text-secondary: #8FA48F;
+  --color-text-muted:     #5A6E5C;
+  --sage-bg:     rgba(139, 175, 142, 0.12);
+  --sage-bg-lt:  rgba(139, 175, 142, 0.18);
+  --thumb-bg:    #1F2820;
 }
 
 [data-theme="light"] {
@@ -106,14 +132,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── App shell (shop: website-first, full-width shell) ─ */
+/* ─── App shell (shop: sticky bottom nav inside shell) ─── */
 .app-shell {
-  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
   min-height: 100vh;
-  position: relative;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
+  position: relative;
 }
-/* Inner content can use max-w in each page for readable width */
 
 /* ─── Typography Scale ───────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {

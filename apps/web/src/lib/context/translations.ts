@@ -85,6 +85,11 @@ export const translations = {
     "shop.verTodo": "Ver todo",
     "shop.verMas": "Ver más",
 
+    // Home feed empty states
+    "home.comingSoon": "Fresh cuts coming soon",
+    "home.comingSoonSub": "Check back shortly — we're stocking up.",
+    "home.noProducts": "No products available yet",
+
     // Landing (public home)
     "landing.heroTitle": "Buy in bulk. Save more.",
     "landing.heroSubtitle": "Fresh meat delivered to your door. Wholesale pricing for families and restaurants in the Bronx and NYC.",
@@ -233,6 +238,10 @@ export const translations = {
     "shop.categorias": "Categorías",
     "shop.verTodo": "Ver todo",
     "shop.verMas": "Ver más",
+
+    "home.comingSoon": "Cortes frescos próximamente",
+    "home.comingSoonSub": "Vuelve pronto — estamos abasteciendo.",
+    "home.noProducts": "Aún no hay productos disponibles",
 
     "common.back": "Atrás",
     "common.or": "o",

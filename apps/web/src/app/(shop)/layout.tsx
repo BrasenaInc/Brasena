@@ -24,6 +24,10 @@ export default function ShopLayout({
   useEffect(() => {
     if (loading) return
     if (!user) {
+      if (pathname === "/home") {
+        router.push("/")
+        return
+      }
       const next = pathname ? `${pathname}` : ROUTES.SHOP
       router.push(`${ROUTES.LOGIN}?next=${encodeURIComponent(next)}`)
     }
@@ -46,7 +50,7 @@ export default function ShopLayout({
   }
 
   return (
-    <div className="app-shell min-h-screen overflow-hidden flex flex-col">
+    <div className="app-shell">
       {children}
     </div>
   )

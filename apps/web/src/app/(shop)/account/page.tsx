@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronRight, LogOut, MapPin, Package, Lock } from "lucide-react"
+import { ChevronRight, LogOut, MapPin, Package, Lock, type LucideIcon } from "lucide-react"
 import { TopNav } from "@/components/features/shop"
 import { BottomNav } from "@/components/features/shop"
 import { ThemeToggle } from "@/components/ui/ThemeToggle"
@@ -80,7 +80,7 @@ function SettingsLink({
   href: string
   label: string
   description: string
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+  icon: LucideIcon
 }): JSX.Element {
   return (
     <Link

@@ -132,14 +132,14 @@ export default function ShopHomePage(): JSX.Element {
             </div>
           ) : (
             <div
-              className="rounded-[22px] p-6 border"
-              style={{ background: "var(--card)", borderColor: "var(--hero-border)" }}
+              className="mx-4 mt-4 rounded-2xl border p-6 text-center"
+              style={{ borderColor: "var(--border)", background: "var(--card)" }}
             >
               <p className="font-display text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-                {t("shop.heroTitle1")} {t("shop.heroTitle2")}
+                {t("home.comingSoon")}
               </p>
-              <p className="text-sm mt-1" style={{ color: "var(--text3)" }}>
-                No featured product yet.
+              <p className="mt-1 text-sm" style={{ color: "var(--text3)" }}>
+                {t("home.comingSoonSub")}
               </p>
             </div>
           )}
@@ -218,6 +218,12 @@ export default function ShopHomePage(): JSX.Element {
                 <ProductCardSkeleton />
                 <ProductCardSkeleton />
               </>
+            ) : (products ?? []).length === 0 ? (
+              <div className="px-5 py-8 text-center w-full">
+                <p className="text-sm" style={{ color: "var(--text3)" }}>
+                  {t("home.noProducts")}
+                </p>
+              </div>
             ) : (
               (products ?? []).map((product) => (
                 <ProductCard key={product.id} product={product} saveLabel={saveLabel} />

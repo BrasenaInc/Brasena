@@ -644,6 +644,10 @@ function ShopLayout(param) {
         "ShopLayout.useEffect": function() {
             if (loading) return;
             if (!user) {
+                if (pathname === "/home") {
+                    router.push("/");
+                    return;
+                }
                 var next = pathname ? "".concat(pathname) : __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$config$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ROUTES"].SHOP;
                 router.push("".concat(__TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$config$2f$index$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ROUTES"].LOGIN, "?next=").concat(encodeURIComponent(next)));
             }
@@ -664,12 +668,12 @@ function ShopLayout(param) {
                 size: "lg"
             }, void 0, false, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-                lineNumber: 35,
+                lineNumber: 39,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-            lineNumber: 34,
+            lineNumber: 38,
             columnNumber: 7
         }, this);
     }
@@ -683,21 +687,21 @@ function ShopLayout(param) {
                 size: "lg"
             }, void 0, false, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-                lineNumber: 43,
+                lineNumber: 47,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-            lineNumber: 42,
+            lineNumber: 46,
             columnNumber: 7
         }, this);
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "app-shell min-h-screen overflow-hidden flex flex-col",
+        className: "app-shell",
         children: children
     }, void 0, false, {
         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/layout.tsx",
-        lineNumber: 49,
+        lineNumber: 53,
         columnNumber: 5
     }, this);
 }

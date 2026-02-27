@@ -816,10 +816,10 @@ function ShopHomePage() {
                             lineNumber: 82,
                             columnNumber: 13
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "rounded-[22px] p-6 border",
+                            className: "mx-4 mt-4 rounded-2xl border p-6 text-center",
                             style: {
-                                background: "var(--card)",
-                                borderColor: "var(--hero-border)"
+                                borderColor: "var(--border)",
+                                background: "var(--card)"
                             },
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -827,22 +827,18 @@ function ShopHomePage() {
                                     style: {
                                         color: "var(--text-primary)"
                                     },
-                                    children: [
-                                        t("shop.heroTitle1"),
-                                        " ",
-                                        t("shop.heroTitle2")
-                                    ]
-                                }, void 0, true, {
+                                    children: t("home.comingSoon")
+                                }, void 0, false, {
                                     fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
                                     lineNumber: 138,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "text-sm mt-1",
+                                    className: "mt-1 text-sm",
                                     style: {
                                         color: "var(--text3)"
                                     },
-                                    children: "No featured product yet."
+                                    children: t("home.comingSoonSub")
                                 }, void 0, false, {
                                     fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
                                     lineNumber: 141,
@@ -1081,12 +1077,29 @@ function ShopHomePage() {
                                             columnNumber: 17
                                         }, this)
                                     ]
-                                }, void 0, true) : (products ?? []).map((product)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ProductCard, {
+                                }, void 0, true) : (products ?? []).length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "px-5 py-8 text-center w-full",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-sm",
+                                        style: {
+                                            color: "var(--text3)"
+                                        },
+                                        children: t("home.noProducts")
+                                    }, void 0, false, {
+                                        fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
+                                        lineNumber: 223,
+                                        columnNumber: 17
+                                    }, this)
+                                }, void 0, false, {
+                                    fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
+                                    lineNumber: 222,
+                                    columnNumber: 15
+                                }, this) : (products ?? []).map((product)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ProductCard, {
                                         product: product,
                                         saveLabel: saveLabel
                                     }, product.id, false, {
                                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                                        lineNumber: 223,
+                                        lineNumber: 229,
                                         columnNumber: 17
                                     }, this))
                             }, void 0, false, {
@@ -1108,7 +1121,7 @@ function ShopHomePage() {
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$apps$2f$web$2f$src$2f$components$2f$features$2f$shop$2f$BottomNav$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["BottomNav"], {}, void 0, false, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                lineNumber: 230,
+                lineNumber: 236,
                 columnNumber: 7
             }, this)
         ]
@@ -1139,7 +1152,7 @@ function ProductCard({ product, saveLabel }) {
                         category: product.category
                     }, void 0, false, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                        lineNumber: 256,
+                        lineNumber: 262,
                         columnNumber: 9
                     }, this),
                     savingsPercent > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1155,13 +1168,13 @@ function ProductCard({ product, saveLabel }) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                        lineNumber: 258,
+                        lineNumber: 264,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                lineNumber: 252,
+                lineNumber: 258,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1175,7 +1188,7 @@ function ProductCard({ product, saveLabel }) {
                         children: product.name
                     }, void 0, false, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                        lineNumber: 267,
+                        lineNumber: 273,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1189,7 +1202,7 @@ function ProductCard({ product, saveLabel }) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                        lineNumber: 270,
+                        lineNumber: 276,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Developer$2f$brasena$2f$Brasena$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1208,25 +1221,25 @@ function ProductCard({ product, saveLabel }) {
                                 children: "/lb"
                             }, void 0, false, {
                                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                                lineNumber: 275,
+                                lineNumber: 281,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                        lineNumber: 273,
+                        lineNumber: 279,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-                lineNumber: 266,
+                lineNumber: 272,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/Developer/brasena/Brasena/apps/web/src/app/(shop)/home/page.tsx",
-        lineNumber: 247,
+        lineNumber: 253,
         columnNumber: 5
     }, this);
 }
