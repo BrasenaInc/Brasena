@@ -46,7 +46,7 @@ export function LoginForm({
         console.error("Failed to sync user:", result.error);
       }
 
-      router.push("/todos");
+      router.push("/auth/callback");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

@@ -25,6 +25,8 @@ export async function login() {
       await db.insert(users).values({
         id: user.id,
         email: user.email,
+        role: 'customer',
+        language: 'en',
       });
     }
 

@@ -41,6 +41,13 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  /* Brasena: sage and serif */
+  --color-sage: #8BAF8E;
+  --color-sage-light: #B8D4BB;
+  --color-sage-dark: #5C8060;
+  --font-family-sans: var(--font-sans), ui-sans-serif, sans-serif;
+  --font-family-serif: var(--font-serif), "Playfair Display", Georgia, serif;
 }
 
 :root {
@@ -78,6 +85,14 @@
   --sidebar-accent-foreground: hsl(240 5.9% 10%);
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
+
+  /* Brasena brand tokens */
+  --brasena-sage: #8BAF8E;
+  --brasena-sage-light: #B8D4BB;
+  --brasena-sage-dark: #5C8060;
+  --brasena-forest: #192019;
+  --brasena-surface: #111814;
+  --brasena-card: #192019;
 }
 
 .dark {

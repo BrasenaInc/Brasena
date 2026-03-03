@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { DM_Sans, Playfair_Display } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TRPCProvider } from "@/lib/trpc/client";
 import "./globals.css";
@@ -10,14 +10,15 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "Brasena — Wholesale meat, delivered fresh",
+  description: "Restaurant-quality cuts at bulk prices. The Bronx, NYC.",
 };
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  display: "swap",
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const playfair = Playfair_Display({
   subsets: ["latin"],
+  variable: "--font-serif",
+  weight: ["700"],
 });
 
 export default function RootLayout({
@@ -26,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+    <html lang="en" className={`${dmSans.variable} ${playfair.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased">
         <TRPCProvider>
           <ThemeProvider
             attribute="class"

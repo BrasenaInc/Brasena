@@ -1,6 +1,9 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { Context } from "./context";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -23,3 +26,24 @@ const enforceAuth = t.middleware(({ ctx, next }) => {
 });
 
 export const protectedProcedure = t.procedure.use(enforceAuth);
+
+const enforceAdmin = t.middleware(({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  // ctx.user here is the Supabase auth user — we need the DB user for role.
+  // We'll enforce admin at the router level using the users router.
+  // This middleware marks procedures that require admin role.
+  return next({ ctx: { ...ctx, user: ctx.user } });
+});
+
+export const adminProcedure = t.procedure.use(enforceAuth).use(
+  t.middleware(async ({ ctx, next }) => {
+    const userId = ctx.user!.id;
+    const [dbUser] = await db.select().from(users).where(eq(users.id, userId));
+    if (!dbUser || dbUser.role !== 'admin') {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
+    }
+    return next({ ctx: { ...ctx, dbUser } });
+  })
+);

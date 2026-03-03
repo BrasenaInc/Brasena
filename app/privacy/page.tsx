@@ -1,4 +1,5 @@
-import { Header } from "@/components/landing/header";
+import Link from "next/link";
+import { BrasenaLogo } from "@/components/brand/brasena-logo";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,7 +10,13 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <>
-      <Header />
+      <header className="flex h-16 items-center justify-between border-b px-6">
+        <Link href="/" className="flex items-center gap-2">
+          <BrasenaLogo className="h-8 w-8" />
+          <span className="font-serif text-xl font-bold tracking-wider text-sage">BRASENA</span>
+        </Link>
+        <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">Home</Link>
+      </header>
       <main className="min-h-[calc(100vh-3.5rem)] bg-background">
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
           <h1 className="text-3xl font-bold tracking-tight mb-2">
