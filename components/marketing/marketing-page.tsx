@@ -53,9 +53,9 @@ export function MarketingPage({ waitlistEnabled }: MarketingPageProps) {
         <MarketingFooter />
       </div>
 
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isLoading && (
-          <Preloader onComplete={() => setIsLoading(false)} />
+          <Preloader key="preloader" onComplete={() => setIsLoading(false)} />
         )}
       </AnimatePresence>
     </>

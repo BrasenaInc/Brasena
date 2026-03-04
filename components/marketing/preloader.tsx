@@ -38,6 +38,7 @@ export function Preloader({ onComplete }: PreloaderProps) {
       className="fixed inset-0 z-[100] flex items-center justify-center bg-[#080808]"
       initial={{ y: "0%" }}
       animate={{ y: "-100%" }}
+      exit={{ y: "-100%", transition: { duration: 0.2 } }}
       transition={{
         delay: 2.4,
         duration: 0.65,
