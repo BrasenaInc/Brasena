@@ -1,7 +1,8 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "./client";
 
 export const BUCKET_NAME = "app-images";
+export const PRODUCTS_BUCKET = "brasena-images";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const SIGNED_URL_EXPIRY = 60 * 60; // 1 hour
@@ -95,6 +96,35 @@ export async function uploadTodoImage(
   }
 
   return { path: fileName, error: null };
+}
+
+/**
+ * Upload a product image to Supabase storage from the client.
+ * Returns the public URL to store in the database.
+ */
+export async function uploadProductImage(
+  supabase: SupabaseClient,
+  file: File,
+  userId: string
+): Promise<string> {
+  const validationError = validateImageFile(file);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+  const ext = file.name.split(".").pop();
+  const path = `products/${userId}/${Date.now()}.${ext ?? "jpg"}`;
+
+  const { error } = await supabase.storage
+    .from(PRODUCTS_BUCKET)
+    .upload(path, file, { upsert: true });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = supabase.storage
+    .from(PRODUCTS_BUCKET)
+    .getPublicUrl(path);
+
+  return data.publicUrl;
 }
 
 /**
