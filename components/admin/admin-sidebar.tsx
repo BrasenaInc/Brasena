@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NavMain } from "@/components/sidebar/nav-main";
 import { NavUser } from "@/components/sidebar/nav-user";
+import { ThemeToggle } from "@/components/brand/theme-toggle";
 import { BrasenaLogo } from "@/components/brand/brasena-logo";
 import type { users } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
@@ -72,7 +73,10 @@ export function AdminSidebar({
         <NavMain items={adminNavItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <NavUser />
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -292,7 +292,7 @@ export function ProductDrawer({
   if (mode === "edit" && open && product && isLoadingEdit && !editData) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="flex flex-col items-center justify-center gap-4 sm:max-w-xl">
+        <SheetContent className="flex flex-col items-center justify-center gap-4 bg-background sm:max-w-xl">
           <Loader2 className="h-10 w-10 animate-spin text-sage" />
           <p className="text-sm text-muted-foreground">Loading product…</p>
         </SheetContent>
@@ -302,7 +302,7 @@ export function ProductDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="flex flex-col overflow-hidden p-0 sm:max-w-xl">
+      <SheetContent className="flex flex-col overflow-hidden bg-background p-0 sm:max-w-xl">
         <SheetHeader className="shrink-0 border-b px-6 py-4">
           <SheetTitle>
             {mode === "create" ? "Add product" : "Edit product"}
@@ -330,7 +330,7 @@ export function ProductDrawer({
                       placeholder="e.g. Ribeye Steak"
                     />
                     {errors.name && (
-                      <p className="text-xs text-destructive">{errors.name}</p>
+                      <p className="mt-1 text-xs text-destructive">{errors.name}</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -348,7 +348,7 @@ export function ProductDrawer({
                       </p>
                     )}
                     {errors.slug && (
-                      <p className="text-xs text-destructive">{errors.slug}</p>
+                      <p className="mt-1 text-xs text-destructive">{errors.slug}</p>
                     )}
                   </div>
                 </div>
@@ -401,7 +401,7 @@ export function ProductDrawer({
                       placeholder="12.99"
                     />
                     {errors.priceDollars && (
-                      <p className="text-xs text-destructive">
+                      <p className="mt-1 text-xs text-destructive">
                         {errors.priceDollars}
                       </p>
                     )}
@@ -494,7 +494,7 @@ export function ProductDrawer({
                   </label>
                 )}
                 {errors.imageUrl && (
-                  <p className="text-xs text-destructive">{errors.imageUrl}</p>
+                  <p className="mt-1 text-xs text-destructive">{errors.imageUrl}</p>
                 )}
               </FormSection>
 
@@ -562,7 +562,7 @@ export function ProductDrawer({
                   Add tier
                 </Button>
                 {errors.weightTiers && (
-                  <p className="text-xs text-destructive">
+                  <p className="mt-1 text-xs text-destructive">
                     {errors.weightTiers}
                   </p>
                 )}

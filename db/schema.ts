@@ -8,6 +8,14 @@ export const orderStatusEnum = pgEnum('order_status', [
   'pending', 'confirmed', 'out_for_delivery', 'delivered', 'cancelled'
 ]);
 export const languageEnum = pgEnum('language', ['en', 'es']);
+export const customerTypeEnum = pgEnum('customer_type', [
+  'residential',
+  'business'
+]);
+export const addressTypeEnum = pgEnum('address_type', [
+  'residential',
+  'business'
+]);
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(),
@@ -16,6 +24,10 @@ export const users = pgTable('users', {
   phone: text('phone'),
   role: userRoleEnum('role').default('customer').notNull(),
   language: languageEnum('language').default('en').notNull(),
+  customerType: customerTypeEnum('customer_type').default('residential').notNull(),
+  businessName: text('business_name'),
+  ein: text('ein'),
+  b2bDiscountPct: integer('b2b_discount_pct').default(15).notNull(),
   stripeCustomerId: text('stripe_customer_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -40,6 +52,22 @@ export const weightTiers = pgTable('weight_tiers', {
   label: text('label').notNull(),
   displayOrder: integer('display_order').default(0).notNull(),
 });
+
+export const addresses = pgTable('addresses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  customerId: uuid('customer_id').notNull().references(() => users.id, {
+    onDelete: 'cascade',
+  }),
+  type: addressTypeEnum('type').notNull(),
+  label: text('label').notNull(),
+  street: text('street').notNull(),
+  apt: text('apt'),
+  city: text('city').notNull(),
+  state: text('state').notNull(),
+  zip: text('zip').notNull(),
+  isDefault: boolean('is_default').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => [index('addresses_customer_idx').on(t.customerId)]);
 
 export const cartItems = pgTable('cart_items', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -88,3 +116,22 @@ export const notificationLog = pgTable('notification_log', {
   providerId: text('provider_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const siteSettings = pgTable("site_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  waitlistEnabled: boolean("waitlist_enabled").default(true).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: uuid("updated_by").references(() => users.id),
+});
+
+export const waitlistEntries = pgTable(
+  "waitlist_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    type: customerTypeEnum("type").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [index("waitlist_email_idx").on(t.email)]
+);

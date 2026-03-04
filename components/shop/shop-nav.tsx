@@ -3,25 +3,33 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, ShoppingCart } from "lucide-react";
+import { trpc } from "@/lib/trpc/client";
 import { BrasenaLogo } from "@/components/brand/brasena-logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import type { users } from "@/db/schema";
-import type { InferSelectModel } from "drizzle-orm";
+import { useShopLanguage } from "@/components/shop/shop-language-provider";
+import { ThemeToggle } from "@/components/brand/theme-toggle";
 
-type User = InferSelectModel<typeof users>;
+function CartBadge() {
+  const { data } = trpc.cart.get.useQuery();
+  const count = data?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+  if (count === 0) return null;
+  return (
+    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-sage text-[10px] font-bold text-white">
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
 
 const shopNavLinks = [
-  { href: "/home", labelEn: "Shop", labelEs: "Tienda" },
-  { href: "/orders", labelEn: "My Orders", labelEs: "Mis Pedidos" },
-  { href: "/account", labelEn: "Account", labelEs: "Cuenta" },
+  { href: "/home", key: "nav.shop" as const },
+  { href: "/orders", key: "nav.myOrders" as const },
+  { href: "/account", key: "nav.account" as const },
 ];
 
-export function ShopNav({ user }: { user: User }) {
+export function ShopNav() {
   const [open, setOpen] = useState(false);
-  const lang = user.language ?? "en";
-
-  const label = (en: string, es: string) => lang === "es" ? es : en;
+  const { t } = useShopLanguage();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
@@ -42,27 +50,34 @@ export function ShopNav({ user }: { user: User }) {
               href={link.href}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              {label(link.labelEn, link.labelEs)}
+              {t(link.key)}
             </Link>
           ))}
         </nav>
 
         {/* Desktop right actions */}
         <div className="hidden items-center gap-3 md:flex">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart" aria-label="Cart">
-              <ShoppingCart className="h-5 w-5" />
-            </Link>
-          </Button>
+          <ThemeToggle />
+          <div className="relative">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/cart" aria-label={t("nav.cart")}>
+                <ShoppingCart className="h-5 w-5" />
+              </Link>
+            </Button>
+            <CartBadge />
+          </div>
         </div>
 
         {/* Mobile: cart + hamburger */}
         <div className="flex items-center gap-2 md:hidden">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/cart" aria-label="Cart">
-              <ShoppingCart className="h-5 w-5" />
-            </Link>
-          </Button>
+          <div className="relative">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/cart" aria-label={t("nav.cart")}>
+                <ShoppingCart className="h-5 w-5" />
+              </Link>
+            </Button>
+            <CartBadge />
+          </div>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Open menu">
@@ -84,10 +99,13 @@ export function ShopNav({ user }: { user: User }) {
                     onClick={() => setOpen(false)}
                     className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
                   >
-                    {label(link.labelEn, link.labelEs)}
+                    {t(link.key)}
                   </Link>
                 ))}
               </nav>
+              <div className="mt-6 border-t pt-4">
+                <ThemeToggle />
+              </div>
             </SheetContent>
           </Sheet>
         </div>

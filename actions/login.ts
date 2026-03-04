@@ -27,6 +27,7 @@ export async function login() {
         email: user.email,
         role: 'customer',
         language: 'en',
+        customerType: 'residential',
       });
     }
 

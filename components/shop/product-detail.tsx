@@ -3,26 +3,17 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Beef, Check, Drumstick, Ham } from "lucide-react";
+import { toast } from "sonner";
+import { ArrowLeft, Beef, Check, Drumstick, Ham, Loader2 } from "lucide-react";
+import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
+import { useShopLanguage } from "@/components/shop/shop-language-provider";
+import { categoryBadgeClass } from "@/lib/utils";
 import type { products, weightTiers } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
 type Product = InferSelectModel<typeof products> & {
   weightTiers: InferSelectModel<typeof weightTiers>[];
-};
-
-const categoryBadgeClass = (c: string) => {
-  switch (c) {
-    case "beef":
-      return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
-    case "chicken":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-    case "pork":
-      return "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200";
-    default:
-      return "";
-  }
 };
 
 function CategoryIcon({ category }: { category: string }) {
@@ -43,9 +34,28 @@ function formatPrice(cents: number) {
 }
 
 export function ProductDetail({ product }: { product: Product }) {
+  const { t } = useShopLanguage();
   const [selectedTierIndex, setSelectedTierIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [toast, setToast] = useState<string | null>(null);
+
+  const utils = trpc.useUtils();
+  const addToCart = trpc.cart.addItem.useMutation({
+    onSuccess: () => {
+      utils.cart.get.invalidate();
+      toast.success(t("productDetail.addedToCart"), {
+        description: `${product.name} ${t("productDetail.addedToCart").toLowerCase()}.`,
+        action: {
+          label: t("productDetail.viewCart"),
+          onClick: () => window.location.assign("/cart"),
+        },
+      });
+    },
+    onError: (err) => {
+      toast.error("Something went wrong", {
+        description: err.message,
+      });
+    },
+  });
 
   const tier = product.weightTiers[selectedTierIndex];
   const pricePerLbCents = product.pricePerLbCents;
@@ -53,9 +63,13 @@ export function ProductDetail({ product }: { product: Product }) {
     ? tier.weightLbs * pricePerLbCents * quantity
     : 0;
 
-  const showCartToast = () => {
-    setToast("Cart coming in Sprint 2");
-    setTimeout(() => setToast(null), 3000);
+  const handleAddToCart = () => {
+    if (!tier) return;
+    addToCart.mutate({
+      productId: product.id,
+      weightLbs: tier.weightLbs,
+      quantity,
+    });
   };
 
   return (
@@ -64,7 +78,7 @@ export function ProductDetail({ product }: { product: Product }) {
         href="/home"
         className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to shop
+        <ArrowLeft className="h-4 w-4" /> {t("productDetail.backToShop")}
       </Link>
 
       <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-muted">
@@ -78,8 +92,10 @@ export function ProductDetail({ product }: { product: Product }) {
             priority
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-sage/10">
-            <CategoryIcon category={product.category} />
+          <div className="flex h-full w-full items-center justify-center bg-muted">
+            <span className="opacity-40">
+              <CategoryIcon category={product.category} />
+            </span>
           </div>
         )}
         <span
@@ -106,7 +122,7 @@ export function ProductDetail({ product }: { product: Product }) {
 
       {product.weightTiers.length > 0 && (
         <div>
-          <Label>Select package size</Label>
+          <Label>{t("productDetail.selectPackage")}</Label>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {product.weightTiers.map((t, i) => {
               const total = t.weightLbs * pricePerLbCents;
@@ -142,7 +158,7 @@ export function ProductDetail({ product }: { product: Product }) {
       )}
 
       <div>
-        <Label>Quantity</Label>
+        <Label>{t("productDetail.quantity")}</Label>
         <div className="mt-2 flex items-center gap-2">
           <Button
             type="button"
@@ -168,7 +184,7 @@ export function ProductDetail({ product }: { product: Product }) {
 
       <div className="rounded-lg border bg-muted/50 p-4">
         <p className="text-sm text-muted-foreground">
-          Subtotal:{" "}
+          {t("productDetail.subtotal")}:{" "}
           <span className="font-semibold text-foreground">
             {formatPrice(subtotalCents)}
           </span>
@@ -177,16 +193,18 @@ export function ProductDetail({ product }: { product: Product }) {
 
       <Button
         className="w-full bg-sage py-6 text-base font-semibold text-white hover:bg-sage-dark"
-        onClick={showCartToast}
+        onClick={handleAddToCart}
+        disabled={addToCart.isPending}
       >
-        Add to cart
+        {addToCart.isPending ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {t("productDetail.adding")}
+          </>
+        ) : (
+          t("productDetail.addToCart")
+        )}
       </Button>
-
-      {toast && (
-        <p className="rounded-lg border bg-sage/10 px-4 py-2 text-center text-sm text-sage">
-          {toast}
-        </p>
-      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Pencil, Trash2, Beef, Drumstick, Ham } from "lucide-react";
+import { Pencil, Trash2, Beef, Drumstick, Ham, Loader2, Package } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,25 +19,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ProductDrawer } from "@/components/admin/product-drawer";
+import { categoryBadgeClass } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { products } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
 type Product = InferSelectModel<typeof products> & { tierCount: number };
 
 const CATEGORIES = ["All", "Beef", "Chicken", "Pork"] as const;
-const categoryPill = (c: string) => {
-  const base = "rounded-full px-3 py-1 text-xs font-medium";
-  switch (c) {
-    case "beef":
-      return `${base} bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200`;
-    case "chicken":
-      return `${base} bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200`;
-    case "pork":
-      return `${base} bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200`;
-    default:
-      return base;
-  }
-};
 
 function formatPrice(cents: number) {
   return `$${(cents / 100).toFixed(2)}/lb`;
@@ -113,17 +102,17 @@ export function ProductsTable({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Total products</p>
-          <p className="text-2xl font-semibold">{total}</p>
+          <p className="text-2xl font-semibold text-foreground">{total}</p>
         </div>
-        <div className="rounded-lg border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Active</p>
           <p className="text-2xl font-semibold text-sage">{activeCount}</p>
         </div>
-        <div className="rounded-lg border bg-card p-4">
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">Inactive</p>
-          <p className="text-2xl font-semibold">{inactiveCount}</p>
+          <p className="text-2xl font-semibold text-foreground">{inactiveCount}</p>
         </div>
       </div>
 
@@ -149,7 +138,7 @@ export function ProductsTable({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/50">
+              <tr className="border-b border-border bg-muted">
                 <th className="px-4 py-3 text-left font-medium">Image</th>
                 <th className="px-4 py-3 text-left font-medium">Name</th>
                 <th className="px-4 py-3 text-left font-medium">Category</th>
@@ -162,20 +151,30 @@ export function ProductsTable({
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
-                    <p className="text-muted-foreground">No products yet</p>
-                    <Button
-                      variant="outline"
-                      className="mt-2"
-                      onClick={openCreate}
-                    >
-                      Add your first product
-                    </Button>
+                  <td colSpan={7} className="px-4 py-12">
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <Package className="mb-4 h-12 w-12 text-muted-foreground/40" />
+                      <h3 className="mb-1 text-base font-medium text-muted-foreground">
+                        {categoryFilter === "All"
+                          ? "No products yet"
+                          : "No products in this category"}
+                      </h3>
+                      <p className="mb-4 text-sm text-muted-foreground/60">
+                        {categoryFilter === "All"
+                          ? "Add your first product to get started."
+                          : "Try another category or add a new product."}
+                      </p>
+                      <Button variant="outline" onClick={openCreate}>
+                        {categoryFilter === "All"
+                          ? "Add your first product"
+                          : "Add product"}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 filtered.map((product) => (
-                  <tr key={product.id} className="border-b hover:bg-muted/30">
+                  <tr key={product.id} className="border-b border-border bg-card hover:bg-accent">
                     <td className="px-4 py-3">
                       <div className="relative h-10 w-10 overflow-hidden rounded bg-muted">
                         {product.imageUrl ? (
@@ -201,7 +200,7 @@ export function ProductsTable({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={categoryPill(product.category)}>
+                      <span className={cn("rounded-full px-3 py-1 text-xs font-medium", categoryBadgeClass(product.category))}>
                         {product.category}
                       </span>
                     </td>
@@ -263,16 +262,23 @@ export function ProductsTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete product?</AlertDialogTitle>
             <AlertDialogDescription>
-              This cannot be undone. The product and its weight tiers will be removed.
+              This will permanently delete{" "}
+              {products.find((p) => p.id === deleteId)?.name ?? "this product"}. This cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteId && deleteProduct.mutate({ id: deleteId })}
               disabled={deleteProduct.isPending}
             >
-              Delete
+              {deleteProduct.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

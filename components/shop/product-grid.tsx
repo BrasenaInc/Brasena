@@ -7,25 +7,14 @@ import { Beef, Drumstick, Ham } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useShopLanguage } from "@/components/shop/shop-language-provider";
+import { categoryBadgeClass } from "@/lib/utils";
 import type { products } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
 type Product = InferSelectModel<typeof products>;
 
-const CATEGORIES = ["All", "Beef", "Chicken", "Pork"] as const;
-
-const categoryBadgeClass = (c: string) => {
-  switch (c) {
-    case "beef":
-      return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
-    case "chicken":
-      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-    case "pork":
-      return "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200";
-    default:
-      return "";
-  }
-};
+const CATEGORY_KEYS = ["all", "beef", "chicken", "pork"] as const;
 
 function CategoryIcon({ category }: { category: string }) {
   switch (category) {
@@ -49,14 +38,15 @@ export function ProductGrid({
 }: {
   initialProducts: Product[];
 }) {
-  const [categoryFilter, setCategoryFilter] = useState<string>("All");
+  const { t } = useShopLanguage();
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const { data: products, isLoading } = trpc.products.list.useQuery(
     {},
     { initialData: initialProducts }
   );
 
   const filtered =
-    categoryFilter === "All"
+    categoryFilter === "all"
       ? products ?? []
       : (products ?? []).filter(
           (p) => p.category === categoryFilter.toLowerCase()
@@ -65,19 +55,19 @@ export function ProductGrid({
   return (
     <div id="products" className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {CATEGORIES.map((cat) => (
+        {CATEGORY_KEYS.map((key) => (
           <Button
-            key={cat}
-            variant={categoryFilter === cat ? "default" : "outline"}
+            key={key}
+            variant={categoryFilter === key ? "default" : "outline"}
             size="sm"
             className={
-              categoryFilter === cat
+              categoryFilter === key
                 ? "rounded-full bg-sage text-white hover:bg-sage-dark"
                 : "rounded-full"
             }
-            onClick={() => setCategoryFilter(cat)}
+            onClick={() => setCategoryFilter(key)}
           >
-            {cat}
+            {t(`categories.${key}`)}
           </Button>
         ))}
       </div>
@@ -90,7 +80,7 @@ export function ProductGrid({
         </div>
       ) : filtered.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">
-          No products available yet
+          {t("products.noProducts")}
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -104,6 +94,15 @@ export function ProductGrid({
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const { t } = useShopLanguage();
+  const categoryLabel =
+    product.category === "beef"
+      ? t("categories.beef")
+      : product.category === "chicken"
+        ? t("categories.chicken")
+        : product.category === "pork"
+          ? t("categories.pork")
+          : product.category;
   return (
     <Link
       href={`/products/${product.slug}`}
@@ -119,14 +118,16 @@ function ProductCard({ product }: { product: Product }) {
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-sage/10">
-            <CategoryIcon category={product.category} />
+          <div className="flex h-full w-full items-center justify-center bg-muted">
+            <span className="opacity-40">
+              <CategoryIcon category={product.category} />
+            </span>
           </div>
         )}
         <span
           className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-xs font-medium ${categoryBadgeClass(product.category)}`}
         >
-          {product.category}
+          {categoryLabel}
         </span>
       </div>
       <div className="flex flex-1 flex-col p-3">
@@ -134,7 +135,9 @@ function ProductCard({ product }: { product: Product }) {
         <p className="font-semibold text-sage">
           {formatPrice(product.pricePerLbCents)}
         </p>
-        <span className="mt-2 text-sm text-muted-foreground">View</span>
+        <span className="mt-2 text-sm text-muted-foreground">
+          {t("products.view")}
+        </span>
       </div>
     </Link>
   );

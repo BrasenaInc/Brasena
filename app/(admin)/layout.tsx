@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Toaster } from "sonner";
 import { getAuthUser } from "@/lib/supabase/server";
 import { trpc } from "@/lib/trpc/server";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
@@ -17,7 +18,7 @@ export default async function AdminLayout({
 
   const user = await trpc.users.me();
 
-  if (user.role !== 'admin') {
+  if (user.role !== "admin") {
     redirect("/home");
   }
 
@@ -27,6 +28,7 @@ export default async function AdminLayout({
         <AdminSidebar user={user} />
         <SidebarInset>{children}</SidebarInset>
       </SidebarProvider>
+      <Toaster richColors position="top-right" />
     </AuthProvider>
   );
 }
