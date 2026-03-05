@@ -45,42 +45,51 @@ export const waitlistRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const [existing] = await db
-        .select()
-        .from(waitlistEntries)
-        .where(eq(waitlistEntries.email, input.email.trim().toLowerCase()));
+      try {
+        const [existing] = await db
+          .select()
+          .from(waitlistEntries)
+          .where(eq(waitlistEntries.email, input.email.trim().toLowerCase()));
 
-      if (existing) {
+        if (existing) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "Already on the waitlist",
+          });
+        }
+
+        const email = input.email.trim().toLowerCase();
+        const payload = {
+          name: input.name.trim(),
+          email,
+          phone: (input.phone?.trim() ?? "") || "—",
+          birthday: (input.birthday?.trim() ?? "") || "—",
+          address: (input.address?.trim() ?? "") || "—",
+          type: input.type,
+          surveyAnswers: input.surveyAnswers
+            ? JSON.stringify(input.surveyAnswers)
+            : null,
+        };
+
+        await db.insert(waitlistEntries).values(payload);
+
+        const raffleNumber = Math.floor(Math.random() * 9000) + 1000;
+        sendWaitlistConfirmation({
+          name: payload.name,
+          email: payload.email,
+          phone: payload.phone,
+          type: payload.type,
+          raffleNumber,
+        }).catch(console.error);
+
+        return { success: true, raffleNumber };
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        console.error("[waitlist.export]", err);
         throw new TRPCError({
-          code: "CONFLICT",
-          message: "Already on the waitlist",
+          code: "INTERNAL_SERVER_ERROR",
+          message: err instanceof Error ? err.message : "Something went wrong. Please try again.",
         });
       }
-
-      const email = input.email.trim().toLowerCase();
-      const payload = {
-        name: input.name.trim(),
-        email,
-        phone: (input.phone?.trim() ?? "") || "—",
-        birthday: (input.birthday?.trim() ?? "") || "—",
-        address: (input.address?.trim() ?? "") || "—",
-        type: input.type,
-        surveyAnswers: input.surveyAnswers
-          ? JSON.stringify(input.surveyAnswers)
-          : null,
-      };
-
-      await db.insert(waitlistEntries).values(payload);
-
-      const raffleNumber = Math.floor(Math.random() * 9000) + 1000;
-      sendWaitlistConfirmation({
-        name: payload.name,
-        email: payload.email,
-        phone: payload.phone,
-        type: payload.type,
-        raffleNumber,
-      }).catch(console.error);
-
-      return { success: true, raffleNumber };
     }),
 });
