@@ -78,13 +78,15 @@ export default function AdminWaitlistPage() {
     return "?";
   }
 
-  /** Format YYYY-MM-DD or similar to MM-DD-YYYY for display. */
+  /** Format YYYY-MM-DD to MMMM/DD/YYYY (e.g. October/16/1989). */
   function formatBirthday(value: string | null | undefined): string {
     if (!value?.trim()) return "—";
-    const d = value.trim();
-    const match = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (match) return `${match[2]}-${match[3]}-${match[1]}`;
-    return d;
+    const match = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return value.trim();
+    const [, y, m, day] = match;
+    const date = new Date(Number(y), Number(m) - 1, Number(day));
+    const month = date.toLocaleDateString("en-US", { month: "long" });
+    return `${month}/${day}/${y}`;
   }
 
   return (
@@ -254,165 +256,127 @@ export default function AdminWaitlistPage() {
       {/* Modal overlay */}
       {selectedId && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6"
           onClick={() => setSelectedId(null)}
         >
           <div
-            className="w-full max-h-[85vh] max-w-[680px] overflow-y-auto rounded-2xl border border-border bg-card shadow-lg"
+            className="w-full max-h-[90vh] max-w-[520px] overflow-y-auto rounded-2xl bg-card shadow-2xl ring-1 ring-black/5"
             onClick={(e) => e.stopPropagation()}
           >
             {selectedUser && (
               <>
-                {/* Modal header */}
-                <div className="relative border-b border-border p-6">
+                {/* Header */}
+                <div className="relative bg-gradient-to-b from-muted/50 to-transparent px-6 pt-6 pb-5">
                   <button
                     type="button"
-                    className="absolute right-5 top-5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-muted hover:bg-muted/80"
+                    className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     onClick={() => setSelectedId(null)}
                     aria-label="Close"
                   >
-                    <X className="h-4 w-4 text-muted-foreground" />
+                    <X className="h-5 w-5" />
                   </button>
-
-                  <div className="flex flex-wrap items-start justify-between gap-4 pr-10">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-sage/30 bg-sage/15 text-2xl font-bold text-sage">
-                        {initial(selectedUser.name)}
-                      </div>
-                      <h2 className="font-serif text-2xl font-bold text-foreground">
+                  <div className="flex items-center gap-4 pr-12">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-sage/20 text-xl font-semibold text-sage">
+                      {initial(selectedUser.name)}
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="font-serif text-xl font-bold tracking-tight text-foreground truncate">
                         {selectedUser.name ?? "—"}
                       </h2>
-                    </div>
-                    <div className="text-right">
-                      {selectedUser.type === "residential" ? (
-                        <span className="inline-flex rounded border border-sage/30 bg-sage/15 px-2 py-0.5 text-xs font-semibold text-sage">
-                          B2C
-                        </span>
-                      ) : (
-                        <span className="inline-flex rounded border border-blue-500/30 bg-blue-500/15 px-2 py-0.5 text-xs font-semibold text-blue-400">
-                          B2B
-                        </span>
-                      )}
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        Joined{" "}
-                        {new Date(selectedUser.createdAt).toLocaleDateString(
-                          "en-US",
-                          { month: "long", day: "numeric", year: "numeric" }
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {selectedUser.type === "residential" ? (
+                          <span className="rounded-md bg-sage/15 px-2 py-0.5 text-xs font-medium text-sage">
+                            B2C
+                          </span>
+                        ) : (
+                          <span className="rounded-md bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400">
+                            B2B
+                          </span>
                         )}
-                      </p>
-                      {selectedUser.surveyAnswers ? (
-                        <span className="mt-2 inline-flex rounded border border-sage/20 bg-sage/10 px-2 py-0.5 text-xs text-sage">
-                          Completed
+                        <span className="text-xs text-muted-foreground">
+                          Joined {new Date(selectedUser.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </span>
-                      ) : (
-                        <span className="mt-2 inline-flex rounded border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-400">
-                          Pending
-                        </span>
-                      )}
+                        {selectedUser.surveyAnswers ? (
+                          <span className="rounded-md bg-sage/15 px-2 py-0.5 text-xs font-medium text-sage">
+                            Survey done
+                          </span>
+                        ) : (
+                          <span className="rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                            Survey pending
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Contact & Details */}
-                <div className="border-b border-border p-6">
-                  <h3 className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-                    Contact & Details
+                <div className="px-6 py-5">
+                  <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Contact & details
                   </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-xl border border-border bg-muted/30 p-4">
-                      <p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground">
-                        Email address
-                      </p>
-                      <p className="text-sm font-medium text-foreground">
-                        {selectedUser.email ?? "—"}
-                      </p>
+                  <dl className="space-y-3">
+                    <div>
+                      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</dt>
+                      <dd className="mt-0.5 text-sm text-foreground">{selectedUser.email ?? "—"}</dd>
                     </div>
-                    <div className="rounded-xl border border-border bg-muted/30 p-4">
-                      <p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground">
-                        Phone number
-                      </p>
-                      <p className="text-sm font-medium text-foreground">
-                        {selectedUser.phone ?? "—"}
-                      </p>
+                    <div>
+                      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</dt>
+                      <dd className="mt-0.5 text-sm text-foreground">{selectedUser.phone ?? "—"}</dd>
                     </div>
-                    <div className="rounded-xl border border-border bg-muted/30 p-4">
-                      <p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground">
-                        Birthday
-                      </p>
-                      <p className="text-sm font-medium text-foreground">
-                        {formatBirthday(selectedUser.birthday)}
-                      </p>
+                    <div>
+                      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Birthday</dt>
+                      <dd className="mt-0.5 text-sm text-foreground">{formatBirthday(selectedUser.birthday)}</dd>
                     </div>
-                    <div className="col-span-2 rounded-xl border border-border bg-muted/30 p-4">
-                      <p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground">
-                        Address
-                      </p>
-                      <p className="text-sm font-medium text-foreground">
-                        {selectedUser.address ?? "—"}
-                      </p>
+                    <div>
+                      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Address</dt>
+                      <dd className="mt-0.5 text-sm text-foreground">{selectedUser.address ?? "—"}</dd>
                     </div>
-                  </div>
+                  </dl>
                 </div>
 
                 {/* Survey Results */}
-                <div className="p-6">
-                  <h3 className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
-                    Survey Results
+                <div className="border-t border-border px-6 py-5">
+                  <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Survey
                     {selectedUser.surveyAnswers && (
-                      <span className="ml-2 inline-flex rounded border border-sage/20 bg-sage/10 px-2 py-0.5 text-xs text-sage">
-                        Completed
-                      </span>
+                      <span className="ml-2 font-normal text-sage">· Completed</span>
                     )}
                   </h3>
-
                   {selectedUser.surveyAnswers ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      {(
-                        [
-                          "heard",
-                          "freq",
-                          "spend",
-                          "priority",
-                        ] as const
-                      ).map((key) => {
+                    <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-2">
+                      {(["heard", "freq", "spend", "priority"] as const).map((key) => {
                         const answers = selectedUser.surveyAnswers!;
                         return (
-                          <div
-                            key={key}
-                            className="rounded-xl border border-border bg-muted/30 p-4"
-                          >
-                            <p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">
+                          <div key={key}>
+                            <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                               {SURVEY_LABELS[key] ?? key}
-                            </p>
-                            <p className="text-sm font-semibold text-foreground">
-                              {answers[key] ?? "—"}
-                            </p>
+                            </dt>
+                            <dd className="mt-0.5 text-sm font-medium text-foreground">{answers[key] ?? "—"}</dd>
                           </div>
                         );
                       })}
-                    </div>
+                    </dl>
                   ) : (
-                    <div className="rounded-xl border border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-                      Survey not completed
-                    </div>
+                    <p className="text-sm text-muted-foreground">Not completed</p>
                   )}
                 </div>
 
-                {/* Modal footer */}
-                <div className="flex justify-end gap-2 border-t border-border p-6">
+                {/* Footer */}
+                <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
                   <Button
                     variant="outline"
-                    className="border-border text-foreground hover:bg-muted"
+                    size="sm"
+                    className="border-border"
                     onClick={() => setSelectedId(null)}
                   >
                     Close
                   </Button>
                   <Button
+                    size="sm"
                     variant="ghost"
                     className="text-sage hover:bg-sage/10"
-                    onClick={() => {
-                      router.push(`/admin/orders?customer=${selectedUser.id}`);
-                    }}
+                    onClick={() => router.push(`/admin/orders?customer=${selectedUser.id}`)}
                   >
                     View Orders
                   </Button>
