@@ -44,7 +44,7 @@ const heroCopy: Record<
   {
     heroLeft: { eyebrow: string; headline1: string; headline2: string; body: string; bullets: string[]; scroll: string };
     typeStep: { raffleTitle: string; raffleSub: string; raffleNote: string; waitlistTitle: string; waitlistSub: string; select: string };
-    infoStep: { fullName: string; email: string; phone: string; birthday: string; address: string; addressPlaceholder: string; back: string; continueBtn: string; required: string; invalidEmail: string };
+    infoStep: { fullName: string; email: string; phone: string; birthday: string; address: string; addressPlaceholder: string; addressHint: string; back: string; continueBtn: string; required: string; invalidEmail: string };
     surveyStep: { banner: string; submitBtn: string; subline: string };
     successStep: { youAreOnTheList: string; welcome: string; raffleConfirmed: string; prize: string; confirmationSentTo: string; followInstagram: string; footer: string };
     waitlistCard: { titleType: string; titleInfo: string; titleSurvey: string; subType: string; subInfo: string; subSurvey: string; submitError: string };
@@ -54,7 +54,7 @@ const heroCopy: Record<
   en: {
     heroLeft: { eyebrow: "Wholesale Platform · The Bronx, NY", headline1: "Wholesale meat,", headline2: "delivered fresh.", body: "We bridge the gap between wholesale distributors and you — cutting out the middleman so restaurants, lounges, and families get premium cuts at real wholesale prices.", bullets: ["No middleman markup", "Same-day delivery", "Bulk pricing"], scroll: "Scroll to explore" },
     typeStep: { raffleTitle: "Launch Day Raffle", raffleSub: "Sign up & enter to win an Unknown Valuable Gift", raffleNote: "Every signup gets an automatic raffle entry. Winner announced at launch.", waitlistTitle: "Join the Brasena Waitlist", waitlistSub: "Choose how you will use Brasena", select: "Select" },
-    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", addressPlaceholder: "Start typing your address...", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email" },
+    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", addressPlaceholder: "Start typing your address (e.g. 2 Moore Ave, Freeport)...", addressHint: "US only. If your address doesn’t appear, enter your full mailing address. This will be used as your authorized mailing address.", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email" },
     surveyStep: { banner: "Completing the survey improves your raffle chances", submitBtn: "Submit", subline: "Your response will be saved." },
     successStep: { youAreOnTheList: "You are on the list", welcome: "Welcome", raffleConfirmed: "Raffle Entry Confirmed", prize: "Unknown Valuable Gift", confirmationSentTo: "Confirmation sent to", followInstagram: "Follow @brasenabx on Instagram", footer: "Once we launch, complete your profile and start ordering." },
     waitlistCard: { titleType: "Join the Waitlist", titleInfo: "Your Information", titleSurvey: "Quick Survey", subType: "Choose how you will use Brasena", subInfo: "We need a few details to confirm your spot", subSurvey: "Help us know you better (optional feel)", submitError: "Something went wrong. Please try again." },
@@ -63,7 +63,7 @@ const heroCopy: Record<
   es: {
     heroLeft: { eyebrow: "Plataforma mayorista · El Bronx, NY", headline1: "Carne al por mayor,", headline2: "entregada fresca.", body: "Cerramos la brecha entre distribuidores mayoristas y tú: sin intermediarios para que restaurantes, lounges y familias obtengan cortes premium a precios mayoristas.", bullets: ["Sin sobreprecio de intermediarios", "Entrega el mismo día", "Precios al por mayor"], scroll: "Desplazar para explorar" },
     typeStep: { raffleTitle: "Rifa del día de lanzamiento", raffleSub: "Regístrate y participa para ganar un regalo valioso sorpresa", raffleNote: "Cada registro obtiene una entrada automática. Ganador anunciado al lanzar.", waitlistTitle: "Únete a la lista de Brasena", waitlistSub: "Elige cómo usarás Brasena", select: "Seleccionar" },
-    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", addressPlaceholder: "Escribe tu dirección...", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido" },
+    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", addressPlaceholder: "Escribe tu dirección (ej. 2 Moore Ave, Freeport)...", addressHint: "Solo EE. UU. Si no aparece tu dirección, escribe tu dirección postal completa. Se usará como tu dirección de correo autorizada.", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido" },
     surveyStep: { banner: "Completar la encuesta mejora tus posibilidades en la rifa", submitBtn: "Enviar", subline: "Tu respuesta se guardará." },
     successStep: { youAreOnTheList: "Estás en la lista", welcome: "Bienvenido", raffleConfirmed: "Entrada a la rifa confirmada", prize: "Regalo valioso sorpresa", confirmationSentTo: "Confirmación enviada a", followInstagram: "Seguir @brasenabx en Instagram", footer: "Cuando lancemos, completa tu perfil y empieza a pedir." },
     waitlistCard: { titleType: "Únete a la lista", titleInfo: "Tu información", titleSurvey: "Encuesta rápida", subType: "Elige cómo usarás Brasena", subInfo: "Necesitamos unos datos para confirmar tu lugar", subSurvey: "Ayúdanos a conocerte (opcional)", submitError: "Algo salió mal. Por favor intenta de nuevo." },
@@ -311,6 +311,55 @@ function TypeStep({ locale, onSelect }: { locale: Locale; onSelect: (type: strin
 
 const NOMINATIM_UA = "BrasenaWaitlist/1.0 (https://brasenabx.com)";
 
+// US state name → 2-letter abbreviation (50 states + DC)
+const US_STATE_ABBREV: Record<string, string> = {
+  Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA", Colorado: "CO",
+  Connecticut: "CT", Delaware: "DE", "District of Columbia": "DC", Florida: "FL", Georgia: "GA",
+  Hawaii: "HI", Idaho: "ID", Illinois: "IL", Indiana: "IN", Iowa: "IA", Kansas: "KS", Kentucky: "KY",
+  Louisiana: "LA", Maine: "ME", Maryland: "MD", Massachusetts: "MA", Michigan: "MI", Minnesota: "MN",
+  Mississippi: "MS", Missouri: "MO", Montana: "MT", Nebraska: "NE", Nevada: "NV", "New Hampshire": "NH",
+  "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY", "North Carolina": "NC", "North Dakota": "ND",
+  Ohio: "OH", Oklahoma: "OK", Oregon: "OR", Pennsylvania: "PA", "Rhode Island": "RI", "South Carolina": "SC",
+  "South Dakota": "SD", Tennessee: "TN", Texas: "TX", Utah: "UT", Vermont: "VT", Virginia: "VA",
+  Washington: "WA", "West Virginia": "WV", Wisconsin: "WI", Wyoming: "WY",
+};
+
+type NominatimAddress = {
+  house_number?: string;
+  road?: string;
+  street?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  [k: string]: string | undefined;
+};
+
+/** Format as "address, city state zip" only — no county, country, or neighbourhood. */
+function formatUSAddressShort(addr: NominatimAddress): string {
+  const num = (addr.house_number ?? "").trim();
+  const road = (addr.road ?? addr.street ?? "").trim();
+  const streetLine = [num, road].filter(Boolean).join(" ");
+  // Prefer city/town/village; suburb only if no city (e.g. NYC boroughs). Never use county or country.
+  const city = (
+    addr.city ??
+    addr.town ??
+    addr.village ??
+    addr.suburb ??
+    ""
+  ).trim();
+  const stateRaw = (addr.state ?? "").trim();
+  const state = stateRaw ? (US_STATE_ABBREV[stateRaw] ?? stateRaw) : "";
+  const zip = (addr.postcode ?? "").trim();
+  const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
+  if (!streetLine && !cityStateZip) return "";
+  if (!streetLine) return cityStateZip;
+  if (!cityStateZip) return streetLine;
+  return `${streetLine}, ${cityStateZip}`;
+}
+
 function AddressAutocomplete({
   value,
   onChange,
@@ -318,6 +367,7 @@ function AddressAutocomplete({
   className,
   error,
   locale,
+  hint,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -325,8 +375,9 @@ function AddressAutocomplete({
   className: string;
   error?: boolean;
   locale: Locale;
+  hint?: string;
 }) {
-  const [suggestions, setSuggestions] = useState<Array<{ display_name: string }>>([]);
+  const [suggestions, setSuggestions] = useState<Array<{ display: string }>>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -345,15 +396,24 @@ function AddressAutocomplete({
       setLoading(true);
       try {
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&addressdetails=1&limit=5`,
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&addressdetails=1&limit=5&countrycodes=us`,
           {
             headers: { Accept: "application/json", "User-Agent": NOMINATIM_UA, "Accept-Language": locale === "es" ? "es" : "en" },
           }
         );
         if (!res.ok) return setSuggestions([]);
-        const data = (await res.json()) as Array<{ display_name: string }>;
-        setSuggestions(Array.isArray(data) ? data : []);
-        setOpen(true);
+        const data = (await res.json()) as Array<{ address?: NominatimAddress; display_name?: string }>;
+        const out: Array<{ display: string }> = [];
+        for (const item of Array.isArray(data) ? data : []) {
+          if (item.address) {
+            const short = formatUSAddressShort(item.address);
+            // Only show if we got a short format (address, city state zip). Reject long display_name-style strings.
+            const looksShort = short && short.split(",").length <= 2 && !short.toLowerCase().includes("united states") && !short.toLowerCase().includes("county");
+            if (looksShort && !out.some((x) => x.display === short)) out.push({ display: short });
+          }
+        }
+        setSuggestions(out);
+        setOpen(out.length > 0);
       } catch {
         setSuggestions([]);
       } finally {
@@ -373,15 +433,15 @@ function AddressAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const select = (displayName: string) => {
-    lastSelectedRef.current = displayName;
-    onChange(displayName);
+  const select = (display: string) => {
+    lastSelectedRef.current = display;
+    onChange(display);
     setSuggestions([]);
     setOpen(false);
   };
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div ref={wrapperRef} className="relative space-y-1">
       <input
         type="text"
         value={value}
@@ -391,6 +451,7 @@ function AddressAutocomplete({
         placeholder={placeholder}
         autoComplete="off"
       />
+      {hint && <p className="text-[10px] text-white/55">{hint}</p>}
       {loading && (
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/50">…</span>
       )}
@@ -404,9 +465,9 @@ function AddressAutocomplete({
               <button
                 type="button"
                 className="w-full px-3 py-2.5 text-left text-xs text-white/90 hover:bg-[rgba(139,175,142,0.15)]"
-                onMouseDown={(e) => { e.preventDefault(); select(item.display_name); }}
+                onMouseDown={(e) => { e.preventDefault(); select(item.display); }}
               >
-                {item.display_name}
+                {item.display}
               </button>
             </li>
           ))}
@@ -502,6 +563,7 @@ function InfoStep({
             className={`${inputClass} ${errors.address ? errorBorder : normalBorder}`}
             error={!!errors.address}
             locale={locale}
+            hint={t.addressHint}
           />
           {errors.address && <p className="mt-1 text-xs text-red-400">{errors.address}</p>}
         </div>
