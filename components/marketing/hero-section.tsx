@@ -3,6 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
 import type { Locale } from "./marketing-page";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 type SurveyItem = { id: string; q: string; opts: string[] };
 type TypeCard = {
@@ -48,6 +57,7 @@ const heroCopy: Record<
     surveyStep: { banner: string; submitBtn: string; subline: string };
     successStep: { youAreOnTheList: string; welcome: string; raffleConfirmed: string; prize: string; confirmationSentTo: string; followInstagram: string; footer: string };
     waitlistCard: { titleType: string; titleInfo: string; titleSurvey: string; subType: string; subInfo: string; subSurvey: string; submitError: string };
+    successDialog: { title: string; description: string; cta: string };
     cta: { startOrdering: string; signIn: string };
   }
 > = {
@@ -58,6 +68,7 @@ const heroCopy: Record<
     surveyStep: { banner: "Completing the survey improves your raffle chances", submitBtn: "Submit — Follow Brasena on Instagram", subline: "Saves your spot and opens Instagram in a new tab" },
     successStep: { youAreOnTheList: "You are on the list", welcome: "Welcome", raffleConfirmed: "Raffle Entry Confirmed", prize: "Unknown Valuable Gift", confirmationSentTo: "Confirmation sent to", followInstagram: "Follow @brasenabx on Instagram", footer: "Once we launch, complete your profile and start ordering." },
     waitlistCard: { titleType: "Join the Waitlist", titleInfo: "Your Information", titleSurvey: "Quick Survey", subType: "Choose how you will use Brasena", subInfo: "We need a few details to confirm your spot", subSurvey: "Help us know you better (optional feel)", submitError: "Something went wrong. Please try again." },
+    successDialog: { title: "Submitted!", description: "Your spot is saved. Follow us on Instagram for updates and launch news.", cta: "Go to Instagram" },
     cta: { startOrdering: "Start ordering", signIn: "Sign in" },
   },
   es: {
@@ -67,6 +78,7 @@ const heroCopy: Record<
     surveyStep: { banner: "Completar la encuesta mejora tus posibilidades en la rifa", submitBtn: "Enviar — Sigue a Brasena en Instagram", subline: "Guarda tu lugar y abre Instagram en una nueva pestaña" },
     successStep: { youAreOnTheList: "Estás en la lista", welcome: "Bienvenido", raffleConfirmed: "Entrada a la rifa confirmada", prize: "Regalo valioso sorpresa", confirmationSentTo: "Confirmación enviada a", followInstagram: "Seguir @brasenabx en Instagram", footer: "Cuando lancemos, completa tu perfil y empieza a pedir." },
     waitlistCard: { titleType: "Únete a la lista", titleInfo: "Tu información", titleSurvey: "Encuesta rápida", subType: "Elige cómo usarás Brasena", subInfo: "Necesitamos unos datos para confirmar tu lugar", subSurvey: "Ayúdanos a conocerte (opcional)", submitError: "Algo salió mal. Por favor intenta de nuevo." },
+    successDialog: { title: "¡Enviado!", description: "Tu lugar está guardado. Síguenos en Instagram para novedades y fecha de lanzamiento.", cta: "Ir a Instagram" },
     cta: { startOrdering: "Empezar a pedir", signIn: "Iniciar sesión" },
   },
 };
@@ -431,8 +443,9 @@ function SurveyStep({
       <div
         className="rounded-lg border py-2.5 text-center text-[11px]"
         style={{
-          background: "rgba(139,175,142,0.07)",
-          borderColor: "rgba(139,175,142,0.2)",
+          background: "rgba(139,175,142,0.12)",
+          borderColor: "rgba(139,175,142,0.3)",
+          color: "rgba(255,255,255,0.95)",
         }}
       >
         {t.banner}
@@ -465,9 +478,9 @@ function SurveyStep({
                           fontWeight: 700,
                         }
                       : {
-                          borderColor: "rgba(139,175,142,0.15)",
+                          borderColor: "rgba(139,175,142,0.25)",
                           background: "rgba(17,24,20,0.9)",
-                          color: "#5A7A5A",
+                          color: "rgba(255,255,255,0.75)",
                         }
                   }
                 >
@@ -637,22 +650,31 @@ function WaitlistCard({ locale }: { locale: Locale }) {
 
   const submitWaitlist = trpc.waitlist.export.useMutation();
 
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const INSTAGRAM_URL = "https://www.instagram.com/brasenabx";
+
   const handleSurveySubmit = async (answers: Record<string, string>) => {
     if (!formData || !type) return;
     setSubmitError(null);
     try {
       const result = await submitWaitlist.mutateAsync({
-        ...formData,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        birthday: formData.birthday || undefined,
+        address: formData.address || undefined,
         type: type as "residential" | "business",
         surveyAnswers: Object.keys(answers).length > 0 ? answers : undefined,
       });
       setRaffleNumber(result.raffleNumber);
       setStep("success");
-      // Open Instagram after state update so success screen shows; open in same tick as user action when possible
-      window.open("https://www.instagram.com/brasenabx", "_blank", "noopener,noreferrer");
+      setShowSuccessDialog(true);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : cardT.submitError;
-      setSubmitError(message === "Already on the waitlist" ? message : cardT.submitError);
+      let message = cardT.submitError;
+      if (err instanceof Error) message = err.message;
+      const data = err && typeof err === "object" && "data" in err ? (err as { data?: { message?: string } }).data : undefined;
+      if (data?.message) message = data.message;
+      setSubmitError(message === "Already on the waitlist" ? message : message);
     }
   };
 
@@ -687,7 +709,7 @@ function WaitlistCard({ locale }: { locale: Locale }) {
           >
             {titles[step]}
           </h3>
-          <p className="mt-1 text-[11px]" style={{ color: "#5A7A5A" }}>
+          <p className="mt-1 text-[11px]" style={{ color: "rgba(255,255,255,0.7)" }}>
             {subtitles[step]}
           </p>
         </div>
@@ -721,6 +743,34 @@ function WaitlistCard({ locale }: { locale: Locale }) {
       {step === "success" && formData && (
         <SuccessStep locale={locale} formData={formData} raffleNumber={raffleNumber} />
       )}
+
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="border-[rgba(139,175,142,0.2)] bg-[#111814] text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl text-white">
+              {heroCopy[locale].successDialog.title}
+            </DialogTitle>
+            <DialogDescription className="text-white/75">
+              {heroCopy[locale].successDialog.description}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              asChild
+              className="w-full bg-[#8BAF8E] text-[#0C0F0C] hover:bg-[#7A9F7D]"
+            >
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setShowSuccessDialog(false)}
+              >
+                {heroCopy[locale].successDialog.cta}
+              </a>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

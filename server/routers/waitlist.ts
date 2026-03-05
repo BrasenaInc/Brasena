@@ -37,9 +37,9 @@ export const waitlistRouter = router({
       z.object({
         name: z.string().min(1),
         email: z.string().email(),
-        phone: z.string().min(1),
-        birthday: z.string().min(1),
-        address: z.string().min(1),
+        phone: z.string().optional(),
+        birthday: z.string().optional(),
+        address: z.string().optional(),
         type: z.enum(["residential", "business"]),
         surveyAnswers: z.record(z.string(), z.string()).optional(),
       })
@@ -61,9 +61,9 @@ export const waitlistRouter = router({
       const payload = {
         name: input.name.trim(),
         email,
-        phone: input.phone.trim(),
-        birthday: input.birthday.trim(),
-        address: input.address.trim(),
+        phone: (input.phone?.trim() ?? "") || "—",
+        birthday: (input.birthday?.trim() ?? "") || "—",
+        address: (input.address?.trim() ?? "") || "—",
         type: input.type,
         surveyAnswers: input.surveyAnswers
           ? JSON.stringify(input.surveyAnswers)
