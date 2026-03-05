@@ -1,9 +1,11 @@
 "use client"
 
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   BadgeCheck,
   Bell,
+  ChevronRight,
   ChevronsUpDown,
   CreditCard,
   Loader2,
@@ -53,6 +55,7 @@ export function NavUser() {
   const { isMobile } = useSidebar()
   const initials = getInitials(user.fullName, user.email)
   const displayName = user.fullName ?? user.email ?? ""
+  const sublabel = user.fullName && user.email ? user.email : ""
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -87,77 +90,92 @@ export function NavUser() {
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{displayName}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                {sublabel ? (
+                  <span className="truncate text-xs text-muted-foreground">{sublabel}</span>
+                ) : null}
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4 shrink-0 text-muted-foreground" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="min-w-[220px] rounded-xl border-border bg-popover p-1.5 shadow-lg"
             side={isMobile ? "bottom" : "right"}
             align="end"
-            sideOffset={4}
+            sideOffset={8}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+              <div className="flex items-center gap-3 rounded-lg px-2 py-2.5">
+                <Avatar className="h-10 w-10 rounded-lg border-2 border-border/50">
+                  <AvatarFallback className="rounded-lg text-sm font-semibold">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{displayName}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                <div className="grid min-w-0 flex-1">
+                  <span className="truncate font-semibold text-foreground">{displayName}</span>
+                  {sublabel ? (
+                    <span className="truncate text-xs text-muted-foreground">{sublabel}</span>
+                  ) : null}
                 </div>
               </div>
             </DropdownMenuLabel>
             {isStripeConfigured && (
               <>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
+                <DropdownMenuSeparator className="my-1.5" />
+                <DropdownMenuGroup className="p-0.5">
                   {isActive ? (
                     <DropdownMenuItem
+                      className="cursor-pointer rounded-lg py-2.5"
                       onClick={() => portal.mutate()}
                       disabled={portal.isPending}
                     >
                       {portal.isPending ? (
-                        <Loader2 className="animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
-                        <CreditCard />
+                        <CreditCard className="size-4" />
                       )}
-                      Manage Subscription
+                      <span className="flex-1">Manage Subscription</span>
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem
+                      className="cursor-pointer rounded-lg py-2.5"
                       onClick={() => checkout.mutate()}
                       disabled={checkout.isPending}
                     >
                       {checkout.isPending ? (
-                        <Loader2 className="animate-spin" />
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
-                        <Sparkles />
+                        <Sparkles className="size-4" />
                       )}
-                      Upgrade to Pro
+                      <span className="flex-1">Upgrade to Pro</span>
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuGroup>
               </>
             )}
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
+            <DropdownMenuSeparator className="my-1.5" />
+            <DropdownMenuGroup className="p-0.5">
+              <DropdownMenuItem asChild className="cursor-pointer rounded-lg py-2.5 focus:bg-accent">
+                <Link href="/account" className="flex items-center">
+                  <BadgeCheck className="size-4" />
+                  <span className="flex-1">Account</span>
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
+              <DropdownMenuItem asChild className="cursor-pointer rounded-lg py-2.5 focus:bg-accent">
+                <Link href="/notifications" className="flex items-center">
+                  <Bell className="size-4" />
+                  <span className="flex-1">Notifications</span>
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut />
-              Log out
+            <DropdownMenuSeparator className="my-1.5" />
+            <DropdownMenuItem
+              className="cursor-pointer rounded-lg py-2.5 text-red-600 focus:bg-red-500/10 focus:text-red-600 dark:text-red-400 dark:focus:bg-red-500/10 dark:focus:text-red-400"
+              onClick={handleSignOut}
+            >
+              <LogOut className="size-4" />
+              <span className="flex-1">Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

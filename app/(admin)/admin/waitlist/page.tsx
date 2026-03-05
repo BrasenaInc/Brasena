@@ -78,15 +78,23 @@ export default function AdminWaitlistPage() {
     return "?";
   }
 
-  /** Format YYYY-MM-DD to MMMM/DD/YYYY (e.g. October/16/1989). */
+  /** Format YYYY-MM-DD to "October 16, 1989". */
   function formatBirthday(value: string | null | undefined): string {
     if (!value?.trim()) return "—";
     const match = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!match) return value.trim();
     const [, y, m, day] = match;
     const date = new Date(Number(y), Number(m) - 1, Number(day));
-    const month = date.toLocaleDateString("en-US", { month: "long" });
-    return `${month}/${day}/${y}`;
+    return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  }
+
+  /** Format 10-digit US phone to XXX-XXX-XXXX. */
+  function formatPhone(value: string | null | undefined): string {
+    if (!value?.trim()) return "—";
+    const digits = value.replace(/\D/g, "");
+    if (digits.length === 10) return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+    if (digits.length === 11 && digits.startsWith("1")) return `${digits.slice(1, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
+    return value.trim();
   }
 
   return (
@@ -322,7 +330,7 @@ export default function AdminWaitlistPage() {
                     </div>
                     <div>
                       <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</dt>
-                      <dd className="mt-0.5 text-sm text-foreground">{selectedUser.phone ?? "—"}</dd>
+                      <dd className="mt-0.5 text-sm text-foreground">{formatPhone(selectedUser.phone)}</dd>
                     </div>
                     <div>
                       <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Birthday</dt>
