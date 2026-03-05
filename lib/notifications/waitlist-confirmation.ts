@@ -1,10 +1,6 @@
 import { Resend } from "resend";
 
-function getResend(): Resend | null {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return null;
-  return new Resend(key);
-}
+const getResend = () => new Resend(process.env.RESEND_API_KEY ?? "");
 
 const LIVE = process.env.NOTIFICATIONS_LIVE === "true";
 
@@ -59,11 +55,6 @@ export async function sendWaitlistConfirmation({
   }
 
   const resend = getResend();
-  if (!resend) {
-    console.log(`[MOCK WAITLIST EMAIL] No RESEND_API_KEY — To: ${email} | Raffle: #${raffleNumber}`);
-    return;
-  }
-
   try {
     await resend.emails.send({
       from: "Brasena <orders@brasena.com>",
