@@ -57,7 +57,7 @@ export function MarketingPage({ waitlistEnabled }: MarketingPageProps) {
         <CategoriesSection waitlistEnabled={waitlistEnabled} locale={locale} />
         <ExpansionSection locale={locale} />
         <CtaSection waitlistEnabled={waitlistEnabled} locale={locale} />
-        <MarketingFooter locale={locale} />
+        <MarketingFooter waitlistEnabled={waitlistEnabled} locale={locale} />
       </div>
 
       <AnimatePresence mode="wait">

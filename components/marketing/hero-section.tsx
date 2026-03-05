@@ -782,6 +782,7 @@ interface HeroSectionProps {
 export function HeroSection({ waitlistEnabled, locale }: HeroSectionProps) {
   return (
     <section
+      id="hero"
       className="relative h-screen w-full overflow-hidden"
       style={{ minHeight: "100vh" }}
     >
