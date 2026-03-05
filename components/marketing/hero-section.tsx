@@ -422,8 +422,7 @@ function SurveyStep({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const missing = surveyItems.filter((s) => !answers[s.id]);
-    if (missing.length > 0) return;
+    // Survey is optional — submit with whatever answers we have
     onSubmit(answers);
   };
 
@@ -645,13 +644,15 @@ function WaitlistCard({ locale }: { locale: Locale }) {
       const result = await submitWaitlist.mutateAsync({
         ...formData,
         type: type as "residential" | "business",
-        surveyAnswers: answers,
+        surveyAnswers: Object.keys(answers).length > 0 ? answers : undefined,
       });
       setRaffleNumber(result.raffleNumber);
-      window.open("https://www.instagram.com/brasenabx", "_blank");
       setStep("success");
-    } catch {
-      setSubmitError(cardT.submitError);
+      // Open Instagram after state update so success screen shows; open in same tick as user action when possible
+      window.open("https://www.instagram.com/brasenabx", "_blank", "noopener,noreferrer");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : cardT.submitError;
+      setSubmitError(message === "Already on the waitlist" ? message : cardT.submitError);
     }
   };
 
