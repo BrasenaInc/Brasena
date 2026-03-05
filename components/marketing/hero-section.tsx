@@ -3,15 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
 import type { Locale } from "./marketing-page";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 
 type SurveyItem = { id: string; q: string; opts: string[] };
 type TypeCard = {
@@ -57,7 +48,6 @@ const heroCopy: Record<
     surveyStep: { banner: string; submitBtn: string; subline: string };
     successStep: { youAreOnTheList: string; welcome: string; raffleConfirmed: string; prize: string; confirmationSentTo: string; followInstagram: string; footer: string };
     waitlistCard: { titleType: string; titleInfo: string; titleSurvey: string; subType: string; subInfo: string; subSurvey: string; submitError: string };
-    successDialog: { title: string; description: string; cta: string };
     cta: { startOrdering: string; signIn: string };
   }
 > = {
@@ -68,7 +58,6 @@ const heroCopy: Record<
     surveyStep: { banner: "Completing the survey improves your raffle chances", submitBtn: "Submit", subline: "Your response will be saved." },
     successStep: { youAreOnTheList: "You are on the list", welcome: "Welcome", raffleConfirmed: "Raffle Entry Confirmed", prize: "Unknown Valuable Gift", confirmationSentTo: "Confirmation sent to", followInstagram: "Follow @brasenabx on Instagram", footer: "Once we launch, complete your profile and start ordering." },
     waitlistCard: { titleType: "Join the Waitlist", titleInfo: "Your Information", titleSurvey: "Quick Survey", subType: "Choose how you will use Brasena", subInfo: "We need a few details to confirm your spot", subSurvey: "Help us know you better (optional feel)", submitError: "Something went wrong. Please try again." },
-    successDialog: { title: "Submitted!", description: "Your spot is saved. Follow us on Instagram for updates and launch news.", cta: "Go to Instagram" },
     cta: { startOrdering: "Start ordering", signIn: "Sign in" },
   },
   es: {
@@ -78,7 +67,6 @@ const heroCopy: Record<
     surveyStep: { banner: "Completar la encuesta mejora tus posibilidades en la rifa", submitBtn: "Enviar", subline: "Tu respuesta se guardará." },
     successStep: { youAreOnTheList: "Estás en la lista", welcome: "Bienvenido", raffleConfirmed: "Entrada a la rifa confirmada", prize: "Regalo valioso sorpresa", confirmationSentTo: "Confirmación enviada a", followInstagram: "Seguir @brasenabx en Instagram", footer: "Cuando lancemos, completa tu perfil y empieza a pedir." },
     waitlistCard: { titleType: "Únete a la lista", titleInfo: "Tu información", titleSurvey: "Encuesta rápida", subType: "Elige cómo usarás Brasena", subInfo: "Necesitamos unos datos para confirmar tu lugar", subSurvey: "Ayúdanos a conocerte (opcional)", submitError: "Algo salió mal. Por favor intenta de nuevo." },
-    successDialog: { title: "¡Enviado!", description: "Tu lugar está guardado. Síguenos en Instagram para novedades y fecha de lanzamiento.", cta: "Ir a Instagram" },
     cta: { startOrdering: "Empezar a pedir", signIn: "Iniciar sesión" },
   },
 };
@@ -648,49 +636,28 @@ function WaitlistCard({ locale }: { locale: Locale }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const cardT = heroCopy[locale].waitlistCard;
 
-  const submitWaitlist = trpc.waitlist.export.useMutation();
+  const submitWaitlist = trpc.waitlist.export.useMutation({
+    onSuccess: (data) => {
+      setRaffleNumber(data.raffleNumber);
+      setStep("success");
+    },
+    onError: (err) => {
+      setSubmitError(err.message === "Already on the waitlist" ? err.message : cardT.submitError);
+    },
+  });
 
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const INSTAGRAM_URL = "https://www.instagram.com/brasenabx";
-
-  const handleSurveySubmit = async (answers: Record<string, string>) => {
+  const handleSurveySubmit = (answers: Record<string, string>) => {
     if (!formData || !type) return;
     setSubmitError(null);
-    try {
-      const payload = {
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        phone: formData.phone?.trim() || undefined,
-        birthday: formData.birthday?.trim() || undefined,
-        address: formData.address?.trim() || undefined,
-        type: type as "residential" | "business",
-        surveyAnswers:
-          Object.keys(answers).length > 0
-            ? (Object.fromEntries(
-                Object.entries(answers).filter(
-                  (e): e is [string, string] => typeof e[1] === "string"
-                )
-              ) as Record<string, string>)
-            : undefined,
-      };
-      const result = await submitWaitlist.mutateAsync(payload);
-      setRaffleNumber(result.raffleNumber);
-      setStep("success");
-      setShowSuccessDialog(true);
-    } catch (err: unknown) {
-      let message = cardT.submitError;
-      if (err && typeof err === "object" && "data" in err) {
-        const data = (err as { data?: { message?: string } }).data;
-        if (typeof data?.message === "string") message = data.message;
-      }
-      if (err instanceof Error && message === cardT.submitError) {
-        const raw = err.message;
-        if (raw && !raw.includes("JSON") && raw !== "Unexpected end of JSON input") {
-          message = raw;
-        }
-      }
-      setSubmitError(message);
-    }
+    submitWaitlist.mutate({
+      name: formData.name.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phone: formData.phone.trim() || "—",
+      birthday: formData.birthday.trim() || "—",
+      address: formData.address.trim() || "—",
+      type: type as "residential" | "business",
+      surveyAnswers: Object.keys(answers).length > 0 ? answers : undefined,
+    });
   };
 
   const titles: Record<string, string> = {
@@ -758,34 +725,6 @@ function WaitlistCard({ locale }: { locale: Locale }) {
       {step === "success" && formData && (
         <SuccessStep locale={locale} formData={formData} raffleNumber={raffleNumber} />
       )}
-
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="border-[rgba(139,175,142,0.2)] bg-[#111814] text-white sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl text-white">
-              {heroCopy[locale].successDialog.title}
-            </DialogTitle>
-            <DialogDescription className="text-white/75">
-              {heroCopy[locale].successDialog.description}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              asChild
-              className="w-full bg-[#8BAF8E] text-[#0C0F0C] hover:bg-[#7A9F7D]"
-            >
-              <a
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setShowSuccessDialog(false)}
-              >
-                {heroCopy[locale].successDialog.cta}
-              </a>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
