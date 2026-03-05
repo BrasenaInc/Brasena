@@ -3,12 +3,18 @@ import twilio from "twilio";
 import { db } from "@/db";
 import { notificationLog } from "@/db/schema";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend(): Resend | null {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  return new Resend(key);
+}
 
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+function getTwilioClient(): ReturnType<typeof twilio> | null {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !token) return null;
+  return twilio(sid, token);
+}
 
 const LIVE = process.env.NOTIFICATIONS_LIVE === "true";
 
@@ -250,6 +256,19 @@ async function sendEmail({
     return;
   }
 
+  const resend = getResend();
+  if (!resend) {
+    console.log(`[MOCK EMAIL] No RESEND_API_KEY — To: ${to} | Subject: ${subject}`);
+    await logNotification({
+      orderId,
+      type,
+      status: "mock_sent",
+      recipient: to,
+      providerId: "mock",
+    });
+    return;
+  }
+
   try {
     const result = await resend.emails.send({
       from: "Brasena <orders@brasena.com>",
@@ -288,6 +307,19 @@ async function sendSMS({
 }) {
   if (!LIVE) {
     console.log(`[MOCK SMS] To: ${to} | Body: ${body}`);
+    await logNotification({
+      orderId,
+      type,
+      status: "mock_sent",
+      recipient: to,
+      providerId: "mock",
+    });
+    return;
+  }
+
+  const twilioClient = getTwilioClient();
+  if (!twilioClient) {
+    console.log(`[MOCK SMS] No Twilio credentials — To: ${to} | Body: ${body}`);
     await logNotification({
       orderId,
       type,
