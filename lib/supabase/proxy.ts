@@ -49,7 +49,9 @@ export async function updateSession(request: NextRequest) {
     "/auth/callback",
   ];
   const isPublic =
-    publicPaths.includes(pathname) || pathname.startsWith("/auth/");
+    publicPaths.includes(pathname) ||
+    pathname.startsWith("/auth/") ||
+    pathname.startsWith("/api/trpc/");
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
