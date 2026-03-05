@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { ShoppingCart, Store, Truck, MapPin } from "lucide-react";
+import type { Locale } from "./marketing-page";
 
 const steps = [
   {
@@ -35,7 +36,9 @@ const steps = [
   },
 ];
 
-export function HowItWorksSection() {
+const howCopy = { en: "How it works", es: "Cómo funciona" };
+
+export function HowItWorksSection({ locale = "en" }: { locale?: Locale }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-10%" });
 
@@ -49,7 +52,7 @@ export function HowItWorksSection() {
       >
         <div className="h-px w-12 bg-sage" />
         <span className="text-xs font-medium uppercase tracking-[0.4em] text-sage">
-          How it works
+          {howCopy[locale]}
         </span>
       </motion.div>
 

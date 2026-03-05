@@ -45,6 +45,13 @@ export const products = pgTable('products', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (t) => [index('products_slug_idx').on(t.slug)]);
 
+export const productImages = pgTable('product_images', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  productId: uuid('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+  imageUrl: text('image_url').notNull(),
+  displayOrder: integer('display_order').default(0).notNull(),
+});
+
 export const weightTiers = pgTable('weight_tiers', {
   id: uuid('id').primaryKey().defaultRandom(),
   productId: uuid('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
@@ -130,7 +137,11 @@ export const waitlistEntries = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
+    phone: text("phone").notNull(),
+    birthday: text("birthday").notNull(),
+    address: text("address").notNull(),
     type: customerTypeEnum("type").notNull(),
+    surveyAnswers: text("survey_answers"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [index("waitlist_email_idx").on(t.email)]

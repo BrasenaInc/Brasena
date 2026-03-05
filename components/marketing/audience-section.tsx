@@ -3,33 +3,22 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Building2, Home } from "lucide-react";
+import type { Locale } from "./marketing-page";
 
-const audiences = [
-  {
-    icon: Building2,
-    type: "Business",
-    tag: "B2B",
-    tagColor: "bg-purple-100 text-purple-800",
-    title: "Restaurants & Lounges",
-    description:
-      "Automatic wholesale pricing with 15% off. Invoice payment terms available. Minimum $150 order. Built for kitchens that need reliable bulk supply.",
-    features: ["Wholesale pricing", "Invoice / Net 30", "Bulk ordering", "Priority routing"],
-  },
-  {
-    icon: Home,
-    type: "Personal",
-    tag: "B2C",
-    tagColor: "bg-blue-100 text-blue-800",
-    title: "Families & Households",
-    description:
-      "Premium cuts at prices far below retail. Order by the case or box. No membership required. Just real food at honest prices.",
-    features: ["No membership fee", "Case & box sizes", "Card payment", "$25 minimum order"],
-  },
+const audiencesEn = [
+  { icon: Building2, type: "Business", tag: "B2B", tagColor: "bg-purple-100 text-purple-800", title: "Restaurants & Lounges", description: "Automatic wholesale pricing with 15% off. Invoice payment terms available. Minimum $150 order. Built for kitchens that need reliable bulk supply.", features: ["Wholesale pricing", "Invoice / Net 30", "Bulk ordering", "Priority routing"] },
+  { icon: Home, type: "Personal", tag: "B2C", tagColor: "bg-blue-100 text-blue-800", title: "Families & Households", description: "Premium cuts at prices far below retail. Order by the case or box. No membership required. Just real food at honest prices.", features: ["No membership fee", "Case & box sizes", "Card payment", "$25 minimum order"] },
 ];
+const audiencesEs = [
+  { icon: Building2, type: "Business", tag: "B2B", tagColor: "bg-purple-100 text-purple-800", title: "Restaurantes y lounges", description: "Precios mayoristas automáticos con 15% de descuento. Pago a factura disponible. Pedido mínimo $150.", features: ["Precios mayoristas", "Factura / Net 30", "Pedidos al por mayor", "Ruta prioritaria"] },
+  { icon: Home, type: "Personal", tag: "B2C", tagColor: "bg-blue-100 text-blue-800", title: "Familias y hogares", description: "Cortes premium a precios muy por debajo del retail. Pedidos por caja. Sin membresía.", features: ["Sin cuota de membresía", "Cajas y tamaños", "Pago con tarjeta", "Pedido mínimo $25"] },
+];
+const eyebrow = { en: "Who it's for", es: "Para quién es" };
 
-export function AudienceSection() {
+export function AudienceSection({ locale = "en" }: { locale?: Locale }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-10%" });
+  const audiences = locale === "es" ? audiencesEs : audiencesEn;
 
   return (
     <section ref={ref} className="bg-[#F5F0E8] px-6 pb-32 md:px-16">
@@ -41,7 +30,7 @@ export function AudienceSection() {
       >
         <div className="h-px w-12 bg-sage" />
         <span className="text-xs font-medium uppercase tracking-[0.4em] text-sage">
-          Who it&apos;s for
+          {eyebrow[locale]}
         </span>
       </motion.div>
 

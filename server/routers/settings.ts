@@ -45,6 +45,9 @@ export const settingsRouter = router({
         name: z.string().min(1).trim(),
         email: z.string().email().trim().toLowerCase(),
         type: z.enum(["residential", "business"]),
+        phone: z.string().default("—"),
+        birthday: z.string().default("—"),
+        address: z.string().default("—"),
       })
     )
     .mutation(async ({ input }) => {
@@ -57,7 +60,14 @@ export const settingsRouter = router({
         return { success: true, alreadyRegistered: true };
       }
 
-      await db.insert(waitlistEntries).values(input);
+      await db.insert(waitlistEntries).values({
+        name: input.name,
+        email: input.email,
+        type: input.type,
+        phone: input.phone,
+        birthday: input.birthday,
+        address: input.address,
+      });
       return { success: true, alreadyRegistered: false };
     }),
 

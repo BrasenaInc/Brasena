@@ -3,14 +3,22 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { WaitlistForm } from "./waitlist-form";
+import type { Locale } from "./marketing-page";
+
+const ctaCopy = {
+  en: { launching: "Launching in the Bronx", ready: "Ready to order?", headline: ["Get wholesale", "prices now."], waitlistP: "Join restaurants, lounges, and Bronx families already on the waitlist. We're launching soon — get early access.", orderP: "Join restaurants, lounges, and Bronx families already ordering wholesale cuts through Brasena.", createAccount: "Create account", signIn: "Sign in" },
+  es: { launching: "Próximamente en el Bronx", ready: "¿Listo para pedir?", headline: ["Precios al por mayor", "ahora."], waitlistP: "Únete a restaurantes, lounges y familias del Bronx en la lista. Lanzamos pronto — acceso anticipado.", orderP: "Únete a quienes ya piden al por mayor con Brasena.", createAccount: "Crear cuenta", signIn: "Iniciar sesión" },
+};
 
 interface CtaSectionProps {
   waitlistEnabled: boolean;
+  locale?: Locale;
 }
 
-export function CtaSection({ waitlistEnabled }: CtaSectionProps) {
+export function CtaSection({ waitlistEnabled, locale = "en" }: CtaSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-10%" });
+  const t = ctaCopy[locale];
 
   return (
     <section
@@ -34,13 +42,13 @@ export function CtaSection({ waitlistEnabled }: CtaSectionProps) {
         >
           <div className="h-px w-12 bg-sage/50" />
           <span className="text-xs font-medium uppercase tracking-[0.4em] text-sage/70">
-            {waitlistEnabled ? "Launching in the Bronx" : "Ready to order?"}
+            {waitlistEnabled ? t.launching : t.ready}
           </span>
           <div className="h-px w-12 bg-sage/50" />
         </motion.div>
 
-        {["Get wholesale", "prices now."].map((line, i) => (
-          <div key={i} className="overflow-hidden">
+        {t.headline.map((line, i) => (
+          <div key={i} className="overflow-hidden px-3">
             <motion.h2
               className="font-serif text-[clamp(3rem,8vw,7rem)] font-bold
                          leading-none text-white"
@@ -63,9 +71,7 @@ export function CtaSection({ waitlistEnabled }: CtaSectionProps) {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          {waitlistEnabled
-            ? "Join restaurants, lounges, and Bronx families already on the waitlist. We're launching soon — get early access."
-            : "Join restaurants, lounges, and Bronx families already ordering wholesale cuts through Brasena."}
+          {waitlistEnabled ? t.waitlistP : t.orderP}
         </motion.p>
 
         <motion.div
@@ -75,7 +81,7 @@ export function CtaSection({ waitlistEnabled }: CtaSectionProps) {
           transition={{ duration: 0.6, delay: 0.55 }}
         >
           {waitlistEnabled ? (
-            <WaitlistForm theme="dark" />
+            <WaitlistForm theme="dark" locale={locale} />
           ) : (
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <motion.a
@@ -86,7 +92,7 @@ export function CtaSection({ waitlistEnabled }: CtaSectionProps) {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
               >
-                Create account
+                {t.createAccount}
               </motion.a>
               <motion.a
                 href="/auth/login"
@@ -96,7 +102,7 @@ export function CtaSection({ waitlistEnabled }: CtaSectionProps) {
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
               >
-                Sign in
+                {t.signIn}
               </motion.a>
             </div>
           )}

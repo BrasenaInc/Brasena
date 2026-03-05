@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { ProductImageCycle } from "@/components/shop/product-image-cycle";
 import type { products } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
@@ -36,7 +37,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   category: z.enum(["beef", "chicken", "pork"]),
   priceDollars: z.string().min(1, "Price is required"),
-  imageUrl: z.string().nullable().optional(),
+  imageUrls: z.array(z.string().url()).optional(),
   isActive: z.boolean(),
   weightTiers: z
     .array(
@@ -95,7 +96,7 @@ export function ProductDrawer({
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<"beef" | "chicken" | "pork">("beef");
   const [priceDollars, setPriceDollars] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [weightTiers, setWeightTiers] = useState<
     { weightLbs: number; label: string; displayOrder: number }[]
@@ -115,7 +116,7 @@ export function ProductDrawer({
       setDescription("");
       setCategory("beef");
       setPriceDollars("");
-      setImageUrl(null);
+      setImageUrls([]);
       setIsActive(true);
       setWeightTiers([{ weightLbs: 5, label: "", displayOrder: 0 }]);
       setErrors({});
@@ -130,7 +131,13 @@ export function ProductDrawer({
       setDescription(editData.description ?? "");
       setCategory(editData.category as "beef" | "chicken" | "pork");
       setPriceDollars((editData.pricePerLbCents / 100).toFixed(2));
-      setImageUrl(editData.imageUrl ?? null);
+      setImageUrls(
+        "imageUrls" in editData && Array.isArray(editData.imageUrls)
+          ? editData.imageUrls
+          : editData.imageUrl
+            ? [editData.imageUrl]
+            : []
+      );
       setIsActive(editData.isActive);
       setWeightTiers(
         editData.weightTiers.length > 0
@@ -179,23 +186,28 @@ export function ProductDrawer({
     onSuccess: () => utils.products.adminList.invalidate(),
   });
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageAdd = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
     setUploadProgress("Uploading...");
     try {
       const supabase = createClient();
       const url = await uploadProductImage(supabase, file, user.id);
-      setImageUrl(url);
-      setErrors((prev) => ({ ...prev, imageUrl: "" }));
+      setImageUrls((prev) => [...prev, url]);
+      setErrors((prev) => ({ ...prev, imageUrls: "" }));
     } catch (err) {
       setErrors((prev) => ({
         ...prev,
-        imageUrl: err instanceof Error ? err.message : "Upload failed",
+        imageUrls: err instanceof Error ? err.message : "Upload failed",
       }));
     } finally {
       setUploadProgress(null);
     }
+    e.target.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setImageUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const addTier = () => {
@@ -234,7 +246,7 @@ export function ProductDrawer({
       description: description || undefined,
       category,
       priceDollars: priceDollars.trim(),
-      imageUrl,
+      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       isActive,
       weightTiers: weightTiers.map((t, i) => ({
         weightLbs: t.weightLbs,
@@ -263,7 +275,7 @@ export function ProductDrawer({
         description: parsed.data.description,
         category: parsed.data.category,
         pricePerLbCents,
-        imageUrl: parsed.data.imageUrl ?? undefined,
+        imageUrls: parsed.data.imageUrls,
         isActive: parsed.data.isActive,
         weightTiers: tiers,
       });
@@ -274,7 +286,7 @@ export function ProductDrawer({
         description: parsed.data.description,
         category: parsed.data.category,
         pricePerLbCents,
-        imageUrl: parsed.data.imageUrl ?? null,
+        imageUrls,
         isActive: parsed.data.isActive,
       });
       await replaceTiersMutation.mutateAsync({
@@ -424,20 +436,20 @@ export function ProductDrawer({
 
               <Separator />
 
-              {/* Image */}
-              <FormSection title="Image">
-                {imageUrl ? (
+              {/* Images */}
+              <FormSection title="Images">
+                {imageUrls.length > 0 ? (
                   <div className="space-y-2">
                     <div className="relative aspect-video w-full max-w-xs overflow-hidden rounded-lg border bg-muted">
-                      <Image
-                        src={imageUrl}
-                        alt="Product"
+                      <ProductImageCycle
+                        imageUrls={imageUrls}
+                        className="h-full w-full"
                         fill
-                        className="object-cover"
                         sizes="(max-width: 512px) 100vw, 320px"
+                        alt="Product"
                       />
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -452,23 +464,44 @@ export function ProductDrawer({
                         ) : (
                           <ImagePlus className="h-4 w-4" />
                         )}
-                        {uploadProgress ?? "Change image"}
+                        {uploadProgress ?? "Add image"}
                       </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setImageUrl(null)}
-                      >
-                        Remove
-                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        {imageUrls.length} image{imageUrls.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {imageUrls.map((url, i) => (
+                        <div
+                          key={url}
+                          className="relative h-14 w-14 overflow-hidden rounded border bg-muted"
+                        >
+                          <Image
+                            src={url}
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="56px"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute right-0 top-0 h-5 w-5 rounded-bl rounded-tr"
+                            onClick={() => removeImage(i)}
+                            aria-label="Remove image"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                     <input
                       id="product-image-input"
                       type="file"
                       accept="image/*"
                       className="sr-only"
-                      onChange={handleImageChange}
+                      onChange={handleImageAdd}
                     />
                   </div>
                 ) : (
@@ -476,7 +509,7 @@ export function ProductDrawer({
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageChange}
+                      onChange={handleImageAdd}
                       disabled={!!uploadProgress}
                       className="sr-only"
                     />
@@ -489,12 +522,12 @@ export function ProductDrawer({
                       {uploadProgress ?? "Click to upload image"}
                     </span>
                     <span className="mt-0.5 text-xs text-muted-foreground">
-                      JPEG, PNG, WebP · max 5MB
+                      JPEG, PNG, WebP · max 5MB · add multiple
                     </span>
                   </label>
                 )}
-                {errors.imageUrl && (
-                  <p className="mt-1 text-xs text-destructive">{errors.imageUrl}</p>
+                {errors.imageUrls && (
+                  <p className="mt-1 text-xs text-destructive">{errors.imageUrls}</p>
                 )}
               </FormSection>
 

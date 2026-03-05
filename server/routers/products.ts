@@ -3,8 +3,20 @@ import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "../trpc";
 import { adminProcedure } from "../trpc";
 import { db } from "@/db";
-import { products, weightTiers } from "@/db/schema";
-import { eq, desc, and, count } from "drizzle-orm";
+import { products, weightTiers, productImages } from "@/db/schema";
+import { eq, desc, and, count, inArray } from "drizzle-orm";
+
+function withImageUrls<T extends { id: string; imageUrl: string | null }>(
+  items: T[],
+  imagesByProductId: Map<string, string[]>
+): (T & { imageUrls: string[] })[] {
+  return items.map((item) => {
+    const urls = imagesByProductId.get(item.id);
+    const imageUrls =
+      urls && urls.length > 0 ? urls : item.imageUrl ? [item.imageUrl] : [];
+    return { ...item, imageUrls };
+  });
+}
 
 export const productsRouter = router({
   // Public — customers and unauthenticated users can list products
@@ -13,7 +25,7 @@ export const productsRouter = router({
       category: z.string().optional(),
     }))
     .query(async ({ input }) => {
-      const query = db
+      const list = await db
         .select()
         .from(products)
         .where(
@@ -22,7 +34,19 @@ export const productsRouter = router({
             : eq(products.isActive, true)
         )
         .orderBy(desc(products.createdAt));
-      return query;
+      if (list.length === 0) return [];
+      const allImages = await db
+        .select()
+        .from(productImages)
+        .where(inArray(productImages.productId, list.map((p) => p.id)))
+        .orderBy(productImages.displayOrder);
+      const imagesByProductId = new Map<string, string[]>();
+      for (const img of allImages) {
+        const arr = imagesByProductId.get(img.productId) ?? [];
+        arr.push(img.imageUrl);
+        imagesByProductId.set(img.productId, arr);
+      }
+      return withImageUrls(list, imagesByProductId);
     }),
 
   // Public — fetch single product with its weight tiers
@@ -38,13 +62,25 @@ export const productsRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
       }
 
-      const tiers = await db
-        .select()
-        .from(weightTiers)
-        .where(eq(weightTiers.productId, product.id))
-        .orderBy(weightTiers.displayOrder);
-
-      return { ...product, weightTiers: tiers };
+      const [tiers, images] = await Promise.all([
+        db
+          .select()
+          .from(weightTiers)
+          .where(eq(weightTiers.productId, product.id))
+          .orderBy(weightTiers.displayOrder),
+        db
+          .select({ imageUrl: productImages.imageUrl })
+          .from(productImages)
+          .where(eq(productImages.productId, product.id))
+          .orderBy(productImages.displayOrder),
+      ]);
+      const imageUrls =
+        images.length > 0
+          ? images.map((i) => i.imageUrl)
+          : product.imageUrl
+            ? [product.imageUrl]
+            : [];
+      return { ...product, weightTiers: tiers, imageUrls };
     }),
 
   // Admin — get one product with weight tiers (for edit form)
@@ -58,23 +94,53 @@ export const productsRouter = router({
       if (!product) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
       }
-      const tiers = await db
-        .select()
-        .from(weightTiers)
-        .where(eq(weightTiers.productId, product.id))
-        .orderBy(weightTiers.displayOrder);
-      return { ...product, weightTiers: tiers };
+      const [tiers, images] = await Promise.all([
+        db
+          .select()
+          .from(weightTiers)
+          .where(eq(weightTiers.productId, product.id))
+          .orderBy(weightTiers.displayOrder),
+        db
+          .select({ imageUrl: productImages.imageUrl })
+          .from(productImages)
+          .where(eq(productImages.productId, product.id))
+          .orderBy(productImages.displayOrder),
+      ]);
+      const imageUrls =
+        images.length > 0
+          ? images.map((i) => i.imageUrl)
+          : product.imageUrl
+            ? [product.imageUrl]
+            : [];
+      return { ...product, weightTiers: tiers, imageUrls };
     }),
 
   // Admin — list ALL products including inactive ones (with tier count)
   adminList: adminProcedure.query(async () => {
     const productsList = await db.select().from(products).orderBy(desc(products.createdAt));
-    const tierCounts = await db
-      .select({ productId: weightTiers.productId, count: count(weightTiers.id) })
-      .from(weightTiers)
-      .groupBy(weightTiers.productId);
+    if (productsList.length === 0) return [];
+    const [tierCounts, allImages] = await Promise.all([
+      db
+        .select({ productId: weightTiers.productId, count: count(weightTiers.id) })
+        .from(weightTiers)
+        .groupBy(weightTiers.productId),
+      db
+        .select()
+        .from(productImages)
+        .where(inArray(productImages.productId, productsList.map((p) => p.id)))
+        .orderBy(productImages.displayOrder),
+    ]);
     const countMap = Object.fromEntries(tierCounts.map((r) => [r.productId, Number(r.count)]));
-    return productsList.map((p) => ({ ...p, tierCount: countMap[p.id] ?? 0 }));
+    const imagesByProductId = new Map<string, string[]>();
+    for (const img of allImages) {
+      const arr = imagesByProductId.get(img.productId) ?? [];
+      arr.push(img.imageUrl);
+      imagesByProductId.set(img.productId, arr);
+    }
+    return withImageUrls(productsList, imagesByProductId).map((p) => ({
+      ...p,
+      tierCount: countMap[p.id] ?? 0,
+    }));
   }),
 
   // Admin — create product
@@ -85,7 +151,7 @@ export const productsRouter = router({
       description: z.string().optional(),
       category: z.enum(["beef", "chicken", "pork"]),
       pricePerLbCents: z.number().int().positive(),
-      imageUrl: z.string().nullable().optional(),
+      imageUrls: z.array(z.string().url()).optional(),
       isActive: z.boolean().default(true),
       weightTiers: z.array(z.object({
         weightLbs: z.number().int().positive(),
@@ -94,11 +160,12 @@ export const productsRouter = router({
       })).min(1),
     }))
     .mutation(async ({ input }) => {
-      const { weightTiers: tiers, ...productData } = input;
+      const { weightTiers: tiers, imageUrls, ...rest } = input;
+      const firstImage = imageUrls?.[0] ?? null;
 
       const [newProduct] = await db
         .insert(products)
-        .values(productData)
+        .values({ ...rest, imageUrl: firstImage })
         .returning();
 
       if (!newProduct) {
@@ -108,6 +175,15 @@ export const productsRouter = router({
       if (tiers.length > 0) {
         await db.insert(weightTiers).values(
           tiers.map((t) => ({ ...t, productId: newProduct.id }))
+        );
+      }
+      if (imageUrls && imageUrls.length > 0) {
+        await db.insert(productImages).values(
+          imageUrls.map((imageUrl, i) => ({
+            productId: newProduct.id,
+            imageUrl,
+            displayOrder: i,
+          }))
         );
       }
 
@@ -122,19 +198,35 @@ export const productsRouter = router({
       description: z.string().optional(),
       category: z.enum(["beef", "chicken", "pork"]).optional(),
       pricePerLbCents: z.number().int().positive().optional(),
-      imageUrl: z.string().nullable().optional(),
+      imageUrls: z.array(z.string().url()).optional(),
       isActive: z.boolean().optional(),
     }))
     .mutation(async ({ input }) => {
-      const { id, ...data } = input;
+      const { id, imageUrls, ...data } = input;
       const [updated] = await db
         .update(products)
-        .set({ ...data, updatedAt: new Date() })
+        .set({
+          ...data,
+          ...(imageUrls !== undefined && { imageUrl: imageUrls[0] ?? null }),
+          updatedAt: new Date(),
+        })
         .where(eq(products.id, id))
         .returning();
 
       if (!updated) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
+      }
+      if (imageUrls !== undefined) {
+        await db.delete(productImages).where(eq(productImages.productId, id));
+        if (imageUrls.length > 0) {
+          await db.insert(productImages).values(
+            imageUrls.map((imageUrl, i) => ({
+              productId: id,
+              imageUrl,
+              displayOrder: i,
+            }))
+          );
+        }
       }
       return updated;
     }),

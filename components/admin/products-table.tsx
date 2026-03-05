@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, Beef, Drumstick, Ham, Loader2, Package } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
@@ -19,12 +18,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ProductDrawer } from "@/components/admin/product-drawer";
+import { ProductImageCycle } from "@/components/shop/product-image-cycle";
 import { categoryBadgeClass } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { products } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
-type Product = InferSelectModel<typeof products> & { tierCount: number };
+type Product = InferSelectModel<typeof products> & {
+  tierCount: number;
+  imageUrls: string[];
+};
 
 const CATEGORIES = ["All", "Beef", "Chicken", "Pork"] as const;
 
@@ -43,6 +46,35 @@ function CategoryIcon({ category }: { category: string }) {
     default:
       return <Beef className="h-5 w-5" />;
   }
+}
+
+/** Renders Switch only after mount to avoid hydration mismatch from browser extensions (e.g. data-sharkid on inputs). */
+function SwitchAfterMount({
+  checked,
+  onCheckedChange,
+  disabled,
+}: {
+  checked: boolean;
+  onCheckedChange: () => void;
+  disabled: boolean;
+}) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) {
+    return (
+      <span
+        className="inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent bg-input"
+        aria-hidden
+      />
+    );
+  }
+  return (
+    <Switch
+      checked={checked}
+      onCheckedChange={onCheckedChange}
+      disabled={disabled}
+    />
+  );
 }
 
 export function ProductsTable({
@@ -177,13 +209,13 @@ export function ProductsTable({
                   <tr key={product.id} className="border-b border-border bg-card hover:bg-accent">
                     <td className="px-4 py-3">
                       <div className="relative h-10 w-10 overflow-hidden rounded bg-muted">
-                        {product.imageUrl ? (
-                          <Image
-                            src={product.imageUrl}
-                            alt=""
+                        {product.imageUrls?.length ? (
+                          <ProductImageCycle
+                            imageUrls={product.imageUrls}
+                            className="h-full w-full"
                             fill
-                            className="object-cover"
                             sizes="40px"
+                            alt=""
                           />
                         ) : (
                           <span className="flex h-full w-full items-center justify-center text-muted-foreground">
@@ -211,7 +243,7 @@ export function ProductsTable({
                       <Badge variant="secondary">{product.tierCount}</Badge>
                     </td>
                     <td className="px-4 py-3">
-                      <Switch
+                      <SwitchAfterMount
                         checked={product.isActive}
                         onCheckedChange={() =>
                           toggleActive.mutate({ id: product.id })

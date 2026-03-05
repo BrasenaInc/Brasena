@@ -2,12 +2,31 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import type { Locale } from "./marketing-page";
 
 interface MarketingNavProps {
   waitlistEnabled: boolean;
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
 }
 
-export function MarketingNav({ waitlistEnabled }: MarketingNavProps) {
+const copy = {
+  en: {
+    signIn: "Sign in",
+    getStarted: "Get started",
+  },
+  es: {
+    signIn: "Iniciar sesión",
+    getStarted: "Comenzar",
+  },
+};
+
+export function MarketingNav({
+  waitlistEnabled,
+  locale,
+  setLocale,
+}: MarketingNavProps) {
+  const t = copy[locale];
   return (
     <motion.header
       className="fixed top-0 left-0 right-0 z-50 flex items-center
@@ -21,25 +40,51 @@ export function MarketingNav({ waitlistEnabled }: MarketingNavProps) {
           BRASENA
         </span>
       </Link>
-      {!waitlistEnabled && (
-        <div className="flex items-center gap-8">
-          <Link
-            href="/auth/login"
-            className="text-sm font-medium tracking-wider text-white/70
-                       transition-colors hover:text-white uppercase"
+      <div className="flex items-center gap-6">
+        <div className="flex rounded-full border border-white/20 bg-white/5 p-0.5">
+          <button
+            type="button"
+            onClick={() => setLocale("en")}
+            className={`rounded-full px-3 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
+              locale === "en"
+                ? "bg-white text-[#0C0F0C]"
+                : "text-white/70 hover:text-white"
+            }`}
           >
-            Sign in
-          </Link>
-          <Link
-            href="/auth/sign-up"
-            className="rounded-full border border-white/30 px-5 py-2 text-sm
-                       font-medium tracking-wider text-white transition-all
-                       hover:bg-white hover:text-[#0C0F0C] uppercase"
+            EN
+          </button>
+          <button
+            type="button"
+            onClick={() => setLocale("es")}
+            className={`rounded-full px-3 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
+              locale === "es"
+                ? "bg-white text-[#0C0F0C]"
+                : "text-white/70 hover:text-white"
+            }`}
           >
-            Get started
-          </Link>
+            ES
+          </button>
         </div>
-      )}
+        {!waitlistEnabled && (
+          <>
+            <Link
+              href="/auth/login"
+              className="text-sm font-medium tracking-wider text-white/70
+                         transition-colors hover:text-white uppercase"
+            >
+              {t.signIn}
+            </Link>
+            <Link
+              href="/auth/sign-up"
+              className="rounded-full border border-white/30 px-5 py-2 text-sm
+                         font-medium tracking-wider text-white transition-all
+                         hover:bg-white hover:text-[#0C0F0C] uppercase"
+            >
+              {t.getStarted}
+            </Link>
+          </>
+        )}
+      </div>
     </motion.header>
   );
 }

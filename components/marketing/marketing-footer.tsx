@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import type { Locale } from "./marketing-page";
 
-export function MarketingFooter() {
+const footerCopy = { en: { signIn: "Sign in", getStarted: "Get started", tagline: "The Bronx, NYC · Launching 2026 · © Brasena Inc." }, es: { signIn: "Iniciar sesión", getStarted: "Comenzar", tagline: "El Bronx, NYC · Lanzamiento 2026 · © Brasena Inc." } };
+
+export function MarketingFooter({ locale = "en" }: { locale?: Locale }) {
+  const t = footerCopy[locale];
   return (
     <footer className="border-t border-white/5 bg-[#0C0F0C] px-8 py-10">
       <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
@@ -10,7 +14,7 @@ export function MarketingFooter() {
           BRASENA
         </span>
         <span className="text-xs text-white/20">
-          The Bronx, NYC · Launching 2026 · © Brasena Inc.
+          {t.tagline}
         </span>
         <div className="flex gap-6">
           <Link
@@ -18,14 +22,14 @@ export function MarketingFooter() {
             className="text-xs uppercase tracking-wider text-white/30
                        transition-colors hover:text-white/60"
           >
-            Sign in
+            {t.signIn}
           </Link>
           <Link
             href="/auth/sign-up"
             className="text-xs uppercase tracking-wider text-white/30
                        transition-colors hover:text-white/60"
           >
-            Get started
+            {t.getStarted}
           </Link>
         </div>
       </div>

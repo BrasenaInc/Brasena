@@ -1,0 +1,86 @@
+import { z } from "zod";
+import { TRPCError } from "@trpc/server";
+import { desc, eq } from "drizzle-orm";
+import { router, adminProcedure, publicProcedure } from "../trpc";
+import { db } from "@/db";
+import { waitlistEntries } from "@/db/schema";
+import { sendWaitlistConfirmation } from "@/lib/notifications/waitlist-confirmation";
+
+export const waitlistRouter = router({
+  adminList: adminProcedure.query(async () => {
+    return db
+      .select()
+      .from(waitlistEntries)
+      .orderBy(desc(waitlistEntries.createdAt));
+  }),
+
+  adminGetById: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const [signup] = await db
+        .select()
+        .from(waitlistEntries)
+        .where(eq(waitlistEntries.id, input.id));
+
+      if (!signup) throw new TRPCError({ code: "NOT_FOUND" });
+
+      return {
+        ...signup,
+        surveyAnswers: signup.surveyAnswers
+          ? (JSON.parse(signup.surveyAnswers) as Record<string, string>)
+          : null,
+      };
+    }),
+
+  export: publicProcedure
+    .input(
+      z.object({
+        name: z.string().min(1),
+        email: z.string().email(),
+        phone: z.string().min(1),
+        birthday: z.string().min(1),
+        address: z.string().min(1),
+        type: z.enum(["residential", "business"]),
+        surveyAnswers: z.record(z.string(), z.string()).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const [existing] = await db
+        .select()
+        .from(waitlistEntries)
+        .where(eq(waitlistEntries.email, input.email.trim().toLowerCase()));
+
+      if (existing) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Already on the waitlist",
+        });
+      }
+
+      const email = input.email.trim().toLowerCase();
+      const payload = {
+        name: input.name.trim(),
+        email,
+        phone: input.phone.trim(),
+        birthday: input.birthday.trim(),
+        address: input.address.trim(),
+        type: input.type,
+        surveyAnswers: input.surveyAnswers
+          ? JSON.stringify(input.surveyAnswers)
+          : null,
+      };
+
+      await db.insert(waitlistEntries).values(payload);
+
+      const raffleNumber = Math.floor(Math.random() * 9000) + 1000;
+      sendWaitlistConfirmation({
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        type: payload.type,
+        raffleNumber,
+      }).catch(console.error);
+
+      return { success: true, raffleNumber };
+    }),
+});

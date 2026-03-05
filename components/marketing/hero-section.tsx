@@ -1,12 +1,75 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import { WaitlistForm } from "./waitlist-form";
+import { useEffect, useRef, useState } from "react";
+import { trpc } from "@/lib/trpc/client";
+import type { Locale } from "./marketing-page";
 
-interface HeroSectionProps {
-  waitlistEnabled: boolean;
-}
+type SurveyItem = { id: string; q: string; opts: string[] };
+type TypeCard = {
+  id: string;
+  tag: string;
+  title: string;
+  sub: string;
+  features: string[];
+  price: string;
+  compare: string;
+};
+
+const SURVEY_ITEMS_EN: SurveyItem[] = [
+  { id: "heard", q: "How did you hear about us?", opts: ["Instagram", "Friend / Family", "Flyer", "Other"] },
+  { id: "freq", q: "How often do you buy meat?", opts: ["Weekly", "Bi-weekly", "Monthly", "Occasionally"] },
+  { id: "spend", q: "Monthly meat budget?", opts: ["Under $50", "$50–$100", "$100–$200", "$200+"] },
+  { id: "priority", q: "What matters most to you?", opts: ["Price", "Quality", "Convenience", "Variety"] },
+];
+
+const SURVEY_ITEMS_ES: SurveyItem[] = [
+  { id: "heard", q: "¿Cómo te enteraste de nosotros?", opts: ["Instagram", "Amigo / Familia", "Volante", "Otro"] },
+  { id: "freq", q: "¿Con qué frecuencia compras carne?", opts: ["Semanal", "Quincenal", "Mensual", "Ocasionalmente"] },
+  { id: "spend", q: "¿Presupuesto mensual en carne?", opts: ["Menos de $50", "$50–$100", "$100–$200", "$200+"] },
+  { id: "priority", q: "¿Qué es lo más importante para ti?", opts: ["Precio", "Calidad", "Conveniencia", "Variedad"] },
+];
+
+const TYPE_CARDS_EN: TypeCard[] = [
+  { id: "residential", tag: "B2C", title: "For Families", sub: "Personal & household", features: ["Wholesale prices", "5–20 lb box sizes", "Flexible delivery", "No membership fee"], price: "From $4.99 / lb", compare: "vs $8–12 / lb retail" },
+  { id: "business", tag: "B2B", title: "For Businesses", sub: "Restaurants, lounges & catering", features: ["Full case bulk pricing", "Custom cut specifications", "Priority scheduling", "Dedicated account manager"], price: "Volume pricing available", compare: "Contact us for quotes" },
+];
+
+const TYPE_CARDS_ES: TypeCard[] = [
+  { id: "residential", tag: "B2C", title: "Para familias", sub: "Hogar y personal", features: ["Precios mayoristas", "Cajas 5–20 lb", "Entrega flexible", "Sin cuota de membresía"], price: "Desde $4.99 / lb", compare: "vs $8–12 / lb retail" },
+  { id: "business", tag: "B2B", title: "Para empresas", sub: "Restaurantes, lounges y catering", features: ["Precios al por mayor por caja", "Cortes a medida", "Prioridad de entrega", "Gerente de cuenta dedicado"], price: "Precios por volumen", compare: "Contáctanos para cotizaciones" },
+];
+
+const heroCopy: Record<
+  Locale,
+  {
+    heroLeft: { eyebrow: string; headline1: string; headline2: string; body: string; bullets: string[]; scroll: string };
+    typeStep: { raffleTitle: string; raffleSub: string; raffleNote: string; waitlistTitle: string; waitlistSub: string; select: string };
+    infoStep: { fullName: string; email: string; phone: string; birthday: string; address: string; back: string; continueBtn: string; required: string; invalidEmail: string };
+    surveyStep: { banner: string; submitBtn: string; subline: string };
+    successStep: { youAreOnTheList: string; welcome: string; raffleConfirmed: string; prize: string; confirmationSentTo: string; followInstagram: string; footer: string };
+    waitlistCard: { titleType: string; titleInfo: string; titleSurvey: string; subType: string; subInfo: string; subSurvey: string; submitError: string };
+    cta: { startOrdering: string; signIn: string };
+  }
+> = {
+  en: {
+    heroLeft: { eyebrow: "Wholesale Platform · The Bronx, NY", headline1: "Wholesale meat,", headline2: "delivered fresh.", body: "We bridge the gap between wholesale distributors and you — cutting out the middleman so restaurants, lounges, and families get premium cuts at real wholesale prices.", bullets: ["No middleman markup", "Same-day delivery", "Bulk pricing"], scroll: "Scroll to explore" },
+    typeStep: { raffleTitle: "Launch Day Raffle", raffleSub: "Sign up & enter to win an Unknown Valuable Gift", raffleNote: "Every signup gets an automatic raffle entry. Winner announced at launch.", waitlistTitle: "Join the Brasena Waitlist", waitlistSub: "Choose how you will use Brasena", select: "Select" },
+    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email" },
+    surveyStep: { banner: "Completing the survey improves your raffle chances", submitBtn: "Submit — Follow Brasena on Instagram", subline: "Saves your spot and opens Instagram in a new tab" },
+    successStep: { youAreOnTheList: "You are on the list", welcome: "Welcome", raffleConfirmed: "Raffle Entry Confirmed", prize: "Unknown Valuable Gift", confirmationSentTo: "Confirmation sent to", followInstagram: "Follow @brasenabx on Instagram", footer: "Once we launch, complete your profile and start ordering." },
+    waitlistCard: { titleType: "Join the Waitlist", titleInfo: "Your Information", titleSurvey: "Quick Survey", subType: "Choose how you will use Brasena", subInfo: "We need a few details to confirm your spot", subSurvey: "Help us know you better (optional feel)", submitError: "Something went wrong. Please try again." },
+    cta: { startOrdering: "Start ordering", signIn: "Sign in" },
+  },
+  es: {
+    heroLeft: { eyebrow: "Plataforma mayorista · El Bronx, NY", headline1: "Carne al por mayor,", headline2: "entregada fresca.", body: "Cerramos la brecha entre distribuidores mayoristas y tú: sin intermediarios para que restaurantes, lounges y familias obtengan cortes premium a precios mayoristas.", bullets: ["Sin sobreprecio de intermediarios", "Entrega el mismo día", "Precios al por mayor"], scroll: "Desplazar para explorar" },
+    typeStep: { raffleTitle: "Rifa del día de lanzamiento", raffleSub: "Regístrate y participa para ganar un regalo valioso sorpresa", raffleNote: "Cada registro obtiene una entrada automática. Ganador anunciado al lanzar.", waitlistTitle: "Únete a la lista de Brasena", waitlistSub: "Elige cómo usarás Brasena", select: "Seleccionar" },
+    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido" },
+    surveyStep: { banner: "Completar la encuesta mejora tus posibilidades en la rifa", submitBtn: "Enviar — Sigue a Brasena en Instagram", subline: "Guarda tu lugar y abre Instagram en una nueva pestaña" },
+    successStep: { youAreOnTheList: "Estás en la lista", welcome: "Bienvenido", raffleConfirmed: "Entrada a la rifa confirmada", prize: "Regalo valioso sorpresa", confirmationSentTo: "Confirmación enviada a", followInstagram: "Seguir @brasenabx en Instagram", footer: "Cuando lancemos, completa tu perfil y empieza a pedir." },
+    waitlistCard: { titleType: "Únete a la lista", titleInfo: "Tu información", titleSurvey: "Encuesta rápida", subType: "Elige cómo usarás Brasena", subInfo: "Necesitamos unos datos para confirmar tu lugar", subSurvey: "Ayúdanos a conocerte (opcional)", submitError: "Algo salió mal. Por favor intenta de nuevo." },
+    cta: { startOrdering: "Empezar a pedir", signIn: "Iniciar sesión" },
+  },
+};
 
 function MeshCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -123,151 +186,661 @@ function MeshCanvas() {
   );
 }
 
-export function HeroSection({ waitlistEnabled }: HeroSectionProps) {
+export type WaitlistFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  birthday: string;
+  address: string;
+};
+
+const TYPE_CARDS: Record<Locale, TypeCard[]> = { en: TYPE_CARDS_EN, es: TYPE_CARDS_ES };
+const SURVEY_ITEMS: Record<Locale, SurveyItem[]> = { en: SURVEY_ITEMS_EN, es: SURVEY_ITEMS_ES };
+
+function TypeStep({ locale, onSelect }: { locale: Locale; onSelect: (type: string) => void }) {
+  const t = heroCopy[locale].typeStep;
+  const cards = TYPE_CARDS[locale];
+  return (
+    <div className="space-y-5">
+      <div
+        className="rounded-[10px] border px-4 py-3 text-center"
+        style={{
+          background: "rgba(139,175,142,0.07)",
+          borderColor: "rgba(139,175,142,0.22)",
+        }}
+      >
+        <div
+          className="text-[9px] uppercase tracking-[0.3em]"
+          style={{ color: "#8BAF8E" }}
+        >
+          {t.raffleTitle}
+        </div>
+        <div
+          className="font-serif text-sm font-bold text-white"
+          style={{ fontFamily: "Georgia, serif" }}
+        >
+          {t.raffleSub}
+        </div>
+        <div className="mt-1 text-[11px]" style={{ color: "#5A7A5A" }}>
+          {t.raffleNote}
+        </div>
+      </div>
+
+      <div className="text-center">
+        <h2
+          className="font-serif text-[17px] font-bold text-white"
+          style={{ fontFamily: "Georgia, serif" }}
+        >
+          {t.waitlistTitle}
+        </h2>
+        <p className="mt-1 text-[11px]" style={{ color: "#5A7A5A" }}>
+          {t.waitlistSub}
+        </p>
+      </div>
+
+      <div
+        className="grid gap-2.5"
+        style={{ gridTemplateColumns: "1fr 1fr", alignItems: "stretch" }}
+      >
+        {cards.map((card) => (
+          <button
+            key={card.id}
+            type="button"
+            onClick={() => onSelect(card.id)}
+            className="flex cursor-pointer flex-col rounded-[13px] border p-3.5 text-left transition-all duration-200 hover:border-[rgba(139,175,142,0.6)] hover:bg-[rgba(139,175,142,0.05)]"
+            style={{
+              background: "rgba(17,24,20,0.92)",
+              borderColor: "rgba(139,175,142,0.14)",
+            }}
+          >
+            <span className="text-[9px]" style={{ color: "#8BAF8E" }}>
+              {card.tag}
+            </span>
+            <div
+              className="mt-1 font-serif text-[15px] font-bold text-white"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              {card.title}
+            </div>
+            <div className="text-[10px]" style={{ color: "#4A6A4A" }}>
+              {card.sub}
+            </div>
+            <div
+              className="my-3 h-px"
+              style={{ background: "rgba(139,175,142,0.1)" }}
+            />
+            <div className="flex flex-1 flex-col gap-1.5">
+              {card.features.map((f) => (
+                <div
+                  key={f}
+                  className="flex items-center gap-1.5 text-[10px]"
+                  style={{ color: "#6A8A6A" }}
+                >
+                  <span style={{ color: "#8BAF8E" }}>+</span>
+                  {f}
+                </div>
+              ))}
+            </div>
+            <div className="mt-auto shrink-0">
+              <div
+                className="my-3 h-px"
+                style={{ background: "rgba(139,175,142,0.1)" }}
+              />
+              <div
+                className="text-xs font-bold"
+                style={{ color: "#8BAF8E" }}
+              >
+                {card.price}
+              </div>
+              <div className="text-[10px] mb-3.5" style={{ color: "#3A5A3A" }}>
+                {card.compare}
+              </div>
+              <div
+                className="rounded-[7px] border py-2 text-center text-[11px]"
+                style={{
+                  borderColor: "rgba(139,175,142,0.4)",
+                  color: "#8BAF8E",
+                }}
+              >
+                {t.select}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InfoStep({
+  locale,
+  type,
+  onBack,
+  onNext,
+}: {
+  locale: Locale;
+  type: string;
+  onBack: () => void;
+  onNext: (data: WaitlistFormData) => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [birthday, setBirthday] = useState("");
+  const [address, setAddress] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const t = heroCopy[locale].infoStep;
+
+  const typeLabel = type === "residential" ? "B2C" : "B2B";
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const nextErrors: Record<string, string> = {};
+    if (!name.trim()) nextErrors.name = t.required;
+    if (!email.trim()) nextErrors.email = t.required;
+    else if (!email.includes("@")) nextErrors.email = t.invalidEmail;
+    if (!phone.trim()) nextErrors.phone = t.required;
+    if (!birthday.trim()) nextErrors.birthday = t.required;
+    if (!address.trim()) nextErrors.address = t.required;
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+    onNext({ name: name.trim(), email: email.trim(), phone: phone.trim(), birthday: birthday.trim(), address: address.trim() });
+  };
+
+  const inputClass =
+    "w-full rounded-lg border bg-[#111814] px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1";
+  const errorBorder = "border-red-500";
+  const normalBorder = "border-[rgba(139,175,142,0.2)] focus:border-[#8BAF8E]";
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <span
+          className="text-[9px] uppercase tracking-wider"
+          style={{ color: "#8BAF8E" }}
+        >
+          {typeLabel}
+        </span>
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-[11px] text-white/70 hover:text-white"
+        >
+          {t.back}
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {[
+          { key: "name", label: t.fullName, value: name, set: setName, type: "text" },
+          { key: "email", label: t.email, value: email, set: setEmail, type: "email" },
+          { key: "phone", label: t.phone, value: phone, set: setPhone, type: "tel" },
+          { key: "birthday", label: t.birthday, value: birthday, set: setBirthday, type: "date" },
+          { key: "address", label: t.address, value: address, set: setAddress, type: "text" },
+        ].map(({ key, label, value, set, type }) => (
+          <div key={key}>
+            <label
+              className="mb-1.5 block text-[9px] uppercase tracking-wider"
+              style={{ color: "#5A7A5A" }}
+            >
+              {label}
+            </label>
+            <input
+              type={type}
+              value={value}
+              onChange={(e) => set(e.target.value)}
+              className={`${inputClass} ${errors[key] ? errorBorder : normalBorder}`}
+              placeholder={label}
+            />
+            {errors[key] && (
+              <p className="mt-1 text-xs text-red-400">{errors[key]}</p>
+            )}
+          </div>
+        ))}
+
+        <button
+          type="submit"
+          className="w-full rounded-lg py-3 text-sm font-semibold text-[#0C0F0C]"
+          style={{ background: "#8BAF8E" }}
+        >
+          {t.continueBtn}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function SurveyStep({
+  locale,
+  onSubmit,
+  isLoading,
+}: {
+  locale: Locale;
+  onSubmit: (answers: Record<string, string>) => void;
+  isLoading: boolean;
+}) {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const t = heroCopy[locale].surveyStep;
+  const surveyItems = SURVEY_ITEMS[locale];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const missing = surveyItems.filter((s) => !answers[s.id]);
+    if (missing.length > 0) return;
+    onSubmit(answers);
+  };
+
+  return (
+    <div className="space-y-5">
+      <div
+        className="rounded-lg border py-2.5 text-center text-[11px]"
+        style={{
+          background: "rgba(139,175,142,0.07)",
+          borderColor: "rgba(139,175,142,0.2)",
+        }}
+      >
+        {t.banner}
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {surveyItems.map((item, idx) => (
+          <div key={item.id}>
+            <div className="mb-2 flex items-baseline gap-2">
+              <span className="text-sm font-medium" style={{ color: "#8BAF8E" }}>
+                {idx + 1}.
+              </span>
+              <span className="text-sm text-white">{item.q}</span>
+            </div>
+            <div
+              className="grid gap-2"
+              style={{ gridTemplateColumns: "1fr 1fr" }}
+            >
+              {item.opts.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() =>
+                    setAnswers((a) => ({ ...a, [item.id]: opt }))
+                  }
+                  className="rounded-lg border px-3 py-2.5 text-left text-xs transition-colors"
+                  style={
+                    answers[item.id] === opt
+                      ? {
+                          borderColor: "#8BAF8E",
+                          background: "rgba(139,175,142,0.12)",
+                          color: "#8BAF8E",
+                          fontWeight: 700,
+                        }
+                      : {
+                          borderColor: "rgba(139,175,142,0.15)",
+                          background: "rgba(17,24,20,0.9)",
+                          color: "#5A7A5A",
+                        }
+                  }
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full rounded-lg py-3 text-sm font-semibold text-[#0C0F0C]"
+          style={{
+            background: "linear-gradient(135deg, #6BAF7E, #8BAF8E)",
+          }}
+        >
+          {isLoading ? "..." : t.submitBtn}
+        </button>
+      </form>
+
+      <p
+        className="text-center text-[10px]"
+        style={{ color: "#3A5A3A" }}
+      >
+        {t.subline}
+      </p>
+    </div>
+  );
+}
+
+function SuccessStep({
+  locale,
+  formData,
+  raffleNumber,
+}: {
+  locale: Locale;
+  formData: WaitlistFormData;
+  raffleNumber: number;
+}) {
+  const firstName = formData.name.split(" ")[0] || formData.name;
+  const t = heroCopy[locale].successStep;
+
+  return (
+    <div className="space-y-5 text-center">
+      <div
+        className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border text-lg"
+        style={{
+          background: "rgba(139,175,142,0.15)",
+          borderColor: "rgba(139,175,142,0.4)",
+          color: "#8BAF8E",
+        }}
+      >
+        *
+      </div>
+      <h2
+        className="font-serif text-[22px] font-bold text-white"
+        style={{ fontFamily: "Georgia, serif" }}
+      >
+        {t.youAreOnTheList}
+      </h2>
+      <p className="text-[13px]" style={{ color: "#8BAF8E" }}>
+        {t.welcome}, {firstName}
+      </p>
+
+      <div
+        className="overflow-hidden rounded-[14px] border p-5"
+        style={{
+          background: "rgba(17,24,20,0.95)",
+          borderColor: "rgba(139,175,142,0.28)",
+        }}
+      >
+        <div
+          className="-mx-5 -mt-5 mb-4 h-0.5"
+          style={{
+            background:
+              "linear-gradient(90deg, #8BAF8E, #4A8A5A, #8BAF8E)",
+          }}
+        />
+        <div
+          className="text-[9px] uppercase tracking-wider"
+          style={{ color: "#5A7A5A" }}
+        >
+          {t.raffleConfirmed}
+        </div>
+        <div
+          className="font-serif text-[34px] font-bold"
+          style={{ color: "#8BAF8E", fontFamily: "Georgia, serif" }}
+        >
+          #{raffleNumber}
+        </div>
+        <div
+          className="mt-2 h-px"
+          style={{ background: "rgba(139,175,142,0.15)" }}
+        />
+        <p className="mt-2 text-[11px]" style={{ color: "#5A7A5A" }}>
+          Prize: <span className="font-bold text-white">{t.prize}</span>
+        </p>
+      </div>
+
+      <div
+        className="rounded-[9px] border px-3.5 py-2.5 text-left"
+        style={{
+          background: "rgba(8,10,8,0.8)",
+          borderColor: "rgba(139,175,142,0.12)",
+        }}
+      >
+        <div className="text-[10px]" style={{ color: "#8BAF8E" }}>
+          {t.confirmationSentTo}
+        </div>
+        <div className="mt-1 text-[12px]" style={{ color: "#8A9A8A" }}>
+          {formData.email}
+        </div>
+        <div className="text-[12px]" style={{ color: "#8A9A8A" }}>
+          {formData.phone}
+        </div>
+      </div>
+
+      <a
+        href="https://www.instagram.com/brasenabx"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block w-full rounded-lg py-3 text-center text-sm font-semibold text-white"
+        style={{
+          background: "linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)",
+        }}
+      >
+        {t.followInstagram}
+      </a>
+
+      <p className="text-[10px]" style={{ color: "#3A5A3A" }}>
+        {t.footer}
+      </p>
+    </div>
+  );
+}
+
+function ProgressBar({ step }: { step: string }) {
+  if (step === "type") return null;
+  const steps = ["info", "survey", "success"];
+  const idx = steps.indexOf(step);
+  return (
+    <div className="mb-4 flex gap-1">
+      {steps.map((_, i) => (
+        <div
+          key={i}
+          className="h-0.5 flex-1 rounded-sm transition-[background] duration-350"
+          style={{
+            background: i <= idx ? "#8BAF8E" : "rgba(139,175,142,0.15)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function WaitlistCard({ locale }: { locale: Locale }) {
+  const [step, setStep] = useState<"type" | "info" | "survey" | "success">(
+    "type"
+  );
+  const [type, setType] = useState<string>("");
+  const [formData, setFormData] = useState<WaitlistFormData | null>(null);
+  const [raffleNumber, setRaffleNumber] = useState<number>(0);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const cardT = heroCopy[locale].waitlistCard;
+
+  const submitWaitlist = trpc.waitlist.export.useMutation();
+
+  const handleSurveySubmit = async (answers: Record<string, string>) => {
+    if (!formData || !type) return;
+    setSubmitError(null);
+    try {
+      const result = await submitWaitlist.mutateAsync({
+        ...formData,
+        type: type as "residential" | "business",
+        surveyAnswers: answers,
+      });
+      setRaffleNumber(result.raffleNumber);
+      window.open("https://www.instagram.com/brasenabx", "_blank");
+      setStep("success");
+    } catch {
+      setSubmitError(cardT.submitError);
+    }
+  };
+
+  const titles: Record<string, string> = {
+    type: cardT.titleType,
+    info: cardT.titleInfo,
+    survey: cardT.titleSurvey,
+  };
+  const subtitles: Record<string, string> = {
+    type: cardT.subType,
+    info: cardT.subInfo,
+    survey: cardT.subSurvey,
+  };
+
+  return (
+    <div
+      className="w-full rounded-[18px] p-6"
+      style={{
+        background: "rgba(10,14,10,0.80)",
+        backdropFilter: "blur(22px)",
+        border: "1px solid rgba(139,175,142,0.16)",
+        boxShadow:
+          "0 20px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(139,175,142,0.07)",
+      }}
+    >
+      {step !== "success" && (
+        <div className="mb-5">
+          <ProgressBar step={step} />
+          <h3
+            className="font-serif text-base font-bold text-white"
+            style={{ fontFamily: "Georgia, serif" }}
+          >
+            {titles[step]}
+          </h3>
+          <p className="mt-1 text-[11px]" style={{ color: "#5A7A5A" }}>
+            {subtitles[step]}
+          </p>
+        </div>
+      )}
+
+      {submitError && (
+        <p className="mb-3 text-sm text-red-400">{submitError}</p>
+      )}
+
+      {step === "type" && (
+        <TypeStep locale={locale} onSelect={(t) => { setType(t); setStep("info"); }} />
+      )}
+      {step === "info" && (
+        <InfoStep
+          locale={locale}
+          type={type}
+          onBack={() => setStep("type")}
+          onNext={(data) => {
+            setFormData(data);
+            setStep("survey");
+          }}
+        />
+      )}
+      {step === "survey" && (
+        <SurveyStep
+          locale={locale}
+          onSubmit={handleSurveySubmit}
+          isLoading={submitWaitlist.isPending}
+        />
+      )}
+      {step === "success" && formData && (
+        <SuccessStep locale={locale} formData={formData} raffleNumber={raffleNumber} />
+      )}
+    </div>
+  );
+}
+
+function HeroLeft({ locale }: { locale: Locale }) {
+  const t = heroCopy[locale].heroLeft;
+  return (
+    <div className="space-y-6">
+      <div
+        className="text-[11px] uppercase tracking-[0.42em]"
+        style={{ color: "#8BAF8E" }}
+      >
+        {t.eyebrow}
+      </div>
+      <h1
+        className="font-serif font-bold leading-tight text-white"
+        style={{
+          fontFamily: "Georgia, serif",
+          fontSize: "clamp(2.4rem, 3.8vw, 4.4rem)",
+        }}
+      >
+        {t.headline1}{" "}
+        <span style={{ color: "#8BAF8E" }}>{t.headline2}</span>
+      </h1>
+      <p className="max-w-md text-base leading-relaxed text-white/70">
+        {t.body}
+      </p>
+      <ul className="space-y-2 text-sm text-white/80">
+        {t.bullets.map((item) => (
+          <li key={item} className="flex items-center gap-2">
+            <span
+              className="h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{ background: "#8BAF8E" }}
+            />
+            {item}
+          </li>
+        ))}
+      </ul>
+      <div className="flex items-center gap-3 pt-4" style={{ opacity: 0.3 }}>
+        <div className="h-12 w-px" style={{ background: "#8BAF8E" }} />
+        <span className="text-[10px] uppercase tracking-wider" style={{ color: "#8BAF8E" }}>
+          {t.scroll}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+interface HeroSectionProps {
+  waitlistEnabled: boolean;
+  locale: Locale;
+}
+
+export function HeroSection({ waitlistEnabled, locale }: HeroSectionProps) {
   return (
     <section
-      className="relative flex min-h-screen flex-col items-center justify-center
-                 overflow-hidden bg-[#0C0F0C] py-32"
+      className="relative h-screen w-full overflow-hidden"
+      style={{ minHeight: "100vh" }}
     >
-      <MeshCanvas />
-      {/* Grid */}
+      <div className="absolute inset-0">
+        <MeshCanvas />
+      </div>
       <div
         className="absolute inset-0 opacity-[0.04]"
         style={{
           backgroundImage:
-            "linear-gradient(#8BAF8E 1px, transparent 1px), " +
-            "linear-gradient(90deg, #8BAF8E 1px, transparent 1px)",
+            "linear-gradient(#8BAF8E 1px, transparent 1px), linear-gradient(90deg, #8BAF8E 1px, transparent 1px)",
           backgroundSize: "80px 80px",
         }}
       />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 88% at center, transparent, rgba(8,10,8,0.5))",
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-[12%] bottom-[12%] w-px -translate-x-px"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent, rgba(139,175,142,0.12) 25%, rgba(139,175,142,0.12) 75%, transparent)",
+        }}
+      />
 
-      {/* Vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,transparent_40%,#0C0F0C_100%)]" />
-
-      {/* Glow orb — replaced by MeshCanvas */}
-      {/* <motion.div
-        className="absolute h-[600px] w-[600px] rounded-full opacity-10 blur-[120px]"
-        style={{ background: "#8BAF8E" }}
-        animate={{ scale: [1, 1.2, 1], x: [0, 40, 0], y: [0, -30, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      /> */}
-
-      <motion.div
-        className="relative z-10 flex w-full max-w-3xl flex-col items-center px-6 text-center"
-      >
-        {/* Eyebrow */}
-        <motion.div
-          className="mb-8 flex items-center gap-3"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.05 }}
-        >
-          <div className="h-px w-12 bg-sage/50" />
-          <span className="text-xs font-medium tracking-[0.4em] text-sage/70 uppercase">
-            Wholesale Platform · The Bronx, NY
-          </span>
-          <div className="h-px w-12 bg-sage/50" />
-        </motion.div>
-
-        {/* Heading line 1 */}
-        <div className="mb-2 overflow-hidden">
-          <motion.h1
-            className="font-serif text-[clamp(2rem,5vw,5.5rem)] font-bold
-                       leading-none tracking-tight text-white"
-            initial={{ y: "110%" }}
-            animate={{ y: "0%" }}
-            transition={{ duration: 0.9, delay: 0.1, ease: [0.76, 0, 0.24, 1] }}
-          >
-            Wholesale meat,
-          </motion.h1>
+      <div className="relative z-10 flex h-full items-stretch">
+        <div className="flex min-w-0 flex-1 items-center" style={{ padding: "0 40px 0 56px" }}>
+          <HeroLeft locale={locale} />
         </div>
-
-        {/* Heading line 2 */}
-        <div className="mb-6 overflow-hidden">
-          <motion.h2
-            className="font-serif text-[clamp(2rem,5vw,5.5rem)] font-bold
-                       leading-none tracking-tight text-sage"
-            initial={{ y: "110%" }}
-            animate={{ y: "0%" }}
-            transition={{ duration: 0.9, delay: 0.15, ease: [0.76, 0, 0.24, 1] }}
-          >
-            delivered fresh.
-          </motion.h2>
-        </div>
-
-        {/* Subheading */}
-        <motion.p
-          className="mb-8 max-w-md text-base leading-relaxed text-white/40"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
+        <div
+          className="flex min-w-0 flex-1 items-center justify-start overflow-y-auto"
+          style={{ padding: "24px 48px 24px 24px" }}
         >
-          We bridge the gap between wholesale distributors and you —
-          cutting out the middleman so restaurants, lounges, and families
-          get premium cuts at real wholesale prices.
-        </motion.p>
-
-        {/* CTA / Waitlist */}
-        {waitlistEnabled ? (
-          <motion.div
-            className="w-full max-w-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-          >
-            <p className="mb-4 text-center text-xs uppercase tracking-[0.3em] text-white/40">
-              Be first when we launch in the Bronx
-            </p>
-            <WaitlistForm theme="dark" />
-          </motion.div>
-        ) : (
-          <motion.div
-            className="flex flex-col items-center gap-4 sm:flex-row"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-          >
-            <motion.a
-              href="/auth/sign-up"
-              className="rounded-full bg-sage px-8 py-4 text-sm font-semibold
-                         uppercase tracking-wider text-white transition-all
-                         hover:bg-sage-dark"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Start ordering
-            </motion.a>
-            <motion.a
-              href="/auth/login"
-              className="rounded-full border border-white/20 px-8 py-4 text-sm
-                         font-medium uppercase tracking-wider text-white/60
-                         transition-all hover:border-white/50 hover:text-white"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Sign in
-            </motion.a>
-          </motion.div>
-        )}
-      </motion.div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        className="mt-8 flex flex-col items-center gap-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
-      >
-        <span className="text-[10px] uppercase tracking-[0.4em] text-white/30">
-          Scroll
-        </span>
-        <motion.div
-          className="h-8 w-px bg-gradient-to-b from-white/30 to-transparent"
-          style={{ originY: "top" }}
-          animate={{ scaleY: [0, 1, 0] }}
-          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </motion.div>
+          <div className="w-full" style={{ maxWidth: 420 }}>
+            {waitlistEnabled ? (
+              <WaitlistCard locale={locale} />
+            ) : (
+              <div className="flex flex-col gap-3">
+                <a
+                  href="/auth/sign-up"
+                  className="rounded-full bg-[#8BAF8E] px-8 py-4 text-center text-sm font-semibold uppercase tracking-wider text-[#0C0F0C] hover:opacity-90"
+                >
+                  {heroCopy[locale].cta.startOrdering}
+                </a>
+                <a
+                  href="/auth/login"
+                  className="rounded-full border border-white/20 px-8 py-4 text-center text-sm font-medium uppercase tracking-wider text-white/60 hover:border-white/50 hover:text-white"
+                >
+                  {heroCopy[locale].cta.signIn}
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

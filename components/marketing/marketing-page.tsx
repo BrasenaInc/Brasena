@@ -14,12 +14,15 @@ import { ExpansionSection } from "./expansion-section";
 import { CtaSection } from "./cta-section";
 import { MarketingFooter } from "./marketing-footer";
 
+export type Locale = "en" | "es";
+
 interface MarketingPageProps {
   waitlistEnabled: boolean;
 }
 
 export function MarketingPage({ waitlistEnabled }: MarketingPageProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [locale, setLocale] = useState<Locale>("en");
 
   useEffect(() => {
     if (isLoading) return;
@@ -41,16 +44,20 @@ export function MarketingPage({ waitlistEnabled }: MarketingPageProps) {
   return (
     <>
       <div style={{ visibility: isLoading ? "hidden" : "visible" }}>
-        <MarketingNav waitlistEnabled={waitlistEnabled} />
-        <HeroSection waitlistEnabled={waitlistEnabled} />
-        <MarqueeStrip />
-        <AboutSection />
-        <HowItWorksSection />
-        <AudienceSection />
-        <CategoriesSection waitlistEnabled={waitlistEnabled} />
-        <ExpansionSection />
-        <CtaSection waitlistEnabled={waitlistEnabled} />
-        <MarketingFooter />
+        <MarketingNav
+          waitlistEnabled={waitlistEnabled}
+          locale={locale}
+          setLocale={setLocale}
+        />
+        <HeroSection waitlistEnabled={waitlistEnabled} locale={locale} />
+        <MarqueeStrip locale={locale} />
+        <AboutSection locale={locale} />
+        <HowItWorksSection locale={locale} />
+        <AudienceSection locale={locale} />
+        <CategoriesSection waitlistEnabled={waitlistEnabled} locale={locale} />
+        <ExpansionSection locale={locale} />
+        <CtaSection waitlistEnabled={waitlistEnabled} locale={locale} />
+        <MarketingFooter locale={locale} />
       </div>
 
       <AnimatePresence mode="wait">

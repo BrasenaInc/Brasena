@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, Beef, Check, Drumstick, Ham, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { useShopLanguage } from "@/components/shop/shop-language-provider";
+import { ProductImageCycle } from "@/components/shop/product-image-cycle";
 import { categoryBadgeClass } from "@/lib/utils";
 import type { products, weightTiers } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
 type Product = InferSelectModel<typeof products> & {
   weightTiers: InferSelectModel<typeof weightTiers>[];
+  imageUrls?: string[];
 };
 
 function CategoryIcon({ category }: { category: string }) {
@@ -82,13 +83,13 @@ export function ProductDetail({ product }: { product: Product }) {
       </Link>
 
       <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-muted">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
+        {product.imageUrls?.length ? (
+          <ProductImageCycle
+            imageUrls={product.imageUrls}
+            className="h-full w-full"
             fill
-            className="object-cover"
             sizes="(max-width: 672px) 100vw, 672px"
+            alt={product.name}
             priority
           />
         ) : (

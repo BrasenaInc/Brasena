@@ -40,10 +40,15 @@ const enforceAdmin = t.middleware(({ ctx, next }) => {
 export const adminProcedure = t.procedure.use(enforceAuth).use(
   t.middleware(async ({ ctx, next }) => {
     const userId = ctx.user!.id;
-    const [dbUser] = await db.select().from(users).where(eq(users.id, userId));
-    if (!dbUser || dbUser.role !== 'admin') {
+    try {
+      const [dbUser] = await db.select().from(users).where(eq(users.id, userId));
+      if (!dbUser || dbUser.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
+      }
+      return next({ ctx: { ...ctx, dbUser } });
+    } catch (e) {
+      if (e instanceof TRPCError) throw e;
       throw new TRPCError({ code: "FORBIDDEN", message: "Admin only" });
     }
-    return next({ ctx: { ...ctx, dbUser } });
   })
 );

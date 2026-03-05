@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import type { Locale } from "./marketing-page";
 
 const markets = [
   { name: "The Bronx", status: "Launching", active: true },
@@ -12,9 +13,14 @@ const markets = [
   { name: "New Jersey", status: "Coming soon", active: false },
 ];
 
-export function ExpansionSection() {
+const expansionCopy = { en: { eyebrow: "Where we're going", lines: "Bronx first.\nNew York next.\nThen everywhere." }, es: { eyebrow: "A dónde vamos", lines: "Primero el Bronx.\nLuego Nueva York.\nY después todo." } };
+const marketStatus = { en: { launching: "Launching", comingSoon: "Coming soon" }, es: { launching: "En camino", comingSoon: "Próximamente" } };
+
+export function ExpansionSection({ locale = "en" }: { locale?: Locale }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-10%" });
+  const t = expansionCopy[locale];
+  const status = marketStatus[locale];
 
   return (
     <section ref={ref} className="bg-[#0C0F0C] px-6 py-24 md:px-16">
@@ -26,13 +32,13 @@ export function ExpansionSection() {
       >
         <div className="h-px w-12 bg-sage/50" />
         <span className="text-xs font-medium uppercase tracking-[0.4em] text-sage/70">
-          Where we&apos;re going
+          {t.eyebrow}
         </span>
       </motion.div>
 
       <div className="overflow-hidden">
-        {"Bronx first.\nNew York next.\nThen everywhere.".split("\n").map((line, i) => (
-          <div key={i} className="overflow-hidden">
+        {t.lines.split("\n").map((line, i) => (
+          <div key={i} className="overflow-hidden px-3">
             <motion.h2
               className="font-serif text-[clamp(2rem,4vw,4rem)] font-bold
                          leading-tight text-white"
@@ -76,10 +82,10 @@ export function ExpansionSection() {
               {market.active ? (
                 <span className="flex items-center justify-center gap-1 text-sage/70">
                   <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-sage" />
-                  {market.status}
+                  {status.launching}
                 </span>
               ) : (
-                <span className="text-white/20">{market.status}</span>
+                <span className="text-white/20">{status.comingSoon}</span>
               )}
             </div>
           </div>

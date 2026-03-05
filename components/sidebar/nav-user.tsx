@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import {
   BadgeCheck,
   Bell,
@@ -30,6 +31,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/components/auth/auth-provider"
+import { createClient } from "@/lib/supabase/client"
 import { trpc } from "@/lib/trpc/client"
 
 function getInitials(name: string | null, email: string | null) {
@@ -45,10 +47,17 @@ function getInitials(name: string | null, email: string | null) {
 }
 
 export function NavUser() {
+  const router = useRouter()
+  const supabase = createClient()
   const user = useAuth()
   const { isMobile } = useSidebar()
   const initials = getInitials(user.fullName, user.email)
   const displayName = user.fullName ?? user.email ?? ""
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push("/auth/login")
+  }
 
   const { data: subscription } = trpc.stripe.getSubscriptionStatus.useQuery()
   const isActive = subscription?.isActive ?? false
@@ -146,7 +155,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut}>
               <LogOut />
               Log out
             </DropdownMenuItem>

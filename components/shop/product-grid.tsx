@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Beef, Drumstick, Ham } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShopLanguage } from "@/components/shop/shop-language-provider";
+import { ProductImageCycle } from "@/components/shop/product-image-cycle";
 import { categoryBadgeClass } from "@/lib/utils";
 import type { products } from "@/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
-type Product = InferSelectModel<typeof products>;
+type Product = InferSelectModel<typeof products> & { imageUrls: string[] };
 
 const CATEGORY_KEYS = ["all", "beef", "chicken", "pork"] as const;
 
@@ -109,13 +109,13 @@ function ProductCard({ product }: { product: Product }) {
       className="group flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md"
     >
       <div className="relative aspect-square overflow-hidden bg-muted">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
+        {product.imageUrls?.length ? (
+          <ProductImageCycle
+            imageUrls={product.imageUrls}
+            className="h-full w-full"
             fill
-            className="object-cover"
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            alt={product.name}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-muted">

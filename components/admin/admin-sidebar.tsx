@@ -1,7 +1,14 @@
 "use client";
 
 import {
-  LayoutDashboard, Package, ShoppingBag, Users, BarChart3, Settings
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Bell,
+  Users,
+  BarChart3,
+  ListChecks,
+  Settings,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter,
@@ -17,42 +24,14 @@ import type { InferSelectModel } from "drizzle-orm";
 type User = InferSelectModel<typeof users>;
 
 const adminNavItems = [
-  {
-    title: "Dashboard",
-    url: "/admin/dashboard",
-    icon: LayoutDashboard,
-    items: [],
-  },
-  {
-    title: "Products",
-    url: "/admin/products",
-    icon: Package,
-    items: [],
-  },
-  {
-    title: "Orders",
-    url: "/admin/orders",
-    icon: ShoppingBag,
-    items: [],
-  },
-  {
-    title: "Customers",
-    url: "/admin/customers",
-    icon: Users,
-    items: [],
-  },
-  {
-    title: "Analytics",
-    url: "/admin/analytics",
-    icon: BarChart3,
-    items: [],
-  },
-  {
-    title: "Settings",
-    url: "/admin/settings",
-    icon: Settings,
-    items: [],
-  },
+  { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard, items: [] },
+  { title: "Products", url: "/admin/products", icon: Package, items: [] },
+  { title: "Orders", url: "/admin/orders", icon: ShoppingBag, items: [] },
+  { title: "Customers", url: "/admin/customers", icon: Users, items: [] },
+  { title: "Analytics", url: "/admin/analytics", icon: BarChart3, items: [] },
+  { title: "Notifications", url: "/admin/notifications", icon: Bell, items: [] },
+  { title: "Waitlist", url: "/admin/waitlist", icon: ListChecks, items: [] },
+  { title: "Settings", url: "/admin/settings", icon: Settings, items: [] },
 ];
 
 export function AdminSidebar({

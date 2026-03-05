@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, adminProcedure } from "../trpc";
 import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { users, orders } from "@/db/schema";
+import { eq, desc, inArray, sql } from "drizzle-orm";
 
 export const usersRouter = router({
   me: protectedProcedure.query(async ({ ctx }) => {
@@ -36,4 +36,41 @@ export const usersRouter = router({
         .returning();
       return updated;
     }),
+
+  getCustomerCount: adminProcedure.query(async () => {
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(users)
+      .where(eq(users.role, "customer"));
+    return Number(row?.count ?? 0);
+  }),
+
+  adminList: adminProcedure.query(async () => {
+    const customers = await db
+      .select()
+      .from(users)
+      .where(eq(users.role, "customer"))
+      .orderBy(desc(users.createdAt));
+    if (customers.length === 0) return [];
+    const orderStats = await db
+      .select({
+        customerId: orders.customerId,
+        orderCount: sql<number>`count(*)::int`,
+        totalSpentCents: sql<number>`coalesce(sum(${orders.totalCents}), 0)::int`,
+      })
+      .from(orders)
+      .where(inArray(orders.customerId, customers.map((c) => c.id)))
+      .groupBy(orders.customerId);
+    const statsByCustomerId = new Map(
+      orderStats.map((s) => [s.customerId, { orderCount: s.orderCount, totalSpentCents: s.totalSpentCents }])
+    );
+    return customers.map((c) => {
+      const stats = statsByCustomerId.get(c.id);
+      return {
+        ...c,
+        orderCount: stats?.orderCount ?? 0,
+        totalSpentCents: stats?.totalSpentCents ?? 0,
+      };
+    });
+  }),
 });

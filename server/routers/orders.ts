@@ -10,7 +10,12 @@ import {
   users,
   addresses,
 } from "@/db/schema";
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, ne, sum, count, sql } from "drizzle-orm";
+import {
+  sendOrderConfirmation,
+  sendStatusNotification,
+} from "@/lib/notifications";
+import { getOrderForNotification } from "@/lib/notifications/get-order-for-notification";
 
 export const ordersRouter = router({
   create: protectedProcedure
@@ -119,6 +124,13 @@ export const ordersRouter = router({
       await db
         .delete(cartItems)
         .where(eq(cartItems.customerId, ctx.user.id));
+
+      // Fire confirmation email (non-blocking — don't await)
+      getOrderForNotification(order.id).then((orderData) => {
+        if (orderData) {
+          sendOrderConfirmation(orderData).catch(console.error);
+        }
+      });
 
       return {
         orderId: order.id,
@@ -267,6 +279,80 @@ export const ordersRouter = router({
       if (!updated) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
       }
+
+      // Fire status notification (non-blocking)
+      getOrderForNotification(input.id).then((orderData) => {
+        if (orderData) {
+          sendStatusNotification(orderData).catch(console.error);
+        }
+      });
+
       return updated;
     }),
+
+  // Dashboard stats
+  getTotalRevenue: adminProcedure.query(async () => {
+    const [row] = await db
+      .select({ total: sum(orders.totalCents) })
+      .from(orders)
+      .where(ne(orders.status, "cancelled"));
+    return Number(row?.total ?? 0);
+  }),
+
+  getOrdersCount: adminProcedure.query(async () => {
+    const [row] = await db.select({ count: count() }).from(orders);
+    return Number(row?.count ?? 0);
+  }),
+
+  getPendingCount: adminProcedure.query(async () => {
+    const [row] = await db
+      .select({ count: count() })
+      .from(orders)
+      .where(eq(orders.status, "pending"));
+    return Number(row?.count ?? 0);
+  }),
+
+  getRecentOrders: adminProcedure.query(async () => {
+    const recent = await db
+      .select({
+        id: orders.id,
+        status: orders.status,
+        totalCents: orders.totalCents,
+        createdAt: orders.createdAt,
+        customerId: orders.customerId,
+      })
+      .from(orders)
+      .orderBy(desc(orders.createdAt))
+      .limit(5);
+    if (recent.length === 0) return [];
+    const customerIds = [...new Set(recent.map((o) => o.customerId))];
+    const customers = await db
+      .select({ id: users.id, fullName: users.fullName })
+      .from(users)
+      .where(inArray(users.id, customerIds));
+    const nameById = new Map(customers.map((c) => [c.id, c.fullName ?? "—"]));
+    return recent.map((o) => ({
+      id: o.id,
+      status: o.status,
+      totalCents: o.totalCents,
+      createdAt: o.createdAt,
+      customerName: nameById.get(o.customerId) ?? "—",
+    }));
+  }),
+
+  getTopProducts: adminProcedure.query(async () => {
+    const rows = await db
+      .select({
+        productName: orderItems.productName,
+        totalQty: sum(orderItems.quantity),
+      })
+      .from(orderItems)
+      .groupBy(orderItems.productName)
+      .orderBy(sql`sum(${orderItems.quantity}) desc`)
+      .limit(5);
+    return rows.map((r) => ({
+      productName: r.productName,
+      unitsSold: Number(r.totalQty ?? 0),
+    }));
+  }),
 });
