@@ -367,6 +367,36 @@ function formatUSAddressShort(addr: NominatimAddress): string {
   return `${streetLine}, ${cityStateZip}`;
 }
 
+/** True if string has a street number (leading digits). */
+function hasStreetNumber(s: string): boolean {
+  return /^\d+/.test(s.trim());
+}
+
+function toTitleCase(s: string): string {
+  return s.replace(/\b(\w)/g, (_, c) => c.toUpperCase());
+}
+
+/** Normalize user-typed full address to "street, city state zip". */
+function normalizeTypedAddress(value: string): string | null {
+  const trimmed = value.trim();
+  if (trimmed.length < 10) return null;
+  const parts = trimmed.split(",").map((p) => p.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+  const streetPart = parts[0];
+  if (!hasStreetNumber(streetPart)) return null;
+  const last = parts[parts.length - 1];
+  const zipMatch = last.match(/\b(\d{5})(-\d{4})?\s*$/);
+  const zip = zipMatch ? zipMatch[1] : "";
+  const statePart = zipMatch ? last.slice(0, zipMatch.index).trim() : last;
+  const stateAbbrev = statePart.length === 2 ? statePart.toUpperCase() : (US_STATE_ABBREV[statePart] ?? statePart);
+  const cityPart = parts.length >= 3 ? parts.slice(1, -1).join(" ") : parts[1];
+  const city = toTitleCase(cityOnly(cityPart));
+  const street = toTitleCase(streetPart.replace(/\s+/g, " "));
+  if (!street || !city) return null;
+  const cityStateZip = [city, stateAbbrev, zip].filter(Boolean).join(" ");
+  return `${street}, ${cityStateZip}`;
+}
+
 function AddressAutocomplete({
   value,
   onChange,
@@ -410,17 +440,22 @@ function AddressAutocomplete({
         );
         if (!res.ok) return setSuggestions([]);
         const data = (await res.json()) as Array<{ address?: NominatimAddress; display_name?: string }>;
-        const out: Array<{ display: string }> = [];
+        const withStreet: Array<{ display: string; hasStreet: boolean }> = [];
         for (const item of Array.isArray(data) ? data : []) {
           if (item.address) {
             const short = formatUSAddressShort(item.address);
-            // Only show if we got a short format (address, city state zip). Reject long display_name-style strings.
             const looksShort = short && short.split(",").length <= 2 && !short.toLowerCase().includes("united states") && !short.toLowerCase().includes("county");
-            if (looksShort && !out.some((x) => x.display === short)) out.push({ display: short });
+            if (looksShort && !withStreet.some((x) => x.display === short)) withStreet.push({ display: short, hasStreet: hasStreetNumber(short) });
           }
         }
-        setSuggestions(out);
-        setOpen(out.length > 0);
+        withStreet.sort((a, b) => (b.hasStreet ? 1 : 0) - (a.hasStreet ? 1 : 0));
+        const displayOnly = withStreet.map((x) => ({ display: x.display }));
+        const typed = normalizeTypedAddress(value);
+        if (typed && !displayOnly.some((x) => x.display === typed)) {
+          displayOnly.unshift({ display: typed });
+        }
+        setSuggestions(displayOnly);
+        setOpen(displayOnly.length > 0);
       } catch {
         setSuggestions([]);
       } finally {

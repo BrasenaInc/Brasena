@@ -78,6 +78,15 @@ export default function AdminWaitlistPage() {
     return "?";
   }
 
+  /** Format YYYY-MM-DD or similar to MM-DD-YYYY for display. */
+  function formatBirthday(value: string | null | undefined): string {
+    if (!value?.trim()) return "—";
+    const d = value.trim();
+    const match = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) return `${match[2]}-${match[3]}-${match[1]}`;
+    return d;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-8">
@@ -270,17 +279,9 @@ export default function AdminWaitlistPage() {
                       <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-sage/30 bg-sage/15 text-2xl font-bold text-sage">
                         {initial(selectedUser.name)}
                       </div>
-                      <div>
-                        <h2 className="font-serif text-2xl font-bold text-foreground">
-                          {selectedUser.name ?? "—"}
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedUser.email ?? "—"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedUser.phone ?? "—"}
-                        </p>
-                      </div>
+                      <h2 className="font-serif text-2xl font-bold text-foreground">
+                        {selectedUser.name ?? "—"}
+                      </h2>
                     </div>
                     <div className="text-right">
                       {selectedUser.type === "residential" ? (
@@ -339,7 +340,7 @@ export default function AdminWaitlistPage() {
                         Birthday
                       </p>
                       <p className="text-sm font-medium text-foreground">
-                        {selectedUser.birthday ?? "—"}
+                        {formatBirthday(selectedUser.birthday)}
                       </p>
                     </div>
                     <div className="col-span-2 rounded-xl border border-border bg-muted/30 p-4">
