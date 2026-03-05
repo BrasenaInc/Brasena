@@ -657,31 +657,39 @@ function WaitlistCard({ locale }: { locale: Locale }) {
     if (!formData || !type) return;
     setSubmitError(null);
     try {
-      const result = await submitWaitlist.mutateAsync({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone || undefined,
-        birthday: formData.birthday || undefined,
-        address: formData.address || undefined,
+      const payload = {
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone?.trim() || undefined,
+        birthday: formData.birthday?.trim() || undefined,
+        address: formData.address?.trim() || undefined,
         type: type as "residential" | "business",
-        surveyAnswers: Object.keys(answers).length > 0 ? answers : undefined,
-      });
+        surveyAnswers:
+          Object.keys(answers).length > 0
+            ? (Object.fromEntries(
+                Object.entries(answers).filter(
+                  (e): e is [string, string] => typeof e[1] === "string"
+                )
+              ) as Record<string, string>)
+            : undefined,
+      };
+      const result = await submitWaitlist.mutateAsync(payload);
       setRaffleNumber(result.raffleNumber);
       setStep("success");
       setShowSuccessDialog(true);
     } catch (err: unknown) {
       let message = cardT.submitError;
-      if (err instanceof Error) {
+      if (err && typeof err === "object" && "data" in err) {
+        const data = (err as { data?: { message?: string } }).data;
+        if (typeof data?.message === "string") message = data.message;
+      }
+      if (err instanceof Error && message === cardT.submitError) {
         const raw = err.message;
-        if (raw?.includes("JSON") || raw === "Unexpected end of JSON input") {
-          message = cardT.submitError;
-        } else {
+        if (raw && !raw.includes("JSON") && raw !== "Unexpected end of JSON input") {
           message = raw;
         }
       }
-      const data = err && typeof err === "object" && "data" in err ? (err as { data?: { message?: string } }).data : undefined;
-      if (data?.message) message = data.message;
-      setSubmitError(message === "Already on the waitlist" ? message : message);
+      setSubmitError(message);
     }
   };
 

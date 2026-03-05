@@ -35,21 +35,22 @@ export const waitlistRouter = router({
   export: publicProcedure
     .input(
       z.object({
-        name: z.string().min(1),
-        email: z.string().email(),
+        name: z.string().min(1, "Name is required"),
+        email: z.string().min(1, "Email is required").email("Enter a valid email"),
         phone: z.string().optional(),
         birthday: z.string().optional(),
         address: z.string().optional(),
         type: z.enum(["residential", "business"]),
-        surveyAnswers: z.record(z.string(), z.string()).optional(),
+        surveyAnswers: z.record(z.string(), z.unknown()).optional(),
       })
     )
     .mutation(async ({ input }) => {
       try {
+        const email = input.email.trim().toLowerCase();
         const [existing] = await db
           .select()
           .from(waitlistEntries)
-          .where(eq(waitlistEntries.email, input.email.trim().toLowerCase()));
+          .where(eq(waitlistEntries.email, email));
 
         if (existing) {
           throw new TRPCError({
@@ -58,7 +59,12 @@ export const waitlistRouter = router({
           });
         }
 
-        const email = input.email.trim().toLowerCase();
+        const surveyObj = input.surveyAnswers;
+        const surveyJson =
+          surveyObj && typeof surveyObj === "object" && Object.keys(surveyObj).length > 0
+            ? JSON.stringify(surveyObj)
+            : null;
+
         const payload = {
           name: input.name.trim(),
           email,
@@ -66,9 +72,7 @@ export const waitlistRouter = router({
           birthday: (input.birthday?.trim() ?? "") || "—",
           address: (input.address?.trim() ?? "") || "—",
           type: input.type,
-          surveyAnswers: input.surveyAnswers
-            ? JSON.stringify(input.surveyAnswers)
-            : null,
+          surveyAnswers: surveyJson,
         };
 
         await db.insert(waitlistEntries).values(payload);
@@ -86,10 +90,9 @@ export const waitlistRouter = router({
       } catch (err) {
         if (err instanceof TRPCError) throw err;
         console.error("[waitlist.export]", err);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: err instanceof Error ? err.message : "Something went wrong. Please try again.",
-        });
+        const msg =
+          err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: msg });
       }
     }),
 });
