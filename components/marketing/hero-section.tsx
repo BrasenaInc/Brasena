@@ -238,10 +238,7 @@ function TypeStep({ locale, onSelect }: { locale: Locale; onSelect: (type: strin
         </p>
       </div>
 
-      <div
-        className="grid gap-2.5"
-        style={{ gridTemplateColumns: "1fr 1fr", alignItems: "stretch" }}
-      >
+      <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 md:items-stretch">
         {cards.map((card) => (
           <button
             key={card.id}
@@ -451,10 +448,7 @@ function SurveyStep({
               </span>
               <span className="text-sm text-white">{item.q}</span>
             </div>
-            <div
-              className="grid gap-2"
-              style={{ gridTemplateColumns: "1fr 1fr" }}
-            >
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {item.opts.map((opt) => (
                 <button
                   key={opt}
@@ -783,7 +777,7 @@ export function HeroSection({ waitlistEnabled, locale }: HeroSectionProps) {
   return (
     <section
       id="hero"
-      className="relative h-screen w-full overflow-hidden"
+      className="relative min-h-screen w-full overflow-y-auto overflow-x-hidden md:overflow-hidden md:h-screen"
       style={{ minHeight: "100vh" }}
     >
       <div className="absolute inset-0">
@@ -805,22 +799,21 @@ export function HeroSection({ waitlistEnabled, locale }: HeroSectionProps) {
         }}
       />
       <div
-        className="absolute left-1/2 top-[12%] bottom-[12%] w-px -translate-x-px"
+        className="absolute left-1/2 top-[12%] bottom-[12%] w-px -translate-x-px hidden md:block"
         style={{
           background:
             "linear-gradient(to bottom, transparent, rgba(139,175,142,0.12) 25%, rgba(139,175,142,0.12) 75%, transparent)",
         }}
       />
 
-      <div className="relative z-10 flex h-full items-stretch">
-        <div className="flex min-w-0 flex-1 items-center" style={{ padding: "0 40px 0 56px" }}>
+      <div className="relative z-10 flex min-h-screen flex-col md:flex-row md:h-full md:items-stretch">
+        <div className="flex min-w-0 shrink-0 items-center px-5 pt-24 pb-8 md:flex-1 md:px-14 md:pl-14 md:py-0">
           <HeroLeft locale={locale} />
         </div>
         <div
-          className="flex min-w-0 flex-1 items-center justify-start overflow-y-auto"
-          style={{ padding: "24px 48px 24px 24px" }}
+          className="flex min-w-0 flex-1 items-start justify-center overflow-y-auto px-5 pb-12 md:items-center md:justify-start md:px-12 md:pb-0"
         >
-          <div className="w-full" style={{ maxWidth: 420 }}>
+          <div className="w-full max-w-full md:max-w-[420px]">
             {waitlistEnabled ? (
               <WaitlistCard locale={locale} />
             ) : (
