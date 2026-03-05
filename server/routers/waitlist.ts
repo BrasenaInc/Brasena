@@ -37,11 +37,11 @@ export const waitlistRouter = router({
       z.object({
         name: z.string().min(1, "Name is required"),
         email: z.string().min(1, "Email is required").email("Enter a valid email"),
-        phone: z.string().optional(),
-        birthday: z.string().optional(),
-        address: z.string().optional(),
+        phone: z.string().default("—"),
+        birthday: z.string().default("—"),
+        address: z.string().default("—"),
         type: z.enum(["residential", "business"]),
-        surveyAnswers: z.record(z.string(), z.unknown()).optional(),
+        surveyAnswers: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -59,12 +59,6 @@ export const waitlistRouter = router({
           });
         }
 
-        const surveyObj = input.surveyAnswers;
-        const surveyJson =
-          surveyObj && typeof surveyObj === "object" && Object.keys(surveyObj).length > 0
-            ? JSON.stringify(surveyObj)
-            : null;
-
         const payload = {
           name: input.name.trim(),
           email,
@@ -72,7 +66,7 @@ export const waitlistRouter = router({
           birthday: (input.birthday?.trim() ?? "") || "—",
           address: (input.address?.trim() ?? "") || "—",
           type: input.type,
-          surveyAnswers: surveyJson,
+          surveyAnswers: input.surveyAnswers?.trim() || null,
         };
 
         await db.insert(waitlistEntries).values(payload);

@@ -44,7 +44,7 @@ const heroCopy: Record<
   {
     heroLeft: { eyebrow: string; headline1: string; headline2: string; body: string; bullets: string[]; scroll: string };
     typeStep: { raffleTitle: string; raffleSub: string; raffleNote: string; waitlistTitle: string; waitlistSub: string; select: string };
-    infoStep: { fullName: string; email: string; phone: string; birthday: string; address: string; back: string; continueBtn: string; required: string; invalidEmail: string };
+    infoStep: { fullName: string; email: string; phone: string; birthday: string; address: string; useMyLocation: string; back: string; continueBtn: string; required: string; invalidEmail: string; locationError: string };
     surveyStep: { banner: string; submitBtn: string; subline: string };
     successStep: { youAreOnTheList: string; welcome: string; raffleConfirmed: string; prize: string; confirmationSentTo: string; followInstagram: string; footer: string };
     waitlistCard: { titleType: string; titleInfo: string; titleSurvey: string; subType: string; subInfo: string; subSurvey: string; submitError: string };
@@ -54,7 +54,7 @@ const heroCopy: Record<
   en: {
     heroLeft: { eyebrow: "Wholesale Platform · The Bronx, NY", headline1: "Wholesale meat,", headline2: "delivered fresh.", body: "We bridge the gap between wholesale distributors and you — cutting out the middleman so restaurants, lounges, and families get premium cuts at real wholesale prices.", bullets: ["No middleman markup", "Same-day delivery", "Bulk pricing"], scroll: "Scroll to explore" },
     typeStep: { raffleTitle: "Launch Day Raffle", raffleSub: "Sign up & enter to win an Unknown Valuable Gift", raffleNote: "Every signup gets an automatic raffle entry. Winner announced at launch.", waitlistTitle: "Join the Brasena Waitlist", waitlistSub: "Choose how you will use Brasena", select: "Select" },
-    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email" },
+    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", useMyLocation: "Use my location", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email", locationError: "Could not get location" },
     surveyStep: { banner: "Completing the survey improves your raffle chances", submitBtn: "Submit", subline: "Your response will be saved." },
     successStep: { youAreOnTheList: "You are on the list", welcome: "Welcome", raffleConfirmed: "Raffle Entry Confirmed", prize: "Unknown Valuable Gift", confirmationSentTo: "Confirmation sent to", followInstagram: "Follow @brasenabx on Instagram", footer: "Once we launch, complete your profile and start ordering." },
     waitlistCard: { titleType: "Join the Waitlist", titleInfo: "Your Information", titleSurvey: "Quick Survey", subType: "Choose how you will use Brasena", subInfo: "We need a few details to confirm your spot", subSurvey: "Help us know you better (optional feel)", submitError: "Something went wrong. Please try again." },
@@ -63,7 +63,7 @@ const heroCopy: Record<
   es: {
     heroLeft: { eyebrow: "Plataforma mayorista · El Bronx, NY", headline1: "Carne al por mayor,", headline2: "entregada fresca.", body: "Cerramos la brecha entre distribuidores mayoristas y tú: sin intermediarios para que restaurantes, lounges y familias obtengan cortes premium a precios mayoristas.", bullets: ["Sin sobreprecio de intermediarios", "Entrega el mismo día", "Precios al por mayor"], scroll: "Desplazar para explorar" },
     typeStep: { raffleTitle: "Rifa del día de lanzamiento", raffleSub: "Regístrate y participa para ganar un regalo valioso sorpresa", raffleNote: "Cada registro obtiene una entrada automática. Ganador anunciado al lanzar.", waitlistTitle: "Únete a la lista de Brasena", waitlistSub: "Elige cómo usarás Brasena", select: "Seleccionar" },
-    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido" },
+    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", useMyLocation: "Usar mi ubicación", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido", locationError: "No se pudo obtener la ubicación" },
     surveyStep: { banner: "Completar la encuesta mejora tus posibilidades en la rifa", submitBtn: "Enviar", subline: "Tu respuesta se guardará." },
     successStep: { youAreOnTheList: "Estás en la lista", welcome: "Bienvenido", raffleConfirmed: "Entrada a la rifa confirmada", prize: "Regalo valioso sorpresa", confirmationSentTo: "Confirmación enviada a", followInstagram: "Seguir @brasenabx en Instagram", footer: "Cuando lancemos, completa tu perfil y empieza a pedir." },
     waitlistCard: { titleType: "Únete a la lista", titleInfo: "Tu información", titleSurvey: "Encuesta rápida", subType: "Elige cómo usarás Brasena", subInfo: "Necesitamos unos datos para confirmar tu lugar", subSurvey: "Ayúdanos a conocerte (opcional)", submitError: "Algo salió mal. Por favor intenta de nuevo." },
@@ -326,9 +326,66 @@ function InfoStep({
   const [birthday, setBirthday] = useState("");
   const [address, setAddress] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const t = heroCopy[locale].infoStep;
 
   const typeLabel = type === "residential" ? "B2C" : "B2B";
+
+  const handleUseMyLocation = () => {
+    setLocationError(null);
+    if (!navigator.geolocation) {
+      setLocationError(t.locationError);
+      return;
+    }
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+            {
+              headers: {
+                Accept: "application/json",
+                "Accept-Language": locale === "es" ? "es" : "en",
+                "User-Agent": "BrasenaWaitlist/1.0 (https://brasenabx.com)",
+              },
+            }
+          );
+          if (!res.ok) throw new Error("Geocode failed");
+          const data = (await res.json()) as {
+            address?: { road?: string; house_number?: string; suburb?: string; city?: string; town?: string; state?: string; postcode?: string; country?: string };
+            display_name?: string;
+          };
+          const addr = data.address;
+          const parts: string[] = [];
+          if (addr?.house_number && addr?.road) parts.push(`${addr.house_number} ${addr.road}`);
+          else if (addr?.road) parts.push(addr.road);
+          const city = addr?.city ?? addr?.town ?? addr?.suburb ?? "";
+          const state = addr?.state ?? "";
+          const zip = addr?.postcode ?? "";
+          if (city) parts.push(city);
+          if (state) parts.push(state);
+          if (zip) parts.push(zip);
+          if (parts.length > 0) {
+            setAddress(parts.join(", "));
+          } else if (data.display_name) {
+            setAddress(data.display_name);
+          }
+        } catch {
+          setLocationError(t.locationError);
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+      () => {
+        setLocationError(t.locationError);
+        setLocationLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -349,6 +406,13 @@ function InfoStep({
   const errorBorder = "border-red-500";
   const normalBorder = "border-[rgba(139,175,142,0.2)] focus:border-[#8BAF8E]";
 
+  const fields = [
+    { key: "name", label: t.fullName, value: name, set: setName, type: "text" as const },
+    { key: "email", label: t.email, value: email, set: setEmail, type: "email" as const },
+    { key: "phone", label: t.phone, value: phone, set: setPhone, type: "tel" as const },
+    { key: "birthday", label: t.birthday, value: birthday, set: setBirthday, type: "date" as const },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -368,13 +432,7 @@ function InfoStep({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {[
-          { key: "name", label: t.fullName, value: name, set: setName, type: "text" },
-          { key: "email", label: t.email, value: email, set: setEmail, type: "email" },
-          { key: "phone", label: t.phone, value: phone, set: setPhone, type: "tel" },
-          { key: "birthday", label: t.birthday, value: birthday, set: setBirthday, type: "date" },
-          { key: "address", label: t.address, value: address, set: setAddress, type: "text" },
-        ].map(({ key, label, value, set, type }) => (
+        {fields.map(({ key, label, value, set, type }) => (
           <div key={key}>
             <label
               className="mb-1.5 block text-[9px] uppercase tracking-wider"
@@ -394,6 +452,38 @@ function InfoStep({
             )}
           </div>
         ))}
+
+        <div>
+          <label
+            className="mb-1.5 block text-[9px] uppercase tracking-wider"
+            style={{ color: "#5A7A5A" }}
+          >
+            {t.address}
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => { setAddress(e.target.value); setLocationError(null); }}
+              className={`flex-1 ${inputClass} ${errors.address ? errorBorder : normalBorder}`}
+              placeholder={t.address}
+            />
+            <button
+              type="button"
+              onClick={handleUseMyLocation}
+              disabled={locationLoading}
+              className="shrink-0 rounded-lg border border-[rgba(139,175,142,0.3)] bg-[rgba(139,175,142,0.1)] px-3 py-2.5 text-xs font-medium text-[#8BAF8E] transition-colors hover:bg-[rgba(139,175,142,0.2)] disabled:opacity-50"
+            >
+              {locationLoading ? "…" : t.useMyLocation}
+            </button>
+          </div>
+          {errors.address && (
+            <p className="mt-1 text-xs text-red-400">{errors.address}</p>
+          )}
+          {locationError && (
+            <p className="mt-1 text-xs text-amber-400">{locationError}</p>
+          )}
+        </div>
 
         <button
           type="submit"
@@ -649,6 +739,8 @@ function WaitlistCard({ locale }: { locale: Locale }) {
   const handleSurveySubmit = (answers: Record<string, string>) => {
     if (!formData || !type) return;
     setSubmitError(null);
+    const surveyJson =
+      Object.keys(answers).length > 0 ? JSON.stringify(answers) : undefined;
     submitWaitlist.mutate({
       name: formData.name.trim(),
       email: formData.email.trim().toLowerCase(),
@@ -656,7 +748,7 @@ function WaitlistCard({ locale }: { locale: Locale }) {
       birthday: formData.birthday.trim() || "—",
       address: formData.address.trim() || "—",
       type: type as "residential" | "business",
-      surveyAnswers: Object.keys(answers).length > 0 ? answers : undefined,
+      surveyAnswers: surveyJson,
     });
   };
 
