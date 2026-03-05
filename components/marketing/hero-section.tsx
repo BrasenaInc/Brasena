@@ -54,7 +54,7 @@ const heroCopy: Record<
   en: {
     heroLeft: { eyebrow: "Wholesale Platform · The Bronx, NY", headline1: "Wholesale meat,", headline2: "delivered fresh.", body: "We bridge the gap between wholesale distributors and you — cutting out the middleman so restaurants, lounges, and families get premium cuts at real wholesale prices.", bullets: ["No middleman markup", "Same-day delivery", "Bulk pricing"], scroll: "Scroll to explore" },
     typeStep: { raffleTitle: "Launch Day Raffle", raffleSub: "Sign up & enter to win an Unknown Valuable Gift", raffleNote: "Every signup gets an automatic raffle entry. Winner announced at launch.", waitlistTitle: "Join the Brasena Waitlist", waitlistSub: "Choose how you will use Brasena", select: "Select" },
-    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", addressPlaceholder: "Start typing your address (e.g. 2 Moore Ave, Freeport)...", addressHint: "US only. If your address doesn’t appear, enter your full mailing address. This will be used as your authorized mailing address.", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email" },
+    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", addressPlaceholder: "Start typing your address...", addressHint: "US only. If your address doesn’t appear, enter your full mailing address. This will be used as your authorized mailing address.", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email" },
     surveyStep: { banner: "Completing the survey improves your raffle chances", submitBtn: "Submit", subline: "Your response will be saved." },
     successStep: { youAreOnTheList: "You are on the list", welcome: "Welcome", raffleConfirmed: "Raffle Entry Confirmed", prize: "Unknown Valuable Gift", confirmationSentTo: "Confirmation sent to", followInstagram: "Follow @brasenabx on Instagram", footer: "Once we launch, complete your profile and start ordering." },
     waitlistCard: { titleType: "Join the Waitlist", titleInfo: "Your Information", titleSurvey: "Quick Survey", subType: "Choose how you will use Brasena", subInfo: "We need a few details to confirm your spot", subSurvey: "Help us know you better (optional feel)", submitError: "Something went wrong. Please try again." },
@@ -63,7 +63,7 @@ const heroCopy: Record<
   es: {
     heroLeft: { eyebrow: "Plataforma mayorista · El Bronx, NY", headline1: "Carne al por mayor,", headline2: "entregada fresca.", body: "Cerramos la brecha entre distribuidores mayoristas y tú: sin intermediarios para que restaurantes, lounges y familias obtengan cortes premium a precios mayoristas.", bullets: ["Sin sobreprecio de intermediarios", "Entrega el mismo día", "Precios al por mayor"], scroll: "Desplazar para explorar" },
     typeStep: { raffleTitle: "Rifa del día de lanzamiento", raffleSub: "Regístrate y participa para ganar un regalo valioso sorpresa", raffleNote: "Cada registro obtiene una entrada automática. Ganador anunciado al lanzar.", waitlistTitle: "Únete a la lista de Brasena", waitlistSub: "Elige cómo usarás Brasena", select: "Seleccionar" },
-    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", addressPlaceholder: "Escribe tu dirección (ej. 2 Moore Ave, Freeport)...", addressHint: "Solo EE. UU. Si no aparece tu dirección, escribe tu dirección postal completa. Se usará como tu dirección de correo autorizada.", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido" },
+    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", addressPlaceholder: "Escribe tu dirección...", addressHint: "Solo EE. UU. Si no aparece tu dirección, escribe tu dirección postal completa. Se usará como tu dirección de correo autorizada.", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido" },
     surveyStep: { banner: "Completar la encuesta mejora tus posibilidades en la rifa", submitBtn: "Enviar", subline: "Tu respuesta se guardará." },
     successStep: { youAreOnTheList: "Estás en la lista", welcome: "Bienvenido", raffleConfirmed: "Entrada a la rifa confirmada", prize: "Regalo valioso sorpresa", confirmationSentTo: "Confirmación enviada a", followInstagram: "Seguir @brasenabx en Instagram", footer: "Cuando lancemos, completa tu perfil y empieza a pedir." },
     waitlistCard: { titleType: "Únete a la lista", titleInfo: "Tu información", titleSurvey: "Encuesta rápida", subType: "Elige cómo usarás Brasena", subInfo: "Necesitamos unos datos para confirmar tu lugar", subSurvey: "Ayúdanos a conocerte (opcional)", submitError: "Algo salió mal. Por favor intenta de nuevo." },
@@ -337,19 +337,26 @@ type NominatimAddress = {
   [k: string]: string | undefined;
 };
 
+const CITY_PREFIXES = /^(village of|city of|town of)\s+/i;
+
+/** Strip "Village of", "City of", "Town of" from locality name. */
+function cityOnly(name: string): string {
+  return name.replace(CITY_PREFIXES, "").trim();
+}
+
 /** Format as "address, city state zip" only — no county, country, or neighbourhood. */
 function formatUSAddressShort(addr: NominatimAddress): string {
   const num = (addr.house_number ?? "").trim();
   const road = (addr.road ?? addr.street ?? "").trim();
   const streetLine = [num, road].filter(Boolean).join(" ");
-  // Prefer city/town/village; suburb only if no city (e.g. NYC boroughs). Never use county or country.
-  const city = (
+  const rawCity = (
     addr.city ??
     addr.town ??
     addr.village ??
     addr.suburb ??
     ""
   ).trim();
+  const city = cityOnly(rawCity);
   const stateRaw = (addr.state ?? "").trim();
   const state = stateRaw ? (US_STATE_ABBREV[stateRaw] ?? stateRaw) : "";
   const zip = (addr.postcode ?? "").trim();
