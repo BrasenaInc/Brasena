@@ -44,7 +44,7 @@ const heroCopy: Record<
   {
     heroLeft: { eyebrow: string; headline1: string; headline2: string; body: string; bullets: string[]; scroll: string };
     typeStep: { raffleTitle: string; raffleSub: string; raffleNote: string; waitlistTitle: string; waitlistSub: string; select: string };
-    infoStep: { fullName: string; email: string; phone: string; birthday: string; address: string; useMyLocation: string; back: string; continueBtn: string; required: string; invalidEmail: string; locationError: string };
+    infoStep: { fullName: string; email: string; phone: string; birthday: string; address: string; addressPlaceholder: string; back: string; continueBtn: string; required: string; invalidEmail: string };
     surveyStep: { banner: string; submitBtn: string; subline: string };
     successStep: { youAreOnTheList: string; welcome: string; raffleConfirmed: string; prize: string; confirmationSentTo: string; followInstagram: string; footer: string };
     waitlistCard: { titleType: string; titleInfo: string; titleSurvey: string; subType: string; subInfo: string; subSurvey: string; submitError: string };
@@ -54,7 +54,7 @@ const heroCopy: Record<
   en: {
     heroLeft: { eyebrow: "Wholesale Platform · The Bronx, NY", headline1: "Wholesale meat,", headline2: "delivered fresh.", body: "We bridge the gap between wholesale distributors and you — cutting out the middleman so restaurants, lounges, and families get premium cuts at real wholesale prices.", bullets: ["No middleman markup", "Same-day delivery", "Bulk pricing"], scroll: "Scroll to explore" },
     typeStep: { raffleTitle: "Launch Day Raffle", raffleSub: "Sign up & enter to win an Unknown Valuable Gift", raffleNote: "Every signup gets an automatic raffle entry. Winner announced at launch.", waitlistTitle: "Join the Brasena Waitlist", waitlistSub: "Choose how you will use Brasena", select: "Select" },
-    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", useMyLocation: "Use my location", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email", locationError: "Could not get location" },
+    infoStep: { fullName: "Full Name", email: "Email Address", phone: "Phone Number", birthday: "Birthday", address: "Address", addressPlaceholder: "Start typing your address...", back: "Back", continueBtn: "Continue to Survey", required: "Required", invalidEmail: "Enter a valid email" },
     surveyStep: { banner: "Completing the survey improves your raffle chances", submitBtn: "Submit", subline: "Your response will be saved." },
     successStep: { youAreOnTheList: "You are on the list", welcome: "Welcome", raffleConfirmed: "Raffle Entry Confirmed", prize: "Unknown Valuable Gift", confirmationSentTo: "Confirmation sent to", followInstagram: "Follow @brasenabx on Instagram", footer: "Once we launch, complete your profile and start ordering." },
     waitlistCard: { titleType: "Join the Waitlist", titleInfo: "Your Information", titleSurvey: "Quick Survey", subType: "Choose how you will use Brasena", subInfo: "We need a few details to confirm your spot", subSurvey: "Help us know you better (optional feel)", submitError: "Something went wrong. Please try again." },
@@ -63,7 +63,7 @@ const heroCopy: Record<
   es: {
     heroLeft: { eyebrow: "Plataforma mayorista · El Bronx, NY", headline1: "Carne al por mayor,", headline2: "entregada fresca.", body: "Cerramos la brecha entre distribuidores mayoristas y tú: sin intermediarios para que restaurantes, lounges y familias obtengan cortes premium a precios mayoristas.", bullets: ["Sin sobreprecio de intermediarios", "Entrega el mismo día", "Precios al por mayor"], scroll: "Desplazar para explorar" },
     typeStep: { raffleTitle: "Rifa del día de lanzamiento", raffleSub: "Regístrate y participa para ganar un regalo valioso sorpresa", raffleNote: "Cada registro obtiene una entrada automática. Ganador anunciado al lanzar.", waitlistTitle: "Únete a la lista de Brasena", waitlistSub: "Elige cómo usarás Brasena", select: "Seleccionar" },
-    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", useMyLocation: "Usar mi ubicación", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido", locationError: "No se pudo obtener la ubicación" },
+    infoStep: { fullName: "Nombre completo", email: "Correo electrónico", phone: "Teléfono", birthday: "Fecha de nacimiento", address: "Dirección", addressPlaceholder: "Escribe tu dirección...", back: "Atrás", continueBtn: "Continuar a la encuesta", required: "Requerido", invalidEmail: "Ingresa un correo válido" },
     surveyStep: { banner: "Completar la encuesta mejora tus posibilidades en la rifa", submitBtn: "Enviar", subline: "Tu respuesta se guardará." },
     successStep: { youAreOnTheList: "Estás en la lista", welcome: "Bienvenido", raffleConfirmed: "Entrada a la rifa confirmada", prize: "Regalo valioso sorpresa", confirmationSentTo: "Confirmación enviada a", followInstagram: "Seguir @brasenabx en Instagram", footer: "Cuando lancemos, completa tu perfil y empieza a pedir." },
     waitlistCard: { titleType: "Únete a la lista", titleInfo: "Tu información", titleSurvey: "Encuesta rápida", subType: "Elige cómo usarás Brasena", subInfo: "Necesitamos unos datos para confirmar tu lugar", subSurvey: "Ayúdanos a conocerte (opcional)", submitError: "Algo salió mal. Por favor intenta de nuevo." },
@@ -309,6 +309,113 @@ function TypeStep({ locale, onSelect }: { locale: Locale; onSelect: (type: strin
   );
 }
 
+const NOMINATIM_UA = "BrasenaWaitlist/1.0 (https://brasenabx.com)";
+
+function AddressAutocomplete({
+  value,
+  onChange,
+  placeholder,
+  className,
+  error,
+  locale,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  className: string;
+  error?: boolean;
+  locale: Locale;
+}) {
+  const [suggestions, setSuggestions] = useState<Array<{ display_name: string }>>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const lastSelectedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (value.length < 3) {
+      setSuggestions([]);
+      lastSelectedRef.current = null;
+      return;
+    }
+    if (value === lastSelectedRef.current) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&addressdetails=1&limit=5`,
+          {
+            headers: { Accept: "application/json", "User-Agent": NOMINATIM_UA, "Accept-Language": locale === "es" ? "es" : "en" },
+          }
+        );
+        if (!res.ok) return setSuggestions([]);
+        const data = (await res.json()) as Array<{ display_name: string }>;
+        setSuggestions(Array.isArray(data) ? data : []);
+        setOpen(true);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 400);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [value, locale]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const select = (displayName: string) => {
+    lastSelectedRef.current = displayName;
+    onChange(displayName);
+    setSuggestions([]);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        className={className}
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+      {loading && (
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/50">…</span>
+      )}
+      {open && suggestions.length > 0 && (
+        <ul
+          className="absolute left-0 right-0 top-full z-10 mt-1 max-h-48 overflow-auto rounded-lg border border-[rgba(139,175,142,0.25)] bg-[#111814] py-1 shadow-lg"
+          style={{ borderColor: "rgba(139,175,142,0.25)" }}
+        >
+          {suggestions.map((item, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                className="w-full px-3 py-2.5 text-left text-xs text-white/90 hover:bg-[rgba(139,175,142,0.15)]"
+                onMouseDown={(e) => { e.preventDefault(); select(item.display_name); }}
+              >
+                {item.display_name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function InfoStep({
   locale,
   type,
@@ -326,66 +433,9 @@ function InfoStep({
   const [birthday, setBirthday] = useState("");
   const [address, setAddress] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
   const t = heroCopy[locale].infoStep;
 
   const typeLabel = type === "residential" ? "B2C" : "B2B";
-
-  const handleUseMyLocation = () => {
-    setLocationError(null);
-    if (!navigator.geolocation) {
-      setLocationError(t.locationError);
-      return;
-    }
-    setLocationLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-            {
-              headers: {
-                Accept: "application/json",
-                "Accept-Language": locale === "es" ? "es" : "en",
-                "User-Agent": "BrasenaWaitlist/1.0 (https://brasenabx.com)",
-              },
-            }
-          );
-          if (!res.ok) throw new Error("Geocode failed");
-          const data = (await res.json()) as {
-            address?: { road?: string; house_number?: string; suburb?: string; city?: string; town?: string; state?: string; postcode?: string; country?: string };
-            display_name?: string;
-          };
-          const addr = data.address;
-          const parts: string[] = [];
-          if (addr?.house_number && addr?.road) parts.push(`${addr.house_number} ${addr.road}`);
-          else if (addr?.road) parts.push(addr.road);
-          const city = addr?.city ?? addr?.town ?? addr?.suburb ?? "";
-          const state = addr?.state ?? "";
-          const zip = addr?.postcode ?? "";
-          if (city) parts.push(city);
-          if (state) parts.push(state);
-          if (zip) parts.push(zip);
-          if (parts.length > 0) {
-            setAddress(parts.join(", "));
-          } else if (data.display_name) {
-            setAddress(data.display_name);
-          }
-        } catch {
-          setLocationError(t.locationError);
-        } finally {
-          setLocationLoading(false);
-        }
-      },
-      () => {
-        setLocationError(t.locationError);
-        setLocationLoading(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-    );
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -416,17 +466,10 @@ function InfoStep({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <span
-          className="text-[9px] uppercase tracking-wider"
-          style={{ color: "#8BAF8E" }}
-        >
+        <span className="text-[9px] uppercase tracking-wider" style={{ color: "#8BAF8E" }}>
           {typeLabel}
         </span>
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-[11px] text-white/70 hover:text-white"
-        >
+        <button type="button" onClick={onBack} className="text-[11px] text-white/70 hover:text-white">
           {t.back}
         </button>
       </div>
@@ -434,10 +477,7 @@ function InfoStep({
       <form onSubmit={handleSubmit} className="space-y-4">
         {fields.map(({ key, label, value, set, type }) => (
           <div key={key}>
-            <label
-              className="mb-1.5 block text-[9px] uppercase tracking-wider"
-              style={{ color: "#5A7A5A" }}
-            >
+            <label className="mb-1.5 block text-[9px] uppercase tracking-wider" style={{ color: "#5A7A5A" }}>
               {label}
             </label>
             <input
@@ -447,42 +487,23 @@ function InfoStep({
               className={`${inputClass} ${errors[key] ? errorBorder : normalBorder}`}
               placeholder={label}
             />
-            {errors[key] && (
-              <p className="mt-1 text-xs text-red-400">{errors[key]}</p>
-            )}
+            {errors[key] && <p className="mt-1 text-xs text-red-400">{errors[key]}</p>}
           </div>
         ))}
 
         <div>
-          <label
-            className="mb-1.5 block text-[9px] uppercase tracking-wider"
-            style={{ color: "#5A7A5A" }}
-          >
+          <label className="mb-1.5 block text-[9px] uppercase tracking-wider" style={{ color: "#5A7A5A" }}>
             {t.address}
           </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => { setAddress(e.target.value); setLocationError(null); }}
-              className={`flex-1 ${inputClass} ${errors.address ? errorBorder : normalBorder}`}
-              placeholder={t.address}
-            />
-            <button
-              type="button"
-              onClick={handleUseMyLocation}
-              disabled={locationLoading}
-              className="shrink-0 rounded-lg border border-[rgba(139,175,142,0.3)] bg-[rgba(139,175,142,0.1)] px-3 py-2.5 text-xs font-medium text-[#8BAF8E] transition-colors hover:bg-[rgba(139,175,142,0.2)] disabled:opacity-50"
-            >
-              {locationLoading ? "…" : t.useMyLocation}
-            </button>
-          </div>
-          {errors.address && (
-            <p className="mt-1 text-xs text-red-400">{errors.address}</p>
-          )}
-          {locationError && (
-            <p className="mt-1 text-xs text-amber-400">{locationError}</p>
-          )}
+          <AddressAutocomplete
+            value={address}
+            onChange={setAddress}
+            placeholder={t.addressPlaceholder}
+            className={`${inputClass} ${errors.address ? errorBorder : normalBorder}`}
+            error={!!errors.address}
+            locale={locale}
+          />
+          {errors.address && <p className="mt-1 text-xs text-red-400">{errors.address}</p>}
         </div>
 
         <button
@@ -499,11 +520,15 @@ function InfoStep({
 
 function SurveyStep({
   locale,
+  formData,
+  type,
   onSubmit,
   isLoading,
 }: {
   locale: Locale;
-  onSubmit: (answers: Record<string, string>) => void;
+  formData: WaitlistFormData;
+  type: string;
+  onSubmit: (formData: WaitlistFormData, type: string, answers: Record<string, string>) => void;
   isLoading: boolean;
 }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -512,40 +537,27 @@ function SurveyStep({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Survey is optional — submit with whatever answers we have
-    onSubmit(answers);
+    onSubmit(formData, type, answers);
   };
 
   return (
     <div className="space-y-5">
-      <div
-        className="rounded-lg border py-2.5 text-center text-[11px]"
-        style={{
-          background: "rgba(139,175,142,0.12)",
-          borderColor: "rgba(139,175,142,0.3)",
-          color: "rgba(255,255,255,0.95)",
-        }}
-      >
+      <p className="text-center text-xs text-white/70">
         {t.banner}
-      </div>
+      </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {surveyItems.map((item, idx) => (
           <div key={item.id}>
-            <div className="mb-2 flex items-baseline gap-2">
-              <span className="text-sm font-medium" style={{ color: "#8BAF8E" }}>
-                {idx + 1}.
-              </span>
-              <span className="text-sm text-white">{item.q}</span>
-            </div>
+            <p className="mb-2 text-sm font-medium text-white">
+              {idx + 1}. {item.q}
+            </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {item.opts.map((opt) => (
                 <button
                   key={opt}
                   type="button"
-                  onClick={() =>
-                    setAnswers((a) => ({ ...a, [item.id]: opt }))
-                  }
+                  onClick={() => setAnswers((a) => ({ ...a, [item.id]: opt }))}
                   className="rounded-lg border px-3 py-2.5 text-left text-xs transition-colors"
                   style={
                     answers[item.id] === opt
@@ -572,19 +584,14 @@ function SurveyStep({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full rounded-lg py-3 text-sm font-semibold text-[#0C0F0C]"
-          style={{
-            background: "linear-gradient(135deg, #6BAF7E, #8BAF8E)",
-          }}
+          className="w-full rounded-xl py-3.5 text-sm font-semibold text-[#0C0F0C] transition-opacity disabled:opacity-70"
+          style={{ background: "#8BAF8E" }}
         >
-          {isLoading ? "..." : t.submitBtn}
+          {isLoading ? "…" : t.submitBtn}
         </button>
       </form>
 
-      <p
-        className="text-center text-[10px]"
-        style={{ color: "#3A5A3A" }}
-      >
+      <p className="text-center text-[10px] text-white/50">
         {t.subline}
       </p>
     </div>
@@ -736,19 +743,22 @@ function WaitlistCard({ locale }: { locale: Locale }) {
     },
   });
 
-  const handleSurveySubmit = (answers: Record<string, string>) => {
-    if (!formData || !type) return;
+  const handleSurveySubmit = (
+    data: WaitlistFormData,
+    stepType: string,
+    answers: Record<string, string>
+  ) => {
     setSubmitError(null);
     const surveyJson =
       Object.keys(answers).length > 0 ? JSON.stringify(answers) : undefined;
     submitWaitlist.mutate({
-      name: formData.name.trim(),
-      email: formData.email.trim().toLowerCase(),
-      phone: formData.phone.trim() || "—",
-      birthday: formData.birthday.trim() || "—",
-      address: formData.address.trim() || "—",
-      type: type as "residential" | "business",
-      surveyAnswers: surveyJson,
+      name: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+      phone: data.phone.trim() || "—",
+      birthday: data.birthday.trim() || "—",
+      address: data.address.trim() || "—",
+      type: stepType as "residential" | "business",
+      ...(surveyJson ? { surveyAnswers: surveyJson } : {}),
     });
   };
 
@@ -807,9 +817,11 @@ function WaitlistCard({ locale }: { locale: Locale }) {
           }}
         />
       )}
-      {step === "survey" && (
+      {step === "survey" && formData && (
         <SurveyStep
           locale={locale}
+          formData={formData}
+          type={type}
           onSubmit={handleSurveySubmit}
           isLoading={submitWaitlist.isPending}
         />
