@@ -88,17 +88,17 @@ export default function AdminGrowthPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5F2EC]">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-8">
-        <h1 className="mb-6 font-serif text-3xl font-bold text-[#192019]">Growth Analytics</h1>
-        <div className="mb-6 flex gap-6 border-b border-black/7">
+        <h1 className="mb-6 font-serif text-3xl font-bold text-foreground">Growth Analytics</h1>
+        <div className="mb-6 flex gap-6 border-b border-border">
           {tabs.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
               className={`pb-3 text-sm transition-colors ${
-                activeTab === t.id ? "border-b-2 border-[#192019] font-semibold text-[#192019]" : "text-[#888] hover:text-[#192019]"
+                activeTab === t.id ? "border-b-2 border-foreground font-semibold text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {t.label}
@@ -118,15 +118,15 @@ export default function AdminGrowthPage() {
               {milestones.map((m) => {
                 const pct = m.target ? Math.min(100, (m.current / m.target) * 100) : 0;
                 return (
-                  <div key={m.label} className="rounded-xl border border-black/7 bg-white p-5">
+                  <div key={m.label} className="rounded-xl border border-border bg-card p-5">
                     <div className="mb-2 flex items-center justify-between">
-                      <span className="text-[13px] font-semibold text-[#1a1a1a]">{m.label}</span>
-                      <span className="text-[13px] font-bold text-[#6B8F71]">{pct.toFixed(0)}%</span>
+                      <span className="text-[13px] font-semibold text-foreground">{m.label}</span>
+                      <span className="text-[13px] font-bold text-primary">{pct.toFixed(0)}%</span>
                     </div>
-                    <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-[#F5F2EC]">
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#6B8F71] to-[#8aab8f]" style={{ width: `${Math.min(pct, 100)}%` }} />
+                    <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div className="h-full rounded-full bg-gradient-to-r from-primary to-sage-light" style={{ width: `${Math.min(pct, 100)}%` }} />
                     </div>
-                    <p className="text-[11px] text-[#888]">{m.current} of {m.target}{m.unit}</p>
+                    <p className="text-[11px] text-muted-foreground">{m.current} of {m.target}{m.unit}</p>
                   </div>
                 );
               })}
@@ -137,25 +137,25 @@ export default function AdminGrowthPage() {
         {activeTab === "survey" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <div className="rounded-xl border border-black/7 bg-white p-5">
-                <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Where They Heard About Us</h2>
+              <div className="rounded-xl border border-border bg-card p-5">
+                <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Where They Heard About Us</h2>
                 <div className="space-y-3">
                   {Object.entries(surveyAgg.heard)
                     .sort((a, b) => b[1] - a[1])
                     .slice(0, 6)
                     .map(([label, count]) => (
                       <div key={label} className="flex items-center gap-3">
-                        <span className="w-[130px] shrink-0 truncate text-xs text-[#555]">{label || "Unknown"}</span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#F5F2EC]">
-                          <div className="h-full rounded-full bg-[#6B8F71]" style={{ width: `${(count / maxHeard) * 100}%` }} />
+                        <span className="w-[130px] shrink-0 truncate text-xs text-muted-foreground">{label || "Unknown"}</span>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                          <div className="h-full rounded-full bg-primary" style={{ width: `${(count / maxHeard) * 100}%` }} />
                         </div>
-                        <span className="w-6 text-right text-xs font-semibold text-[#555]">{count}</span>
+                        <span className="w-6 text-right text-xs font-semibold text-muted-foreground">{count}</span>
                       </div>
                     ))}
                 </div>
               </div>
-              <div className="rounded-xl border border-black/7 bg-white p-5">
-                <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Monthly Budget</h2>
+              <div className="rounded-xl border border-border bg-card p-5">
+                <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Monthly Budget</h2>
                 {budgetData.length > 0 ? (
                   <PieChart width={180} height={180}>
                     <Pie data={budgetData} cx={90} cy={90} innerRadius={50} outerRadius={70} dataKey="value" strokeWidth={0}>
@@ -164,21 +164,21 @@ export default function AdminGrowthPage() {
                     <Tooltip />
                   </PieChart>
                 ) : (
-                  <p className="text-sm text-[#888]">No data yet</p>
+                  <p className="text-sm text-muted-foreground">No data yet</p>
                 )}
               </div>
-              <div className="rounded-xl border border-black/7 bg-white p-5">
-                <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Purchase Frequency</h2>
+              <div className="rounded-xl border border-border bg-card p-5">
+                <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Purchase Frequency</h2>
                 <div className="space-y-2">
                   {Object.entries(surveyAgg.freq)
                     .sort((a, b) => b[1] - a[1])
                     .map(([label, count]) => (
-                      <div key={label} className="flex items-center justify-between rounded-xl bg-[#F5F2EC] px-4 py-3">
-                        <span className="text-[13px] text-[#555]">{label}</span>
-                        <span className="text-[15px] font-bold text-[#1a1a1a]">{count}</span>
+                      <div key={label} className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
+                        <span className="text-[13px] text-muted-foreground">{label}</span>
+                        <span className="text-[15px] font-bold text-foreground">{count}</span>
                       </div>
                     ))}
-                  {Object.keys(surveyAgg.freq).length === 0 && <p className="text-sm text-[#888]">No data yet</p>}
+                  {Object.keys(surveyAgg.freq).length === 0 && <p className="text-sm text-muted-foreground">No data yet</p>}
                 </div>
               </div>
             </div>
@@ -187,12 +187,12 @@ export default function AdminGrowthPage() {
 
         {activeTab === "geo" && (
           <div className="space-y-6">
-            <div className="rounded-xl border border-black/7 bg-white p-5">
-              <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Zip Code Breakdown</h2>
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Zip Code Breakdown</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-black/7 text-left text-xs uppercase tracking-widest text-[#888]">
+                    <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
                       <th className="pb-3 pr-4">Zip Code</th>
                       <th className="pb-3 pr-4">Signups</th>
                       <th className="pb-3">% of Total</th>
@@ -200,22 +200,22 @@ export default function AdminGrowthPage() {
                   </thead>
                   <tbody>
                     {geoData.map((z) => (
-                      <tr key={z.zip} className="border-b border-black/5">
-                        <td className="py-3 pr-4 font-medium text-[#192019]">{z.zip}</td>
-                        <td className="py-3 pr-4 text-[#555]">{z.count}</td>
+                      <tr key={z.zip} className="border-b border-border/50">
+                        <td className="py-3 pr-4 font-medium text-foreground">{z.zip}</td>
+                        <td className="py-3 pr-4 text-muted-foreground">{z.count}</td>
                         <td className="py-3">
                           <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-[80px] overflow-hidden rounded-full bg-[#F5F2EC]">
-                              <div className="h-full rounded-full bg-[#6B8F71]" style={{ width: `${z.pct}%` }} />
+                            <div className="h-1.5 w-[80px] overflow-hidden rounded-full bg-muted">
+                              <div className="h-full rounded-full bg-primary" style={{ width: `${z.pct}%` }} />
                             </div>
-                            <span className="text-xs text-[#555]">{z.pct}%</span>
+                            <span className="text-xs text-muted-foreground">{z.pct}%</span>
                           </div>
                         </td>
                       </tr>
                     ))}
                     {geoData.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="py-8 text-center text-[#888]">No zip data yet</td>
+                        <td colSpan={3} className="py-8 text-center text-muted-foreground">No zip data yet</td>
                       </tr>
                     )}
                   </tbody>
@@ -227,12 +227,12 @@ export default function AdminGrowthPage() {
 
         {activeTab === "raffle" && (
           <div className="space-y-6">
-            <div className="rounded-xl border border-black/7 bg-white p-5">
-              <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Full Leaderboard (Top 10)</h2>
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Full Leaderboard (Top 10)</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-black/7 text-left text-xs uppercase tracking-widest text-[#888]">
+                    <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
                       <th className="pb-3 pr-4">Rank</th>
                       <th className="pb-3 pr-4">Name</th>
                       <th className="pb-3 pr-4">Email</th>
@@ -245,23 +245,23 @@ export default function AdminGrowthPage() {
                     {leaderboard.slice(0, 10).map((e, i) => (
                       <tr
                         key={e.customerId}
-                        className={`border-b border-black/5 ${
-                          i === 0 ? "bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.2)]" :
-                          i === 1 ? "bg-[rgba(192,192,192,0.08)]" :
-                          i === 2 ? "bg-[rgba(196,120,80,0.08)]" : ""
+                        className={`border-b border-border/50 ${
+                          i === 0 ? "bg-amber-500/10 dark:bg-amber-400/10 border-amber-500/20 dark:border-amber-400/20" :
+                          i === 1 ? "bg-slate-400/10 dark:bg-slate-400/10" :
+                          i === 2 ? "bg-amber-700/10 dark:bg-amber-600/10" : ""
                         }`}
                       >
-                        <td className="py-3 pr-4 font-serif font-bold text-[#192019]">{i + 1}</td>
-                        <td className="py-3 pr-4 text-[#192019]">{e.firstName}</td>
-                        <td className="py-3 pr-4 text-[#555]">{e.email}</td>
-                        <td className="py-3 pr-4 font-semibold text-[#6B8F71]">{e.raffleEntriesTotal}</td>
-                        <td className="py-3 pr-4 text-[#555]">{e.referralCount}</td>
-                        <td className="py-3 text-[#555]">—</td>
+                        <td className="py-3 pr-4 font-serif font-bold text-foreground">{i + 1}</td>
+                        <td className="py-3 pr-4 text-foreground">{e.firstName}</td>
+                        <td className="py-3 pr-4 text-muted-foreground">{e.email}</td>
+                        <td className="py-3 pr-4 font-semibold text-primary">{e.raffleEntriesTotal}</td>
+                        <td className="py-3 pr-4 text-muted-foreground">{e.referralCount}</td>
+                        <td className="py-3 text-muted-foreground">—</td>
                       </tr>
                     ))}
                     {leaderboard.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-[#888]">No entries yet</td>
+                        <td colSpan={6} className="py-8 text-center text-muted-foreground">No entries yet</td>
                       </tr>
                     )}
                   </tbody>
@@ -269,8 +269,8 @@ export default function AdminGrowthPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-black/7 bg-white p-6">
-              <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Draw Winner</h2>
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Draw Winner</h2>
               <div className="mb-6 flex gap-3">
                 {(["grand", "second", "third"] as const).map((tier) => (
                   <button
@@ -278,16 +278,16 @@ export default function AdminGrowthPage() {
                     type="button"
                     onClick={() => setPrizeTier(tier)}
                     className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition-colors ${
-                      prizeTier === tier ? "border-[#6B8F71] bg-[#6B8F71]/10 text-[#192019]" : "border-black/10 text-[#555] hover:bg-black/5"
+                      prizeTier === tier ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:bg-muted"
                     }`}
                   >
                     <span className="block font-semibold">{prizes[tier].label}</span>
-                    <span className="text-xs text-[#888]">{prizes[tier].value}</span>
+                    <span className="text-xs text-muted-foreground">{prizes[tier].value}</span>
                   </button>
                 ))}
               </div>
               <Button
-                className="bg-[#192019] text-white hover:bg-[#2a3a2a]"
+                className="bg-foreground text-background hover:bg-foreground/90"
                 disabled={drawing}
                 onClick={() => {
                   setDrawing(true);
@@ -298,12 +298,12 @@ export default function AdminGrowthPage() {
               </Button>
             </div>
 
-            <div className="rounded-xl border border-black/7 bg-white p-5">
-              <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Draw Audit Log</h2>
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Draw Audit Log</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-black/7 text-left text-xs uppercase tracking-widest text-[#888]">
+                    <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
                       <th className="pb-3 pr-4">Date</th>
                       <th className="pb-3 pr-4">Prize</th>
                       <th className="pb-3 pr-4">Winner</th>
@@ -313,17 +313,17 @@ export default function AdminGrowthPage() {
                   </thead>
                   <tbody>
                     {drawLog.map((row) => (
-                      <tr key={String(row.date)} className="border-b border-black/5">
-                        <td className="py-3 pr-4 text-[#555]">{new Date(row.date).toLocaleString()}</td>
-                        <td className="py-3 pr-4 text-[#192019]">{row.prizeTier}</td>
-                        <td className="py-3 pr-4 text-[#192019]">{row.winnerName ?? "—"}</td>
-                        <td className="py-3 pr-4 text-[#555]">{row.winnerEmail ?? "—"}</td>
-                        <td className="py-3 text-[#555]">{row.entriesAtDraw}</td>
+                      <tr key={String(row.date)} className="border-b border-border/50">
+                        <td className="py-3 pr-4 text-muted-foreground">{new Date(row.date).toLocaleString()}</td>
+                        <td className="py-3 pr-4 text-foreground">{row.prizeTier}</td>
+                        <td className="py-3 pr-4 text-foreground">{row.winnerName ?? "—"}</td>
+                        <td className="py-3 pr-4 text-muted-foreground">{row.winnerEmail ?? "—"}</td>
+                        <td className="py-3 text-muted-foreground">{row.entriesAtDraw}</td>
                       </tr>
                     ))}
                     {drawLog.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-[#888]">No draws yet</td>
+                        <td colSpan={5} className="py-8 text-center text-muted-foreground">No draws yet</td>
                       </tr>
                     )}
                   </tbody>
@@ -335,22 +335,22 @@ export default function AdminGrowthPage() {
       </div>
 
       <Dialog open={!!winner} onOpenChange={() => setWinner(null)}>
-        <DialogContent className="max-w-md text-center border-black/10 bg-white">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#6B8F71] bg-[rgba(107,143,113,0.1)]">
-            <Trophy className="h-6 w-6 text-[#6B8F71]" />
+        <DialogContent className="max-w-md text-center border-border bg-card">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-primary bg-primary/10">
+            <Trophy className="h-6 w-6 text-primary" />
           </div>
-          <DialogTitle className="font-serif text-2xl font-bold text-[#192019]">Winner Drawn</DialogTitle>
-          <p className="mt-1 text-sm text-[#888]">{prizes[prizeTier].label} — {prizes[prizeTier].value}</p>
+          <DialogTitle className="font-serif text-2xl font-bold text-foreground">Winner Drawn</DialogTitle>
+          <p className="mt-1 text-sm text-muted-foreground">{prizes[prizeTier].label} — {prizes[prizeTier].value}</p>
           {winner && (
-            <div className="mt-6 rounded-xl bg-[#F5F2EC] px-6 py-5">
-              <p className="font-serif text-2xl font-bold text-[#192019]">{winner.firstName}</p>
-              <p className="mt-1 text-[13px] text-[#888]">{winner.email}</p>
-              <p className="mt-2 text-[12px] text-[#6B8F71]">{winner.raffleEntriesTotal} raffle entries</p>
+            <div className="mt-6 rounded-xl bg-muted px-6 py-5">
+              <p className="font-serif text-2xl font-bold text-foreground">{winner.firstName}</p>
+              <p className="mt-1 text-[13px] text-muted-foreground">{winner.email}</p>
+              <p className="mt-2 text-[12px] text-primary">{winner.raffleEntriesTotal} raffle entries</p>
             </div>
           )}
           <div className="mt-6 flex gap-3">
-            <Button variant="outline" className="flex-1 border-black/10" onClick={() => setWinner(null)}>Close</Button>
-            <Button className="flex-1 bg-[#192019] text-white hover:bg-[#2a3a2a]">Log Winner</Button>
+            <Button variant="outline" className="flex-1 border-border" onClick={() => setWinner(null)}>Close</Button>
+            <Button className="flex-1 bg-foreground text-background hover:bg-foreground/90">Log Winner</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -370,14 +370,14 @@ function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-black/7 bg-white p-5">
-      <div className="absolute left-0 right-0 top-0 h-[3px] rounded-t-xl bg-[#6B8F71]" />
+    <div className="relative overflow-hidden rounded-xl border border-border bg-card p-5">
+      <div className="absolute left-0 right-0 top-0 h-[3px] rounded-t-xl bg-primary" />
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#888]">{label}</span>
-        <div className="rounded-lg bg-[rgba(107,143,113,0.1)] p-1.5 text-[#6B8F71]">{icon}</div>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</span>
+        <div className="rounded-lg bg-primary/10 p-1.5 text-primary">{icon}</div>
       </div>
-      <div className="font-serif text-[32px] font-bold leading-none text-[#1a1a1a]">{value}</div>
-      <div className="mt-2 text-[11px] text-[#888]">{subtext}</div>
+      <div className="font-serif text-[32px] font-bold leading-none text-foreground">{value}</div>
+      <div className="mt-2 text-[11px] text-muted-foreground">{subtext}</div>
     </div>
   );
 }
