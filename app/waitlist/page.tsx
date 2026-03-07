@@ -1,15 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { WaitlistCard } from "@/components/marketing/hero-section";
 import type { Locale } from "@/components/marketing/marketing-page";
 
-export default function WaitlistPage() {
-  const [locale, setLocale] = useState<Locale>("en");
-  const searchParams = useSearchParams();
-  const source = searchParams.get("src") ?? undefined;
+function WaitlistShell({ locale, setLocale, source }: { locale: Locale; setLocale: (l: Locale) => void; source?: string }) {
   return (
     <div className="min-h-screen w-full bg-[#0C0F0C]">
       <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-4 md:px-8 md:py-6">
@@ -43,5 +40,20 @@ export default function WaitlistPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function WaitlistContent() {
+  const [locale, setLocale] = useState<Locale>("en");
+  const searchParams = useSearchParams();
+  const source = searchParams.get("src") ?? undefined;
+  return <WaitlistShell locale={locale} setLocale={setLocale} source={source} />;
+}
+
+export default function WaitlistPage() {
+  return (
+    <Suspense fallback={<WaitlistShell locale="en" setLocale={() => {}} />}>
+      <WaitlistContent />
+    </Suspense>
   );
 }
