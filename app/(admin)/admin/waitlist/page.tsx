@@ -125,9 +125,11 @@ export default function AdminWaitlistPage() {
   ].filter((d) => d.value > 0);
   if (typeData.length === 0) typeData.push({ name: "B2C", value: 0 });
 
-  const funnelJoined = totalSignups;
+  const funnelSignups = totalSignups;
   const funnelSurvey = surveyCompleted;
   const funnelReferred = stats?.usersWithReferrals ?? 0;
+  const pctSurvey = funnelSignups ? (funnelSurvey / funnelSignups) * 100 : 0;
+  const pctReferred = funnelSignups ? (funnelReferred / funnelSignups) * 100 : 0;
 
   function initial(name: string | null) {
     if (name?.trim()) return name.trim().charAt(0).toUpperCase();
@@ -344,11 +346,30 @@ export default function AdminWaitlistPage() {
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               <div className="rounded-xl border border-black/7 bg-white p-5">
                 <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Conversion Funnel</h2>
-                <div className="space-y-2">
-                  <FunnelBar label="Visited page" count={funnelJoined} pct={100} color="#192019" />
-                  <FunnelBar label="Joined waitlist" count={funnelJoined} pct={100} color="#6B8F71" />
-                  <FunnelBar label="Survey done" count={funnelSurvey} pct={totalSignups ? (funnelSurvey / totalSignups) * 100 : 0} color="#8aab8f" />
-                  <FunnelBar label="Referred someone" count={funnelReferred} pct={totalSignups ? (funnelReferred / totalSignups) * 100 : 0} color="#c8d8ca" />
+                <div className="space-y-0">
+                  <FunnelStep
+                    step={1}
+                    label="Joined waitlist"
+                    count={funnelSignups}
+                    widthPct={100}
+                    showConversion={false}
+                  />
+                  <FunnelStep
+                    step={2}
+                    label="Survey completed"
+                    count={funnelSurvey}
+                    widthPct={funnelSignups ? (funnelSurvey / funnelSignups) * 100 : 0}
+                    showConversion
+                    conversionPct={pctSurvey}
+                  />
+                  <FunnelStep
+                    step={3}
+                    label="Referred someone"
+                    count={funnelReferred}
+                    widthPct={funnelSignups ? (funnelReferred / funnelSignups) * 100 : 0}
+                    showConversion
+                    conversionPct={pctReferred}
+                  />
                 </div>
               </div>
               <div className="rounded-xl border border-black/7 bg-white p-5">
@@ -688,25 +709,52 @@ function StatCard({
   );
 }
 
-function FunnelBar({
+function FunnelStep({
+  step,
   label,
   count,
-  pct,
-  color,
+  widthPct,
+  showConversion,
+  conversionPct = 0,
 }: {
+  step: number;
   label: string;
   count: number;
-  pct: number;
-  color: string;
+  widthPct: number;
+  showConversion: boolean;
+  conversionPct?: number;
 }) {
+  const hasData = count > 0;
+  const barWidth = hasData ? Math.max(widthPct, 8) : 0;
   return (
-    <div className="relative h-9 overflow-hidden rounded-lg bg-[#F5F2EC]">
-      <div
-        className="flex h-full min-w-[120px] items-center justify-between rounded-lg px-3"
-        style={{ width: `${Math.max(pct, 5)}%`, background: color }}
-      >
-        <span className="text-xs font-medium text-white">{label}</span>
-        <span className="text-xs font-bold text-white">{count} · {pct.toFixed(0)}%</span>
+    <div className="flex flex-col gap-1 py-2 first:pt-0 last:pb-0">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums text-[#192019]"
+            style={{
+              background: step === 1 ? "#192019" : step === 2 ? "#6B8F71" : "#8aab8f",
+              color: step === 1 ? "#fff" : "#fff",
+            }}
+          >
+            {step}
+          </span>
+          <span className="text-sm font-medium text-[#192019]">{label}</span>
+        </div>
+        <div className="flex items-baseline gap-2">
+          <span className="font-serif text-lg font-bold tabular-nums text-[#192019]">{count}</span>
+          {showConversion && (
+            <span className="text-xs text-[#888]">
+              {conversionPct.toFixed(0)}% of step 1
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[#F5F2EC]">
+        <div
+          className="h-full rounded-full bg-[#6B8F71] transition-all duration-300"
+          style={{ width: `${barWidth}%`, opacity: hasData ? 1 : 0.4 }}
+        />
       </div>
     </div>
   );
