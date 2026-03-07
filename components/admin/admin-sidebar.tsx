@@ -11,6 +11,7 @@ import {
   BarChart3,
   ListChecks,
   Settings,
+  TrendingUp,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter,
@@ -34,6 +35,7 @@ const adminNavItems = [
   { title: "Analytics", url: "/admin/analytics", icon: BarChart3, items: [] },
   { title: "Notifications", url: "/admin/notifications", icon: Bell, items: [] },
   { title: "Waitlist", url: "/admin/waitlist", icon: ListChecks, items: [] },
+  { title: "Growth", url: "/admin/growth", icon: TrendingUp, items: [] },
   { title: "Settings", url: "/admin/settings", icon: Settings, items: [] },
 ];
 

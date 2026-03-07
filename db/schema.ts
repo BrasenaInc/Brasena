@@ -1,6 +1,6 @@
 import {
   pgTable, pgEnum, text, uuid, boolean,
-  timestamp, integer, index
+  timestamp, integer, index, jsonb
 } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum('user_role', ['customer', 'admin']);
@@ -142,7 +142,16 @@ export const waitlistEntries = pgTable(
     address: text("address").notNull(),
     type: customerTypeEnum("type").notNull(),
     surveyAnswers: text("survey_answers"),
+    raffleEntriesTotal: integer("raffle_entries_total").default(1).notNull(),
+    source: text("source"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [index("waitlist_email_idx").on(t.email)]
 );
+
+export const eventsLog = pgTable("events_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventName: text("event_name").notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

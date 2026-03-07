@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
   const publicPaths = [
     "/",
     "/marketing",
+    "/waitlist",
     "/auth/login",
     "/auth/sign-up",
     "/auth/callback",

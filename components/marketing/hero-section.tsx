@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import type { Locale } from "./marketing-page";
 
@@ -827,7 +829,7 @@ function ProgressBar({ step }: { step: string }) {
   );
 }
 
-function WaitlistCard({ locale }: { locale: Locale }) {
+export function WaitlistCard({ locale, source }: { locale: Locale; source?: string }) {
   const [step, setStep] = useState<"type" | "info" | "survey" | "success">(
     "type"
   );
@@ -863,6 +865,7 @@ function WaitlistCard({ locale }: { locale: Locale }) {
       address: data.address.trim() || "—",
       type: stepType as "residential" | "business",
       ...(surveyJson ? { surveyAnswers: surveyJson } : {}),
+      ...(source ? { source } : {}),
     });
   };
 
@@ -1019,34 +1022,66 @@ export function HeroSection({ waitlistEnabled, locale }: HeroSectionProps) {
         }}
       />
 
-      <div className="relative z-10 flex min-h-screen flex-col md:flex-row md:h-full md:items-stretch">
-        <div className="flex min-w-0 shrink-0 items-center px-5 pt-24 pb-8 md:flex-1 md:px-14 md:pl-14 md:py-0">
-          <HeroLeft locale={locale} />
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-28 text-center">
+        <p className="mb-6 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/35">
+          Wholesale Platform · The Bronx, NY
+        </p>
+        <h1 className="mb-5 font-serif leading-[1.0] tracking-tight">
+          <span className="block text-[clamp(52px,7vw,88px)] font-bold text-white">
+            Wholesale meat,
+          </span>
+          <span className="block text-[clamp(52px,7vw,88px)] font-bold italic text-[#8aab8f]">
+            delivered fresh.
+          </span>
+        </h1>
+        <p className="mb-9 max-w-[440px] text-[15px] leading-[1.7] text-white/45">
+          We bridge the gap between wholesale distributors and you, cutting out
+          the middleman so restaurants, lounges, and families get premium cuts
+          at real wholesale prices.
+        </p>
+        <div className="mb-11 flex w-full max-w-[320px] flex-col items-center gap-2.5">
+          <Link
+            href="/waitlist"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#7a9e80] px-6 py-[15px] text-[14px] font-semibold text-white"
+          >
+            Join the Waitlist + Enter Raffle
+            <ArrowRight className="h-[15px] w-[15px]" />
+          </Link>
+          <span className="text-[11px] text-white/20">
+            Every signup is an automatic raffle entry. No purchase required.
+          </span>
         </div>
-        <div
-          className="flex min-w-0 flex-1 items-start justify-center overflow-y-auto px-5 pb-12 md:items-center md:justify-start md:px-12 md:pb-0"
-        >
-          <div className="w-full max-w-full md:max-w-[420px]">
-            {waitlistEnabled ? (
-              <WaitlistCard locale={locale} />
-            ) : (
-              <div className="flex flex-col gap-3">
-                <a
-                  href="/auth/sign-up"
-                  className="rounded-full bg-[#8BAF8E] px-8 py-4 text-center text-sm font-semibold uppercase tracking-wider text-[#0C0F0C] hover:opacity-90"
-                >
-                  {heroCopy[locale].cta.startOrdering}
-                </a>
-                <a
-                  href="/auth/login"
-                  className="rounded-full border border-white/20 px-8 py-4 text-center text-sm font-medium uppercase tracking-wider text-white/60 hover:border-white/50 hover:text-white"
-                >
-                  {heroCopy[locale].cta.signIn}
-                </a>
-              </div>
-            )}
+        <div className="w-full max-w-[520px] border-t border-white/7 pt-6">
+          <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6B8F71]">
+            Grand Opening Raffle
+          </p>
+          <div className="flex items-stretch">
+            <div className="flex flex-1 flex-col items-center gap-1 px-4">
+              <div className="mb-0.5 h-[5px] w-[5px] rounded-full bg-[#d4af37]" />
+              <span className="text-[13px] font-semibold leading-snug text-white">$500 Meat Bundle</span>
+              <span className="text-[11px] text-white/30">Grand prize</span>
+            </div>
+            <div className="w-px self-stretch bg-white/7" />
+            <div className="flex flex-1 flex-col items-center gap-1 px-4">
+              <div className="mb-0.5 h-[5px] w-[5px] rounded-full bg-[#b0b0b0]" />
+              <span className="text-[13px] font-semibold leading-snug text-white">$250 Freezer Box</span>
+              <span className="text-[11px] text-white/30">2nd prize</span>
+            </div>
+            <div className="w-px self-stretch bg-white/7" />
+            <div className="flex flex-1 flex-col items-center gap-1 px-4">
+              <div className="mb-0.5 h-[5px] w-[5px] rounded-full bg-[#c4885a]" />
+              <span className="text-[13px] font-semibold leading-snug text-white">$100 + 20x $25</span>
+              <span className="text-[11px] text-white/30">3rd + bonus</span>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div className="absolute bottom-9 left-[52px] flex items-center gap-3.5">
+        <div className="h-8 w-px bg-gradient-to-b from-transparent to-white/20" />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/20">
+          Scroll to explore
+        </span>
       </div>
     </section>
   );

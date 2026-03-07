@@ -10,23 +10,10 @@ interface MarketingNavProps {
   setLocale: (locale: Locale) => void;
 }
 
-const copy = {
-  en: {
-    signIn: "Sign in",
-    getStarted: "Get started",
-  },
-  es: {
-    signIn: "Iniciar sesión",
-    getStarted: "Comenzar",
-  },
-};
-
 export function MarketingNav({
-  waitlistEnabled,
   locale,
   setLocale,
 }: MarketingNavProps) {
-  const t = copy[locale];
   return (
     <motion.header
       className="fixed top-0 left-0 right-0 z-50 flex items-center
@@ -65,25 +52,6 @@ export function MarketingNav({
             ES
           </button>
         </div>
-        {!waitlistEnabled && (
-          <>
-            <Link
-              href="/auth/login"
-              className="text-sm font-medium tracking-wider text-white/70
-                         transition-colors hover:text-white uppercase"
-            >
-              {t.signIn}
-            </Link>
-            <Link
-              href="/auth/sign-up"
-              className="rounded-full border border-white/30 px-5 py-2 text-sm
-                         font-medium tracking-wider text-white transition-all
-                         hover:bg-white hover:text-[#0C0F0C] uppercase"
-            >
-              {t.getStarted}
-            </Link>
-          </>
-        )}
       </div>
     </motion.header>
   );

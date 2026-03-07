@@ -4,22 +4,11 @@ import Link from "next/link";
 import type { Locale } from "./marketing-page";
 
 const footerCopy = {
-  en: {
-    signIn: "Sign in",
-    getStarted: "Get started",
-    joinWaitlist: "Join the waitlist",
-    tagline: "The Bronx, NYC · Launching 2026 · © Brasena Inc.",
-  },
-  es: {
-    signIn: "Iniciar sesión",
-    getStarted: "Comenzar",
-    joinWaitlist: "Únete a la lista",
-    tagline: "El Bronx, NYC · Lanzamiento 2026 · © Brasena Inc.",
-  },
+  en: { tagline: "The Bronx, NYC · Launching 2026 · © Brasena Inc." },
+  es: { tagline: "El Bronx, NYC · Lanzamiento 2026 · © Brasena Inc." },
 };
 
 export function MarketingFooter({
-  waitlistEnabled,
   locale = "en",
 }: {
   waitlistEnabled: boolean;
@@ -36,15 +25,9 @@ export function MarketingFooter({
         <div className="flex gap-6">
           <Link
             href="/auth/login"
-            className="text-xs uppercase tracking-wider text-white/30 transition-colors hover:text-white/60"
+            className="text-xs uppercase tracking-wider text-white/25 transition-colors hover:text-white/50"
           >
-            {t.signIn}
-          </Link>
-          <Link
-            href={waitlistEnabled ? "/marketing#hero" : "/auth/sign-up"}
-            className="text-xs uppercase tracking-wider text-white/30 transition-colors hover:text-white/60"
-          >
-            {waitlistEnabled ? t.joinWaitlist : t.getStarted}
+            Sign in
           </Link>
         </div>
       </div>
