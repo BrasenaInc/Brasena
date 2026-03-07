@@ -14,6 +14,32 @@ export const waitlistRouter = router({
       .orderBy(desc(waitlistEntries.createdAt));
   }),
 
+  adminDelete: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      await db.delete(waitlistEntries).where(eq(waitlistEntries.id, input.id));
+      return { success: true };
+    }),
+
+  unsubscribe: publicProcedure
+    .input(z.object({ email: z.string().email().trim().toLowerCase() }))
+    .mutation(async ({ input }) => {
+      const [existing] = await db
+        .select()
+        .from(waitlistEntries)
+        .where(eq(waitlistEntries.email, input.email));
+      if (existing) {
+        await db.delete(waitlistEntries).where(eq(waitlistEntries.email, input.email));
+      }
+      return { success: true, removed: !!existing };
+    }),
+
+  adminClearAll: adminProcedure.mutation(async () => {
+    await db.delete(eventsLog).where(eq(eventsLog.eventName, "raffle_draw"));
+    await db.delete(waitlistEntries);
+    return { success: true };
+  }),
+
   adminGetById: adminProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {

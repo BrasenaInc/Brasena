@@ -44,6 +44,7 @@ export async function sendWaitlistConfirmation({
     </table>
     <a href="https://www.instagram.com/brasenabx" style="display:block;padding:14px;border-radius:10px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;font-weight:700;text-decoration:none;text-align:center;font-size:13px;margin-bottom:20px;">Follow @brasenabx on Instagram</a>
     <p style="font-size:11px;color:#3A5A3A;text-align:center;margin:0;">Brasena · The Bronx, NYC · Once we launch you can complete your profile and start ordering.</p>
+    <p style="font-size:10px;color:#2A4A2A;text-align:center;margin:16px 0 0;"><a href="${(process.env.NEXT_PUBLIC_BASE_URL ?? "https://brasenabx.com").replace(/\/$/, "")}/waitlist/unsubscribe?email=${encodeURIComponent(email)}" style="color:#5A7A5A;text-decoration:underline;">Unsubscribe from the waitlist</a></p>
   </div>
 </body>
 </html>

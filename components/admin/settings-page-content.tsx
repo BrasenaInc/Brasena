@@ -45,9 +45,18 @@ export function SettingsPageContent({
   });
 
   const deleteEntry = trpc.settings.deleteWaitlistEntry.useMutation({
-    onSuccess: () => {
-      utils.settings.getWaitlistEntries.invalidate();
+    onSuccess: async () => {
       setDeleteId(null);
+      await utils.settings.getWaitlistEntries.invalidate();
+      await utils.waitlist.adminList.invalidate();
+      await utils.waitlist.adminStats.invalidate();
+      await utils.waitlist.adminSignupsByDay.invalidate();
+      await utils.waitlist.adminSourceBreakdown.invalidate();
+      await utils.waitlist.adminSurveyInsights.invalidate();
+      await utils.waitlist.adminSignups.invalidate();
+      await utils.waitlist.adminGeoData.invalidate();
+      await utils.waitlist.adminLeaderboard.invalidate();
+      await utils.waitlist.adminDrawLog.invalidate();
     },
   });
 

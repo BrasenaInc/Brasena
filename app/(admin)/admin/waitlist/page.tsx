@@ -10,6 +10,8 @@ import {
   Share2,
   Star,
   ArrowRight,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -25,6 +27,16 @@ import {
 } from "recharts";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type WaitlistTab = "overview" | "members";
 
@@ -39,14 +51,47 @@ function escapeCsv(s: string) {
   return `"${String(s).replace(/"/g, '""')}"`;
 }
 
+async function invalidateWaitlist(utils: ReturnType<typeof trpc.useUtils>) {
+  await Promise.all([
+    utils.waitlist.adminList.invalidate(),
+    utils.waitlist.adminStats.invalidate(),
+    utils.waitlist.adminSignupsByDay.invalidate(),
+    utils.waitlist.adminSourceBreakdown.invalidate(),
+    utils.waitlist.adminSurveyInsights.invalidate(),
+    utils.waitlist.adminSignups.invalidate(),
+    utils.waitlist.adminGeoData.invalidate(),
+    utils.waitlist.adminLeaderboard.invalidate(),
+    utils.waitlist.adminDrawLog.invalidate(),
+    utils.settings.getWaitlistEntries.invalidate(),
+  ]);
+}
+
 export default function AdminWaitlistPage() {
   const router = useRouter();
+  const utils = trpc.useUtils();
   const [activeTab, setActiveTab] = useState<WaitlistTab>("overview");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [removeId, setRemoveId] = useState<string | null>(null);
+  const [clearAllOpen, setClearAllOpen] = useState(false);
   const [daysFilter, setDaysFilter] = useState<7 | 30 | 0>(7);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "residential" | "business">("all");
   const [surveyFilter, setSurveyFilter] = useState<"all" | "completed" | "pending">("all");
+
+  const deleteOne = trpc.waitlist.adminDelete.useMutation({
+    onSuccess: async (_, variables) => {
+      setRemoveId(null);
+      if (selectedId === variables.id) setSelectedId(null);
+      await invalidateWaitlist(utils);
+    },
+  });
+  const clearAll = trpc.waitlist.adminClearAll.useMutation({
+    onSuccess: async () => {
+      setClearAllOpen(false);
+      setSelectedId(null);
+      await invalidateWaitlist(utils);
+    },
+  });
 
   const { data: stats } = trpc.waitlist.adminStats.useQuery();
   const { data: signupsByDay = [] } = trpc.waitlist.adminSignupsByDay.useQuery({
@@ -139,14 +184,46 @@ export default function AdminWaitlistPage() {
       <div className="mx-auto max-w-6xl px-6 py-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <h1 className="font-serif text-3xl font-bold text-[#192019]">Waitlist</h1>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-black/10 text-[#192019] hover:bg-black/5"
-            onClick={exportCSV}
-          >
-            Export CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-black/10 text-[#192019] hover:bg-black/5"
+              onClick={exportCSV}
+            >
+              Export CSV
+            </Button>
+            <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                onClick={() => setClearAllOpen(true)}
+                disabled={(stats?.totalSignups ?? 0) === 0}
+              >
+                Clear all data
+              </Button>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear all waitlist data?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently remove every waitlist signup and all raffle draw history.
+                    Use this to start with a clean list. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => clearAll.mutate()}
+                    disabled={clearAll.isPending}
+                  >
+                    {clearAll.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Clear all"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
 
         <div className="mb-6 flex gap-6 border-b border-black/7">
@@ -418,13 +495,43 @@ export default function AdminWaitlistPage() {
                           )}
                         </td>
                         <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            type="button"
-                            className="text-xs font-medium text-[#6B8F71] hover:underline"
-                            onClick={() => setSelectedId(s.customerId)}
-                          >
-                            View
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              className="text-xs font-medium text-[#6B8F71] hover:underline"
+                              onClick={() => setSelectedId(s.customerId)}
+                            >
+                              View
+                            </button>
+                            <AlertDialog open={removeId === s.customerId} onOpenChange={(open) => !open && setRemoveId(null)}>
+                              <button
+                                type="button"
+                                className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                aria-label="Remove from waitlist"
+                                onClick={() => setRemoveId(s.customerId)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Remove from waitlist?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Remove {s.email} from the waitlist? They will no longer appear in signups or raffle draws. This cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    onClick={() => deleteOne.mutate({ id: s.customerId })}
+                                    disabled={deleteOne.isPending}
+                                  >
+                                    {deleteOne.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Remove"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -521,6 +628,34 @@ export default function AdminWaitlistPage() {
             <div className="flex justify-end gap-2 border-t border-black/7 px-6 py-4">
               <Button variant="outline" size="sm" className="border-black/10" onClick={() => setSelectedId(null)}>Close</Button>
               <Button size="sm" className="bg-[#192019] text-white hover:bg-[#2a3a2a]" onClick={() => router.push(`/admin/orders?customer=${selectedUser.id}`)}>View Orders</Button>
+              <AlertDialog open={removeId === selectedUser.id} onOpenChange={(open) => !open && setRemoveId(null)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                  onClick={() => setRemoveId(selectedUser.id)}
+                >
+                  Remove from waitlist
+                </Button>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Remove from waitlist?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Remove {selectedUser.email} from the waitlist? They will no longer appear in signups or raffle draws. This cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => deleteOne.mutate({ id: selectedUser.id })}
+                      disabled={deleteOne.isPending}
+                    >
+                      {deleteOne.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Remove"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </div>
