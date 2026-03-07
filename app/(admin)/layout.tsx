@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Toaster } from "sonner";
 import { getAuthUser } from "@/lib/supabase/server";
 import { trpc } from "@/lib/trpc/server";
+import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AuthProvider } from "@/components/auth/auth-provider";
@@ -26,7 +27,10 @@ export default async function AdminLayout({
     <AuthProvider user={user}>
       <SidebarProvider>
         <AdminSidebar user={user} />
-        <SidebarInset>{children}</SidebarInset>
+        <SidebarInset>
+          <AdminHeader />
+          <div className="flex-1">{children}</div>
+        </SidebarInset>
       </SidebarProvider>
       <Toaster richColors position="top-right" />
     </AuthProvider>

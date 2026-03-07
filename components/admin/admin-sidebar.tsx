@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
@@ -13,6 +15,7 @@ import {
 import {
   Sidebar, SidebarContent, SidebarFooter,
   SidebarHeader, SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { NavMain } from "@/components/sidebar/nav-main";
 import { NavUser } from "@/components/sidebar/nav-user";
@@ -38,6 +41,13 @@ export function AdminSidebar({
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & { user: User }) {
+  const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    if (isMobile) setOpenMobile(false);
+  }, [pathname, isMobile, setOpenMobile]);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="border-b">
