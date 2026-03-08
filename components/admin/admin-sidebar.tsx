@@ -12,6 +12,7 @@ import {
   ListChecks,
   Settings,
   TrendingUp,
+  Grid3X3,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter,
@@ -36,6 +37,7 @@ const adminNavItems = [
   { title: "Notifications", url: "/admin/notifications", icon: Bell, items: [] },
   { title: "Waitlist", url: "/admin/waitlist", icon: ListChecks, items: [] },
   { title: "Growth", url: "/admin/growth", icon: TrendingUp, items: [] },
+  { title: "QR Codes", url: "/admin/qr", icon: Grid3X3, items: [] },
   { title: "Settings", url: "/admin/settings", icon: Settings, items: [] },
 ];
 

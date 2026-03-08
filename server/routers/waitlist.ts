@@ -1,14 +1,493 @@
 import { z } from "zod";
-import { nanoid } from "nanoid";
-import { TRPCError } from "@trpc/server";
-import { desc, eq, sql, inArray, gte } from "drizzle-orm";
+import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
 import { router, adminProcedure, publicProcedure } from "../trpc";
 import { db } from "@/db";
-import { waitlistEntries, eventsLog } from "@/db/schema";
+import {
+  customers,
+  waitlistEntries,
+  surveyResponses,
+  referrals,
+  eventsLog,
+} from "@/db/schema/waitlist";
+import { nanoid } from "nanoid";
 import { sendWaitlistConfirmationSMS } from "@/lib/messaging/sms";
 import { sendWaitlistConfirmationEmail } from "@/lib/messaging/email";
+import { sendSurveyCompletionEmail } from "@/lib/messaging/email";
+
+const ENTRIES = {
+  SIGNUP: 1,
+  SURVEY: 2,
+  REFERRAL: 3,
+  MILESTONE_5: 10,
+  MILESTONE_10: 25,
+  MILESTONE_25: 75,
+} as const;
 
 export const waitlistRouter = router({
+  signup: publicProcedure
+    .input(
+      z.object({
+        firstName: z.string().min(1),
+        lastName: z.string().optional(),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        zipCode: z.string().optional(),
+        householdSize: z.string().optional(),
+        birthday: z.string().optional(),
+        address: z.string().optional(),
+        smsOptIn: z.boolean().default(false),
+        referralCode: z.string().optional(),
+        type: z.enum(["b2c", "b2b"]).default("b2c"),
+        source: z.string().default("direct"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const [existing] = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.email, input.email));
+      if (existing) {
+        throw new Error("This email is already on the waitlist.");
+      }
+
+      const newReferralCode = `BRAS${nanoid(6).toUpperCase()}`;
+
+      let referrerEntry: { customerId: string; entryId: string; raffleEntriesTotal: number | null } | undefined;
+      if (input.referralCode) {
+        const [ref] = await db
+          .select()
+          .from(waitlistEntries)
+          .where(eq(waitlistEntries.referralCode, input.referralCode))
+          .limit(1);
+        if (ref) referrerEntry = { customerId: ref.customerId, entryId: ref.entryId, raffleEntriesTotal: ref.raffleEntriesTotal };
+      }
+
+      const fullName = [input.firstName, input.lastName].filter(Boolean).join(" ");
+
+      const [newCustomer] = await db
+        .insert(customers)
+        .values({
+          firstName: input.firstName,
+          lastName: input.lastName ?? null,
+          email: input.email,
+          phone: input.phone ?? null,
+          zipCode: input.zipCode ?? null,
+          householdSize: input.householdSize ? parseInt(input.householdSize, 10) : null,
+          birthday: input.birthday ?? null,
+          address: input.address ?? null,
+          smsOptIn: input.smsOptIn,
+          emailOptIn: true,
+        })
+        .returning();
+
+      const [newEntry] = await db
+        .insert(waitlistEntries)
+        .values({
+          customerId: newCustomer!.customerId,
+          type: input.type,
+          raffleEntriesTotal: ENTRIES.SIGNUP,
+          surveyCompleted: false,
+          referralCode: newReferralCode,
+          referredByCustomerId: referrerEntry?.customerId ?? null,
+          source: input.referralCode ? "referral" : input.source,
+          name: fullName,
+          email: input.email,
+          phone: input.phone ?? null,
+          birthday: input.birthday ?? null,
+          address: input.address ?? null,
+        })
+        .returning();
+
+      await db.insert(eventsLog).values({
+        customerId: newCustomer!.customerId,
+        eventName: "signup",
+        metadata: { source: input.source, referralCode: input.referralCode ?? null },
+      });
+
+      if (referrerEntry) {
+        const newTotal = (referrerEntry.raffleEntriesTotal ?? 1) + ENTRIES.REFERRAL;
+
+        const [refCountRow] = await db
+          .select({ referralCount: count() })
+          .from(referrals)
+          .where(eq(referrals.referrerCustomerId, referrerEntry.customerId));
+        const totalReferrals = Number(refCountRow?.referralCount ?? 0) + 1;
+
+        let milestoneBonus = 0;
+        let milestoneEvent: string | null = null;
+
+        const checkMilestone = async (
+          milestone: number,
+          bonus: number,
+          eventName: string
+        ) => {
+          if (totalReferrals !== milestone) return;
+          const [existing] = await db
+            .select()
+            .from(eventsLog)
+            .where(
+              and(
+                eq(eventsLog.customerId, referrerEntry!.customerId),
+                eq(eventsLog.eventName, eventName)
+              )
+            )
+            .limit(1);
+          if (!existing) {
+            milestoneBonus = bonus;
+            milestoneEvent = eventName;
+          }
+        };
+        await checkMilestone(5, ENTRIES.MILESTONE_5, "milestone_5");
+        await checkMilestone(10, ENTRIES.MILESTONE_10, "milestone_10");
+        await checkMilestone(25, ENTRIES.MILESTONE_25, "milestone_25");
+
+        const finalTotal = newTotal + milestoneBonus;
+
+        await db
+          .update(waitlistEntries)
+          .set({ raffleEntriesTotal: finalTotal })
+          .where(eq(waitlistEntries.entryId, referrerEntry.entryId));
+
+        await db.insert(referrals).values({
+          referrerCustomerId: referrerEntry.customerId,
+          referredCustomerId: newCustomer!.customerId,
+          entriesAwarded: ENTRIES.REFERRAL + milestoneBonus,
+        });
+
+        await db.insert(eventsLog).values({
+          customerId: referrerEntry.customerId,
+          eventName: "referral",
+          metadata: { referredEmail: input.email, entriesAwarded: ENTRIES.REFERRAL },
+        });
+
+        if (milestoneEvent) {
+          await db.insert(eventsLog).values({
+            customerId: referrerEntry.customerId,
+            eventName: milestoneEvent,
+            metadata: { bonusEntries: milestoneBonus, totalReferrals },
+          });
+        }
+      }
+
+      await Promise.allSettled([
+        input.phone && input.smsOptIn
+          ? sendWaitlistConfirmationSMS(input.phone, input.firstName, newReferralCode)
+          : Promise.resolve(),
+        sendWaitlistConfirmationEmail(
+          input.email,
+          input.firstName,
+          newReferralCode,
+          ENTRIES.SIGNUP
+        ),
+      ]);
+
+      return {
+        customerId: newCustomer!.customerId,
+        referralCode: newReferralCode,
+        entries: ENTRIES.SIGNUP,
+        firstName: input.firstName,
+        email: input.email,
+        phone: input.phone ?? null,
+      };
+    }),
+
+  submitSurvey: publicProcedure
+    .input(
+      z.object({
+        customerId: z.string().uuid(),
+        answers: z.record(z.string(), z.any()),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const [entry] = await db
+        .select()
+        .from(waitlistEntries)
+        .where(eq(waitlistEntries.customerId, input.customerId))
+        .limit(1);
+      if (!entry) throw new Error("Waitlist entry not found.");
+      if (entry.surveyCompleted) return { entries: entry.raffleEntriesTotal ?? 1 };
+
+      const newTotal = (entry.raffleEntriesTotal ?? 1) + ENTRIES.SURVEY;
+
+      await db
+        .update(waitlistEntries)
+        .set({
+          surveyCompleted: true,
+          surveyAnswers: input.answers as Record<string, unknown>,
+          raffleEntriesTotal: newTotal,
+        })
+        .where(eq(waitlistEntries.customerId, input.customerId));
+
+      await db.insert(surveyResponses).values({
+        customerId: input.customerId,
+        answers: input.answers as Record<string, unknown>,
+      });
+
+      await db.insert(eventsLog).values({
+        customerId: input.customerId,
+        eventName: "survey_complete",
+        metadata: { answers: input.answers },
+      });
+
+      const [customer] = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.customerId, input.customerId))
+        .limit(1);
+      if (customer) {
+        await Promise.allSettled([
+          sendSurveyCompletionEmail(
+            customer.email,
+            customer.firstName,
+            entry.referralCode,
+            newTotal
+          ),
+        ]);
+      }
+
+      return { entries: newTotal };
+    }),
+
+  export: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input }) => {
+      try {
+        const [entry] = await db
+          .select()
+          .from(waitlistEntries)
+          .where(eq(waitlistEntries.email, input.email))
+          .orderBy(desc(waitlistEntries.createdAt))
+          .limit(1);
+        return entry ?? null;
+      } catch (err) {
+        console.error("[waitlist.export] DB query failed:", err);
+        return null;
+      }
+    }),
+
+  unsubscribe: publicProcedure
+    .input(z.object({ email: z.string().email().trim().toLowerCase() }))
+    .mutation(async ({ input }) => {
+      const [c] = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.email, input.email))
+        .limit(1);
+      if (!c) return { removed: false };
+      const id = c.customerId;
+      await db.delete(referrals).where(eq(referrals.referrerCustomerId, id));
+      await db.delete(referrals).where(eq(referrals.referredCustomerId, id));
+      await db.delete(surveyResponses).where(eq(surveyResponses.customerId, id));
+      await db.delete(eventsLog).where(eq(eventsLog.customerId, id));
+      await db.delete(waitlistEntries).where(eq(waitlistEntries.customerId, id));
+      await db.delete(customers).where(eq(customers.customerId, id));
+      return { removed: true };
+    }),
+
+  getReferralStatus: publicProcedure
+    .input(z.object({ referralCode: z.string() }))
+    .query(async ({ input }) => {
+      const [entry] = await db
+        .select()
+        .from(waitlistEntries)
+        .where(eq(waitlistEntries.referralCode, input.referralCode))
+        .limit(1);
+      if (!entry) return null;
+      return {
+        referralCode: entry.referralCode,
+        raffleEntriesTotal: entry.raffleEntriesTotal,
+        surveyCompleted: entry.surveyCompleted,
+      };
+    }),
+
+  leaderboard: publicProcedure.query(async () => {
+    const top = await db
+      .select({
+        name: waitlistEntries.name,
+        entries: waitlistEntries.raffleEntriesTotal,
+        code: waitlistEntries.referralCode,
+      })
+      .from(waitlistEntries)
+      .orderBy(desc(waitlistEntries.raffleEntriesTotal))
+      .limit(10);
+
+    return top.map((row, i) => {
+      const parts = (row.name ?? "").split(" ");
+      const displayName = parts[0]
+        ? parts[0] + " " + (parts[1]?.[0] ?? "") + "."
+        : "Anonymous";
+      return {
+        rank: i + 1,
+        name: displayName,
+        entries: row.entries ?? 1,
+        code: row.code,
+      };
+    });
+  }),
+
+  adminStats: adminProcedure.query(async () => {
+    const [totalSignups] = await db.select({ count: count() }).from(waitlistEntries);
+    const [surveysCompleted] = await db
+      .select({ count: count() })
+      .from(waitlistEntries)
+      .where(eq(waitlistEntries.surveyCompleted, true));
+    const [totalReferralsRow] = await db.select({ count: count() }).from(referrals);
+    const [totalEntriesRow] = await db.select({
+      total: sql<number>`coalesce(sum(${waitlistEntries.raffleEntriesTotal}), 0)::int`,
+    }).from(waitlistEntries);
+    const [smsOptRow] = await db.select({ count: count() }).from(customers).where(eq(customers.smsOptIn, true));
+    const zipRows = await db.select({ zipCode: customers.zipCode }).from(customers).where(sql`${customers.zipCode} is not null and trim(${customers.zipCode}) != ''`);
+
+    const total = Number(totalSignups?.count ?? 0);
+    const surveys = Number(surveysCompleted?.count ?? 0);
+    const totalReferralsCount = Number(totalReferralsRow?.count ?? 0);
+    const totalEntries = Number(totalEntriesRow?.total ?? 0);
+    const smsOptIns = Number(smsOptRow?.count ?? 0);
+    const distinctZips = new Set(zipRows.map((r) => (r.zipCode ?? "").replace(/\s/g, ""))).size;
+
+    return {
+      totalSignups: total,
+      surveyCompletionRate: total > 0 ? Math.round((surveys / total) * 100) : 0,
+      totalReferrals: totalReferralsCount,
+      totalEntries,
+      viralCoefficient:
+        total > 0 ? parseFloat((totalReferralsCount / total).toFixed(2)) : 0,
+      smsOptIns,
+      distinctZips,
+    };
+  }),
+
+  adminSignupsByDay: adminProcedure
+    .input(z.object({ days: z.number().min(0).default(0) }).optional())
+    .query(async ({ input }) => {
+      const days = input?.days ?? 0;
+      const cutoff = days > 0 ? new Date() : null;
+      if (cutoff) cutoff.setDate(cutoff.getDate() - days);
+
+      const base = db
+        .select({
+          date: sql<string>`date_trunc('day', ${waitlistEntries.createdAt})::date::text`,
+          count: count(),
+        })
+        .from(waitlistEntries);
+      const withWhere = cutoff
+        ? base.where(sql`${waitlistEntries.createdAt} >= ${cutoff}`)
+        : base;
+      const rows = await withWhere
+        .groupBy(sql`date_trunc('day', ${waitlistEntries.createdAt})`)
+        .orderBy(sql`date_trunc('day', ${waitlistEntries.createdAt})`);
+      return rows;
+    }),
+
+  adminSourceBreakdown: adminProcedure.query(async () => {
+    const rows = await db
+      .select({
+        source: waitlistEntries.source,
+        count: count(),
+      })
+      .from(waitlistEntries)
+      .groupBy(waitlistEntries.source)
+      .orderBy(desc(count()));
+    return rows;
+  }),
+
+  adminSignups: adminProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        limit: z.number().default(50),
+        offset: z.number().default(0),
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(50),
+        typeFilter: z.enum(["all", "b2c", "b2b"]).default("all"),
+        surveyFilter: z.enum(["all", "completed", "pending"]).default("all"),
+      })
+    )
+    .query(async ({ input }) => {
+      const s = input.search?.trim();
+      const typeCond =
+        input.typeFilter === "all"
+          ? undefined
+          : eq(waitlistEntries.type, input.typeFilter);
+      const surveyCond =
+        input.surveyFilter === "all"
+          ? undefined
+          : input.surveyFilter === "completed"
+            ? eq(waitlistEntries.surveyCompleted, true)
+            : eq(waitlistEntries.surveyCompleted, false);
+      const searchCond = s
+        ? or(
+            like(waitlistEntries.name, `%${s}%`),
+            like(waitlistEntries.email, `%${s}%`)
+          )
+        : undefined;
+      const whereClause = [searchCond, typeCond, surveyCond].filter(Boolean);
+      const whereAll =
+        whereClause.length > 0 ? and(...whereClause) : undefined;
+
+      const base = db
+        .select()
+        .from(waitlistEntries)
+        .orderBy(desc(waitlistEntries.createdAt));
+      const allRows = whereAll ? await base.where(whereAll) : await base;
+      const total = allRows.length;
+      const start = (input.page - 1) * input.pageSize;
+      const items = allRows.slice(start, start + input.pageSize);
+      return { items, total };
+    }),
+
+  adminGetById: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const [entry] = await db
+        .select()
+        .from(waitlistEntries)
+        .where(eq(waitlistEntries.entryId, input.id))
+        .limit(1);
+      if (!entry) throw new Error("Not found");
+      return entry;
+    }),
+
+  adminClearAll: adminProcedure.mutation(async () => {
+    await db.delete(referrals);
+    await db.delete(surveyResponses);
+    await db.delete(eventsLog);
+    await db.delete(waitlistEntries);
+    await db.delete(customers);
+    return { success: true };
+  }),
+
+  adminDrawWinner: adminProcedure.mutation(async () => {
+    const entries = await db.select().from(waitlistEntries);
+    if (entries.length === 0) throw new Error("No entries to draw from.");
+
+    const pool: typeof entries = [];
+    for (const entry of entries) {
+      const n = entry.raffleEntriesTotal ?? 1;
+      for (let i = 0; i < n; i++) pool.push(entry);
+    }
+    const winner = pool[Math.floor(Math.random() * pool.length)]!;
+
+    await db.insert(eventsLog).values({
+      customerId: winner.customerId,
+      eventName: "raffle_draw",
+      metadata: {
+        drawnAt: new Date().toISOString(),
+        pool: pool.length,
+        winnerName: winner.name ?? null,
+        winnerEmail: winner.email ?? null,
+        entriesAtDraw: winner.raffleEntriesTotal ?? 1,
+      },
+    });
+
+    return {
+      name: winner.name,
+      email: winner.email,
+      entries: winner.raffleEntriesTotal,
+      code: winner.referralCode,
+    };
+  }),
+
   adminList: adminProcedure.query(async () => {
     return db
       .select()
@@ -19,285 +498,10 @@ export const waitlistRouter = router({
   adminDelete: adminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input }) => {
-      await db.delete(waitlistEntries).where(eq(waitlistEntries.id, input.id));
+      await db
+        .delete(waitlistEntries)
+        .where(eq(waitlistEntries.entryId, input.id));
       return { success: true };
-    }),
-
-  unsubscribe: publicProcedure
-    .input(z.object({ email: z.string().email().trim().toLowerCase() }))
-    .mutation(async ({ input }) => {
-      const [existing] = await db
-        .select()
-        .from(waitlistEntries)
-        .where(eq(waitlistEntries.email, input.email));
-      if (existing) {
-        await db.delete(waitlistEntries).where(eq(waitlistEntries.email, input.email));
-      }
-      return { success: true, removed: !!existing };
-    }),
-
-  adminClearAll: adminProcedure.mutation(async () => {
-    await db.delete(eventsLog).where(eq(eventsLog.eventName, "raffle_draw"));
-    await db.delete(waitlistEntries);
-    return { success: true };
-  }),
-
-  adminGetById: adminProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
-      const [signup] = await db
-        .select()
-        .from(waitlistEntries)
-        .where(eq(waitlistEntries.id, input.id));
-
-      if (!signup) throw new TRPCError({ code: "NOT_FOUND" });
-
-      return {
-        ...signup,
-        surveyAnswers: signup.surveyAnswers
-          ? (JSON.parse(signup.surveyAnswers) as Record<string, string>)
-          : null,
-      };
-    }),
-
-  export: publicProcedure
-    .input(
-      z.object({
-        name: z.string().min(1, "Name is required").transform((s) => s.trim()),
-        email: z.string().min(1, "Email is required").email("Enter a valid email").transform((s) => s.trim().toLowerCase()),
-        phone: z.union([z.string(), z.undefined()]).transform((s) => (s?.trim() || "—")),
-        birthday: z.union([z.string(), z.undefined()]).transform((s) => (s?.trim() || "—")),
-        address: z.union([z.string(), z.undefined()]).transform((s) => (s?.trim() || "—")),
-        type: z.enum(["residential", "business"]),
-        surveyAnswers: z.union([z.string(), z.undefined()]).optional().transform((s) => (s?.trim() || undefined)),
-        source: z.string().optional(),
-      })
-    )
-    .mutation(async ({ input }) => {
-      try {
-        const [existing] = await db
-          .select()
-          .from(waitlistEntries)
-          .where(eq(waitlistEntries.email, input.email));
-
-        if (existing) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Already on the waitlist",
-          });
-        }
-
-        const referralCode = `BRAS${nanoid(6).toUpperCase()}`;
-        const payload = {
-          name: input.name,
-          email: input.email,
-          phone: input.phone ?? "—",
-          birthday: input.birthday ?? "—",
-          address: input.address ?? "—",
-          type: input.type,
-          surveyAnswers: input.surveyAnswers ?? null,
-          raffleEntriesTotal: 1,
-          source: input.source ?? "direct",
-        };
-
-        await db.insert(waitlistEntries).values(payload);
-
-        const firstName = payload.name.split(" ")[0] ?? payload.name;
-        await Promise.allSettled([
-          sendWaitlistConfirmationSMS(
-            payload.phone,
-            firstName,
-            referralCode
-          ),
-          sendWaitlistConfirmationEmail(
-            payload.email,
-            firstName,
-            referralCode,
-            1
-          ),
-        ]);
-
-        const raffleDisplay = Math.floor(Math.random() * 9000) + 1000;
-        return { success: true, raffleNumber: raffleDisplay };
-      } catch (err) {
-        if (err instanceof TRPCError) throw err;
-        console.error("[waitlist.export]", err);
-        const msg =
-          err instanceof Error ? err.message : "Something went wrong. Please try again.";
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: msg });
-      }
-    }),
-
-  adminStats: adminProcedure.query(async () => {
-    const all = await db.select().from(waitlistEntries);
-    const totalSignups = all.length;
-    const surveyCompleted = all.filter((e) => e.surveyAnswers != null && e.surveyAnswers.trim() !== "").length;
-    const surveyCompletionRate = totalSignups > 0 ? ((surveyCompleted / totalSignups) * 100).toFixed(1) : "0";
-    const totalEntries = all.reduce((sum, e) => sum + (e.raffleEntriesTotal ?? 1), 0);
-    return {
-      totalSignups,
-      surveyCompleted,
-      surveyCompletionRate,
-      totalReferrals: 0,
-      totalEntries,
-      usersWithReferrals: 0,
-      smsOptIns: 0,
-      emailOptIns: totalSignups,
-      distinctZips: new Set(all.map((e) => (e.address || "").match(/\b\d{5}(-\d{4})?\b/)?.[0]).filter(Boolean)).size,
-    };
-  }),
-
-  adminSignupsByDay: adminProcedure
-    .input(z.object({ days: z.number().min(0).default(7) }))
-    .query(async ({ input }) => {
-      const cutoff = new Date();
-      if (input.days > 0) cutoff.setDate(cutoff.getDate() - input.days);
-      const q = db
-        .select({
-          date: sql<string>`to_char(${waitlistEntries.createdAt}, 'YYYY-MM-DD')`,
-          count: sql<number>`count(*)::int`,
-        })
-        .from(waitlistEntries)
-        .groupBy(sql`date(${waitlistEntries.createdAt})`)
-        .orderBy(sql`date(${waitlistEntries.createdAt})`);
-      const rows = input.days > 0 ? await q.where(gte(waitlistEntries.createdAt, cutoff)) : await q;
-      return rows;
-    }),
-
-  adminSourceBreakdown: adminProcedure.query(async () => {
-    const rows = await db
-      .select({
-        source: waitlistEntries.source,
-        count: sql<number>`count(*)::int`,
-      })
-      .from(waitlistEntries)
-      .groupBy(waitlistEntries.source)
-      .orderBy(desc(sql`count(*)`));
-    return rows.map((r) => ({ source: r.source ?? "direct", count: r.count }));
-  }),
-
-  adminSurveyInsights: adminProcedure.query(async () => {
-    const rows = await db
-      .select({ surveyAnswers: waitlistEntries.surveyAnswers })
-      .from(waitlistEntries)
-      .where(sql`${waitlistEntries.surveyAnswers} is not null and trim(${waitlistEntries.surveyAnswers}) != ''`);
-    return rows.map((r) => ({
-      answers: r.surveyAnswers ? (JSON.parse(r.surveyAnswers) as Record<string, unknown>) : {},
-    }));
-  }),
-
-  adminSignups: adminProcedure
-    .input(
-      z.object({
-        page: z.number().min(1).default(1),
-        pageSize: z.number().min(1).max(100).default(50),
-        search: z.string().optional(),
-        typeFilter: z.enum(["all", "residential", "business"]).default("all"),
-        surveyFilter: z.enum(["all", "completed", "pending"]).default("all"),
-      })
-    )
-    .query(async ({ input }) => {
-      let q = db.select().from(waitlistEntries).orderBy(desc(waitlistEntries.createdAt));
-      const all = await q;
-      let filtered = all;
-      if (input.search?.trim()) {
-        const s = input.search.trim().toLowerCase();
-        filtered = filtered.filter(
-          (e) =>
-            (e.name ?? "").toLowerCase().includes(s) ||
-            (e.email ?? "").toLowerCase().includes(s)
-        );
-      }
-      if (input.typeFilter !== "all") filtered = filtered.filter((e) => e.type === input.typeFilter);
-      if (input.surveyFilter === "completed") filtered = filtered.filter((e) => e.surveyAnswers != null && String(e.surveyAnswers).trim() !== "");
-      if (input.surveyFilter === "pending") filtered = filtered.filter((e) => !e.surveyAnswers || String(e.surveyAnswers).trim() === "");
-      const total = filtered.length;
-      const start = (input.page - 1) * input.pageSize;
-      const page = filtered.slice(start, start + input.pageSize);
-      return {
-        items: page.map((e) => ({
-          customerId: e.id,
-          firstName: e.name?.split(" ")[0] ?? e.name,
-          name: e.name,
-          email: e.email,
-          phone: e.phone,
-          type: e.type,
-          raffleEntriesTotal: e.raffleEntriesTotal ?? 1,
-          surveyCompleted: !!(e.surveyAnswers != null && String(e.surveyAnswers).trim() !== ""),
-          source: e.source ?? "direct",
-          createdAt: e.createdAt,
-        })),
-        total,
-      };
-    }),
-
-  adminGeoData: adminProcedure.query(async () => {
-    const all = await db.select({ address: waitlistEntries.address }).from(waitlistEntries);
-    const zipCount = new Map<string, number>();
-    for (const row of all) {
-      const match = (row.address || "").match(/\b(\d{5})(-\d{4})?\b/);
-      const zip = match ? match[1] : "unknown";
-      zipCount.set(zip, (zipCount.get(zip) ?? 0) + 1);
-    }
-    const total = all.length;
-    return Array.from(zipCount.entries())
-      .map(([zip, count]) => ({ zip, count, pct: total > 0 ? ((count / total) * 100).toFixed(1) : "0" }))
-      .sort((a, b) => b.count - a.count);
-  }),
-
-  adminLeaderboard: adminProcedure.query(async () => {
-    const rows = await db
-      .select({
-        id: waitlistEntries.id,
-        name: waitlistEntries.name,
-        email: waitlistEntries.email,
-        raffleEntriesTotal: waitlistEntries.raffleEntriesTotal,
-      })
-      .from(waitlistEntries)
-      .orderBy(desc(waitlistEntries.raffleEntriesTotal))
-      .limit(20);
-    return rows.map((r) => ({
-      customerId: r.id,
-      firstName: r.name?.split(" ")[0] ?? r.name,
-      email: r.email,
-      raffleEntriesTotal: r.raffleEntriesTotal ?? 1,
-      referralCount: 0,
-    }));
-  }),
-
-  adminDrawWinner: adminProcedure
-    .input(z.object({ prizeTier: z.enum(["grand", "second", "third"]) }))
-    .mutation(async ({ input }) => {
-      const entries = await db.select().from(waitlistEntries);
-      const tickets: { id: string; name: string | null; email: string | null; raffleEntriesTotal: number }[] = [];
-      for (const e of entries) {
-        const n = e.raffleEntriesTotal ?? 1;
-        for (let i = 0; i < n; i++) {
-          tickets.push({
-            id: e.id,
-            name: e.name,
-            email: e.email,
-            raffleEntriesTotal: e.raffleEntriesTotal ?? 1,
-          });
-        }
-      }
-      if (tickets.length === 0) throw new TRPCError({ code: "BAD_REQUEST", message: "No raffle entries" });
-      const idx = Math.floor(Math.random() * tickets.length);
-      const winner = tickets[idx];
-      await db.insert(eventsLog).values({
-        eventName: "raffle_draw",
-        metadata: {
-          prizeTier: input.prizeTier,
-          winnerId: winner.id,
-          entriesAtDraw: winner.raffleEntriesTotal,
-        } as unknown as Record<string, unknown>,
-      });
-      return {
-        customerId: winner.id,
-        firstName: winner.name?.split(" ")[0] ?? winner.name ?? "—",
-        email: winner.email ?? "—",
-        raffleEntriesTotal: winner.raffleEntriesTotal,
-      };
     }),
 
   adminDrawLog: adminProcedure.query(async () => {
@@ -306,22 +510,13 @@ export const waitlistRouter = router({
       .from(eventsLog)
       .where(eq(eventsLog.eventName, "raffle_draw"))
       .orderBy(desc(eventsLog.createdAt));
-    const winnerIds = rows
-      .map((r) => (r.metadata as { winnerId?: string } | null)?.winnerId)
-      .filter((id): id is string => !!id);
-    const winners = winnerIds.length
-      ? await db.select({ id: waitlistEntries.id, name: waitlistEntries.name, email: waitlistEntries.email }).from(waitlistEntries).where(inArray(waitlistEntries.id, winnerIds))
-      : [];
-    const winnerMap = new Map(winners.map((w) => [w.id, w]));
     return rows.map((r) => {
-      const meta = (r.metadata as { prizeTier?: string; winnerId?: string; entriesAtDraw?: number } | null) ?? {};
-      const w = meta.winnerId ? winnerMap.get(meta.winnerId) : null;
+      const meta = (r.metadata as { drawnAt?: string; winnerName?: string; winnerEmail?: string; entriesAtDraw?: number }) ?? {};
       return {
         date: r.createdAt,
-        prizeTier: meta.prizeTier ?? "—",
-        winnerId: meta.winnerId ?? "—",
-        winnerName: w?.name ?? null,
-        winnerEmail: w?.email ?? null,
+        prizeTier: "—",
+        winnerName: meta.winnerName ?? null,
+        winnerEmail: meta.winnerEmail ?? null,
         entriesAtDraw: meta.entriesAtDraw ?? 0,
       };
     });

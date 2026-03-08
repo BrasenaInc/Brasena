@@ -131,27 +131,10 @@ export const siteSettings = pgTable("site_settings", {
   updatedBy: uuid("updated_by").references(() => users.id),
 });
 
-export const waitlistEntries = pgTable(
-  "waitlist_entries",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    name: text("name").notNull(),
-    email: text("email").notNull().unique(),
-    phone: text("phone").notNull(),
-    birthday: text("birthday").notNull(),
-    address: text("address").notNull(),
-    type: customerTypeEnum("type").notNull(),
-    surveyAnswers: text("survey_answers"),
-    raffleEntriesTotal: integer("raffle_entries_total").default(1).notNull(),
-    source: text("source"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (t) => [index("waitlist_email_idx").on(t.email)]
-);
-
-export const eventsLog = pgTable("events_log", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  eventName: text("event_name").notNull(),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export {
+  customers as waitlistCustomers,
+  waitlistEntries,
+  surveyResponses,
+  referrals,
+  eventsLog,
+} from "./schema/waitlist";

@@ -3,7 +3,9 @@ import { eq, desc } from "drizzle-orm";
 import { router, publicProcedure } from "../trpc";
 import { adminProcedure } from "../trpc";
 import { db } from "@/db";
-import { siteSettings, waitlistEntries } from "@/db/schema";
+import { siteSettings } from "@/db/schema";
+import { customers, waitlistEntries } from "@/db/schema/waitlist";
+import { nanoid } from "nanoid";
 
 export const settingsRouter = router({
   getSiteSettings: publicProcedure.query(async () => {
@@ -53,20 +55,37 @@ export const settingsRouter = router({
     .mutation(async ({ input }) => {
       const [existing] = await db
         .select()
-        .from(waitlistEntries)
-        .where(eq(waitlistEntries.email, input.email));
+        .from(customers)
+        .where(eq(customers.email, input.email));
 
       if (existing) {
         return { success: true, alreadyRegistered: true };
       }
 
+      const [c] = await db
+        .insert(customers)
+        .values({
+          firstName: input.name.split(" ")[0] ?? input.name,
+          lastName: input.name.split(" ").slice(1).join(" ") || null,
+          email: input.email,
+          phone: input.phone !== "—" ? input.phone : null,
+          address: input.address !== "—" ? input.address : null,
+          birthday: input.birthday !== "—" ? input.birthday : null,
+          emailOptIn: true,
+        })
+        .returning();
+
+      const referralCode = `BRAS${nanoid(6).toUpperCase()}`;
       await db.insert(waitlistEntries).values({
+        customerId: c!.customerId,
+        type: "b2c",
         name: input.name,
         email: input.email,
-        type: input.type,
-        phone: input.phone,
-        birthday: input.birthday,
-        address: input.address,
+        phone: input.phone !== "—" ? input.phone : null,
+        birthday: input.birthday !== "—" ? input.birthday : null,
+        address: input.address !== "—" ? input.address : null,
+        referralCode,
+        source: "direct",
       });
       return { success: true, alreadyRegistered: false };
     }),
@@ -83,7 +102,7 @@ export const settingsRouter = router({
     .mutation(async ({ input }) => {
       await db
         .delete(waitlistEntries)
-        .where(eq(waitlistEntries.id, input.id));
+        .where(eq(waitlistEntries.entryId, input.id));
       return { success: true };
     }),
 });

@@ -57,10 +57,7 @@ async function invalidateWaitlist(utils: ReturnType<typeof trpc.useUtils>) {
     utils.waitlist.adminStats.invalidate(),
     utils.waitlist.adminSignupsByDay.invalidate(),
     utils.waitlist.adminSourceBreakdown.invalidate(),
-    utils.waitlist.adminSurveyInsights.invalidate(),
     utils.waitlist.adminSignups.invalidate(),
-    utils.waitlist.adminGeoData.invalidate(),
-    utils.waitlist.adminLeaderboard.invalidate(),
     utils.waitlist.adminDrawLog.invalidate(),
     utils.settings.getWaitlistEntries.invalidate(),
   ]);
@@ -75,7 +72,7 @@ export default function AdminWaitlistPage() {
   const [clearAllOpen, setClearAllOpen] = useState(false);
   const [daysFilter, setDaysFilter] = useState<7 | 30 | 0>(7);
   const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"all" | "residential" | "business">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "b2c" | "b2b">("all");
   const [surveyFilter, setSurveyFilter] = useState<"all" | "completed" | "pending">("all");
 
   const deleteOne = trpc.waitlist.adminDelete.useMutation({
@@ -94,11 +91,11 @@ export default function AdminWaitlistPage() {
   });
 
   const { data: stats } = trpc.waitlist.adminStats.useQuery();
-  const { data: signupsByDay = [] } = trpc.waitlist.adminSignupsByDay.useQuery({
-    days: daysFilter,
-  });
+  const { data: signupsByDay = [] } = trpc.waitlist.adminSignupsByDay.useQuery(
+    daysFilter > 0 ? { days: daysFilter } : {}
+  );
   const { data: sourceBreakdown = [] } = trpc.waitlist.adminSourceBreakdown.useQuery();
-  const { data: leaderboard = [] } = trpc.waitlist.adminLeaderboard.useQuery();
+  const { data: leaderboard = [] } = trpc.waitlist.leaderboard.useQuery();
   const { data: signupsData } = trpc.waitlist.adminSignups.useQuery({
     page: 1,
     pageSize: 500,
@@ -114,20 +111,20 @@ export default function AdminWaitlistPage() {
     { enabled: !!selectedId }
   );
 
-  const maxSource = Math.max(...sourceBreakdown.map((s) => s.count), 1);
+  const maxSource = Math.max(...sourceBreakdown.map((s) => Number(s.count)), 1);
   const totalSignups = stats?.totalSignups ?? 0;
-  const surveyCompleted = stats?.surveyCompleted ?? 0;
+  const surveyCompleted = Math.round(((stats?.surveyCompletionRate ?? 0) / 100) * totalSignups);
   const totalEntries = stats?.totalEntries ?? 0;
   const goalPct = Math.min(100, Math.round((totalSignups / 100) * 100));
   const typeData = [
-    { name: "B2C", value: allForExport.filter((s) => s.type === "residential").length },
-    { name: "B2B", value: allForExport.filter((s) => s.type === "business").length },
+    { name: "B2C", value: allForExport.filter((s) => s.type === "b2c").length },
+    { name: "B2B", value: allForExport.filter((s) => s.type === "b2b").length },
   ].filter((d) => d.value > 0);
   if (typeData.length === 0) typeData.push({ name: "B2C", value: 0 });
 
   const funnelSignups = totalSignups;
   const funnelSurvey = surveyCompleted;
-  const funnelReferred = stats?.usersWithReferrals ?? 0;
+  const funnelReferred = stats?.totalReferrals ?? 0;
   const pctSurvey = funnelSignups ? (funnelSurvey / funnelSignups) * 100 : 0;
   const pctReferred = funnelSignups ? (funnelReferred / funnelSignups) * 100 : 0;
 
@@ -162,11 +159,11 @@ export default function AdminWaitlistPage() {
         escapeCsv(s.phone ?? ""),
         escapeCsv(s.birthday ?? ""),
         escapeCsv(s.address ?? ""),
-        `"${s.type}"`,
+        `"${s.type ?? "b2c"}"`,
         String(s.raffleEntriesTotal ?? 1),
-        escapeCsv((s as { source?: string }).source ?? "direct"),
-        s.surveyAnswers ? "Yes" : "No",
-        `"${new Date(s.createdAt).toLocaleDateString()}"`,
+        escapeCsv(s.source ?? "direct"),
+        s.surveyCompleted ? "Yes" : "No",
+        s.createdAt ? `"${new Date(s.createdAt).toLocaleDateString()}"` : '""',
       ].join(",")
     );
     const csv = [header, ...rows].join("\n");
@@ -391,10 +388,10 @@ export default function AdminWaitlistPage() {
               <div className="rounded-xl border border-black/7 bg-white p-5">
                 <h2 className="mb-4 font-serif text-base font-semibold text-[#192019]">Leaderboard & Goal</h2>
                 <ul className="mb-4 space-y-1.5">
-                  {leaderboard.slice(0, 5).map((e, i) => (
-                    <li key={e.customerId} className="flex items-center justify-between text-xs">
-                      <span className="text-[#555]">{i + 1}. {e.firstName}.</span>
-                      <span className="font-semibold text-[#6B8F71]">{e.raffleEntriesTotal} entries</span>
+                  {leaderboard.slice(0, 5).map((e) => (
+                    <li key={e.code} className="flex items-center justify-between text-xs">
+                      <span className="text-[#555]">{e.rank}. {e.name}</span>
+                      <span className="font-semibold text-[#6B8F71]">{e.entries} entries</span>
                     </li>
                   ))}
                 </ul>
@@ -424,7 +421,7 @@ export default function AdminWaitlistPage() {
                 className="w-64 rounded-lg border border-black/10 bg-white px-4 py-2 text-sm text-[#192019] outline-none placeholder:text-[#888] focus:border-[#6B8F71]/50"
               />
               <div className="flex gap-1">
-                {(["all", "residential", "business"] as const).map((t) => (
+                {(["all", "b2c", "b2b"] as const).map((t) => (
                   <button
                     key={t}
                     type="button"
@@ -433,7 +430,7 @@ export default function AdminWaitlistPage() {
                       typeFilter === t ? "bg-[#192019] text-white" : "bg-black/5 text-[#555] hover:bg-black/10"
                     }`}
                   >
-                    {t === "all" ? "All" : t === "residential" ? "B2C" : "B2B"}
+                    {t === "all" ? "All" : t.toUpperCase()}
                   </button>
                 ))}
               </div>
@@ -467,7 +464,7 @@ export default function AdminWaitlistPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(!signupsData?.items.length) ? (
+                  {(!signupsData?.items?.length) ? (
                     <tr>
                       <td colSpan={8} className="py-20 text-center text-[#888]">
                         No signups yet
@@ -476,9 +473,9 @@ export default function AdminWaitlistPage() {
                   ) : (
                     signupsData.items.map((s) => (
                       <tr
-                        key={s.customerId}
+                        key={s.entryId}
                         className="cursor-pointer border-b border-black/5 transition-colors hover:bg-black/5 last:border-b-0"
-                        onClick={() => setSelectedId(s.customerId)}
+                        onClick={() => setSelectedId(s.entryId)}
                       >
                         <td className="px-4 py-3">
                           <div>
@@ -487,7 +484,7 @@ export default function AdminWaitlistPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          {s.type === "residential" ? (
+                          {s.type === "b2c" ? (
                             <span className="rounded bg-[#6B8F71]/15 px-2 py-0.5 text-xs font-semibold text-[#6B8F71]">B2C</span>
                           ) : (
                             <span className="rounded bg-blue-500/15 px-2 py-0.5 text-xs font-semibold text-blue-600">B2B</span>
@@ -495,7 +492,7 @@ export default function AdminWaitlistPage() {
                         </td>
                         <td className="px-4 py-3 text-[#555]">{s.phone ?? "—"}</td>
                         <td className="px-4 py-3 text-xs text-[#555]">
-                          {new Date(s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {s.createdAt ? new Date(s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
                         </td>
                         <td className="px-4 py-3">
                           <span className="flex items-center gap-1 text-xs font-semibold text-[#6B8F71]">
@@ -505,7 +502,7 @@ export default function AdminWaitlistPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span className="rounded bg-black/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#888]">
-                            {(s as { source?: string }).source ?? "Direct"}
+                            {s.source ?? "Direct"}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -520,16 +517,16 @@ export default function AdminWaitlistPage() {
                             <button
                               type="button"
                               className="text-xs font-medium text-[#6B8F71] hover:underline"
-                              onClick={() => setSelectedId(s.customerId)}
+                              onClick={() => setSelectedId(s.entryId)}
                             >
                               View
                             </button>
-                            <AlertDialog open={removeId === s.customerId} onOpenChange={(open) => !open && setRemoveId(null)}>
+                            <AlertDialog open={removeId === s.entryId} onOpenChange={(open) => !open && setRemoveId(null)}>
                               <button
                                 type="button"
                                 className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                 aria-label="Remove from waitlist"
-                                onClick={() => setRemoveId(s.customerId)}
+                                onClick={() => setRemoveId(s.entryId)}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -544,7 +541,7 @@ export default function AdminWaitlistPage() {
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    onClick={() => deleteOne.mutate({ id: s.customerId })}
+                                    onClick={() => deleteOne.mutate({ id: s.entryId })}
                                     disabled={deleteOne.isPending}
                                   >
                                     {deleteOne.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Remove"}
@@ -591,13 +588,13 @@ export default function AdminWaitlistPage() {
                     {selectedUser.name ?? "—"}
                   </h2>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    {selectedUser.type === "residential" ? (
+                    {selectedUser.type === "b2c" ? (
                       <span className="rounded-md bg-[#6B8F71]/15 px-2 py-0.5 text-xs font-medium text-[#6B8F71]">B2C</span>
                     ) : (
                       <span className="rounded-md bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600">B2B</span>
                     )}
                     <span className="text-xs text-[#888]">
-                      Joined {new Date(selectedUser.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      Joined {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
                     </span>
                     {selectedUser.surveyAnswers ? (
                       <span className="rounded-md bg-[#6B8F71]/15 px-2 py-0.5 text-xs font-medium text-[#6B8F71]">Survey done</span>
@@ -631,7 +628,7 @@ export default function AdminWaitlistPage() {
             </div>
             <div className="border-t border-black/7 px-6 py-5">
               <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-[#888]">
-                Survey {selectedUser.surveyAnswers && <span className="ml-2 font-normal text-[#6B8F71]">· Completed</span>}
+                Survey {selectedUser.surveyAnswers ? <span className="ml-2 font-normal text-[#6B8F71]">· Completed</span> : null}
               </h3>
               {selectedUser.surveyAnswers && typeof selectedUser.surveyAnswers === "object" ? (
                 <dl className="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -648,13 +645,13 @@ export default function AdminWaitlistPage() {
             </div>
             <div className="flex justify-end gap-2 border-t border-black/7 px-6 py-4">
               <Button variant="outline" size="sm" className="border-black/10" onClick={() => setSelectedId(null)}>Close</Button>
-              <Button size="sm" className="bg-[#192019] text-white hover:bg-[#2a3a2a]" onClick={() => router.push(`/admin/orders?customer=${selectedUser.id}`)}>View Orders</Button>
-              <AlertDialog open={removeId === selectedUser.id} onOpenChange={(open) => !open && setRemoveId(null)}>
+              <Button size="sm" className="bg-[#192019] text-white hover:bg-[#2a3a2a]" onClick={() => router.push(`/admin/orders?customer=${selectedUser.customerId}`)}>View Orders</Button>
+              <AlertDialog open={removeId === selectedUser.entryId} onOpenChange={(open) => !open && setRemoveId(null)}>
                 <Button
                   variant="outline"
                   size="sm"
                   className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                  onClick={() => setRemoveId(selectedUser.id)}
+                  onClick={() => setRemoveId(selectedUser.entryId)}
                 >
                   Remove from waitlist
                 </Button>
@@ -669,7 +666,7 @@ export default function AdminWaitlistPage() {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={() => deleteOne.mutate({ id: selectedUser.id })}
+                      onClick={() => deleteOne.mutate({ id: selectedUser.entryId })}
                       disabled={deleteOne.isPending}
                     >
                       {deleteOne.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Remove"}

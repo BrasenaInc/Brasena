@@ -23,9 +23,9 @@ export function WaitlistForm({ theme, locale = "en" }: { theme: "dark" | "light"
   const isDark = theme === "dark";
   const t = waitlistCopy[locale];
 
-  const join = trpc.waitlist.export.useMutation({
+  const join = trpc.waitlist.signup.useMutation({
     onSuccess: () => setStep("success"),
-    onError: (err) => setError(err.message === "Already on the waitlist" ? t.errorAlready : err.message),
+    onError: (err) => setError(err.message === "This email is already on the waitlist." ? t.errorAlready : err.message),
   });
 
   const handleSelect = (type: "residential" | "business") => {
@@ -40,13 +40,14 @@ export function WaitlistForm({ theme, locale = "en" }: { theme: "dark" | "light"
     if (!name.trim()) return setError(t.errorName);
     if (!email.trim() || !email.includes("@")) return setError(t.errorEmail);
     if (!selectedType) return;
+    const nameParts = name.trim().split(/\s+/);
+    const firstName = nameParts[0] ?? name.trim();
+    const lastName = nameParts.slice(1).join(" ") || undefined;
     join.mutate({
-      name: name.trim(),
+      firstName,
+      lastName,
       email: email.trim().toLowerCase(),
-      phone: "—",
-      birthday: "—",
-      address: "—",
-      type: selectedType,
+      type: selectedType === "residential" ? "b2c" : "b2b",
     });
   };
 

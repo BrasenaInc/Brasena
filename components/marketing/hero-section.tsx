@@ -839,14 +839,25 @@ export function WaitlistCard({ locale, source }: { locale: Locale; source?: stri
   const [submitError, setSubmitError] = useState<string | null>(null);
   const cardT = heroCopy[locale].waitlistCard;
 
-  const submitWaitlist = trpc.waitlist.export.useMutation({
+  const skipSignupSuccessRef = useRef(false);
+
+  const signup = trpc.waitlist.signup.useMutation({
     onSuccess: (data) => {
-      setRaffleNumber(data.raffleNumber);
+      if (skipSignupSuccessRef.current) return;
+      setRaffleNumber(data.entries);
       setStep("success");
     },
     onError: (err) => {
-      setSubmitError(err.message === "Already on the waitlist" ? err.message : cardT.submitError);
+      setSubmitError(err.message === "This email is already on the waitlist." ? err.message : cardT.submitError);
     },
+  });
+
+  const submitSurvey = trpc.waitlist.submitSurvey.useMutation({
+    onSuccess: (data) => {
+      setRaffleNumber(data.entries);
+      setStep("success");
+    },
+    onError: () => setSubmitError(cardT.submitError),
   });
 
   const handleSurveySubmit = (
@@ -855,18 +866,37 @@ export function WaitlistCard({ locale, source }: { locale: Locale; source?: stri
     answers: Record<string, string>
   ) => {
     setSubmitError(null);
-    const surveyJson =
-      Object.keys(answers).length > 0 ? JSON.stringify(answers) : undefined;
-    submitWaitlist.mutate({
-      name: data.name.trim(),
+    const nameParts = data.name.trim().split(/\s+/);
+    const firstName = nameParts[0] ?? data.name.trim();
+    const lastName = nameParts.slice(1).join(" ") || undefined;
+    const type: "b2c" | "b2b" = stepType === "residential" ? "b2c" : "b2b";
+    const payload = {
+      firstName,
+      lastName,
       email: data.email.trim().toLowerCase(),
-      phone: data.phone.trim() || "—",
-      birthday: data.birthday.trim() || "—",
-      address: data.address.trim() || "—",
-      type: stepType as "residential" | "business",
-      ...(surveyJson ? { surveyAnswers: surveyJson } : {}),
-      ...(source ? { source } : {}),
-    });
+      phone: data.phone?.trim() || undefined,
+      birthday: data.birthday?.trim() || undefined,
+      address: data.address?.trim() || undefined,
+      type,
+      source: source ?? "direct",
+    };
+    if (Object.keys(answers).length > 0) {
+      skipSignupSuccessRef.current = true;
+      signup.mutate(payload, {
+        onSuccess: (res) => {
+          submitSurvey.mutate(
+            { customerId: res.customerId, answers },
+            {
+              onSuccess: () => { skipSignupSuccessRef.current = false; },
+              onError: () => { skipSignupSuccessRef.current = false; },
+            }
+          );
+        },
+        onError: () => setSubmitError(cardT.submitError),
+      });
+    } else {
+      signup.mutate(payload);
+    }
   };
 
   const titles: Record<string, string> = {
@@ -930,7 +960,7 @@ export function WaitlistCard({ locale, source }: { locale: Locale; source?: stri
           formData={formData}
           type={type}
           onSubmit={handleSurveySubmit}
-          isLoading={submitWaitlist.isPending}
+          isLoading={signup.isPending || submitSurvey.isPending}
         />
       )}
       {step === "success" && formData && (

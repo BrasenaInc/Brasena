@@ -52,10 +52,7 @@ export function SettingsPageContent({
       await utils.waitlist.adminStats.invalidate();
       await utils.waitlist.adminSignupsByDay.invalidate();
       await utils.waitlist.adminSourceBreakdown.invalidate();
-      await utils.waitlist.adminSurveyInsights.invalidate();
       await utils.waitlist.adminSignups.invalidate();
-      await utils.waitlist.adminGeoData.invalidate();
-      await utils.waitlist.adminLeaderboard.invalidate();
       await utils.waitlist.adminDrawLog.invalidate();
     },
   });
@@ -112,20 +109,20 @@ export function SettingsPageContent({
               <tbody>
                 {entries.map((entry) => (
                   <tr
-                    key={entry.id}
+                    key={entry.entryId}
                     className="border-b border-border bg-card last:border-b-0 hover:bg-accent"
                   >
-                    <td className="px-4 py-3">{entry.email}</td>
-                    <td className="px-4 py-3">{entry.name}</td>
-                    <td className="px-4 py-3 capitalize">{entry.type}</td>
+                    <td className="px-4 py-3">{entry.email ?? "—"}</td>
+                    <td className="px-4 py-3">{entry.name ?? "—"}</td>
+                    <td className="px-4 py-3 capitalize">{entry.type ?? "b2c"}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {formatDate(entry.createdAt)}
+                      {entry.createdAt ? formatDate(entry.createdAt) : "—"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <AlertDialog
-                        open={deleteId === entry.id}
+                        open={deleteId === entry.entryId}
                         onOpenChange={(open) =>
-                          setDeleteId(open ? entry.id : null)
+                          setDeleteId(open ? entry.entryId : null)
                         }
                       >
                         <AlertDialogTrigger asChild>
@@ -141,7 +138,7 @@ export function SettingsPageContent({
                           <AlertDialogHeader>
                             <AlertDialogTitle>Remove entry?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Remove {entry.email} from the waitlist? This
+                              Remove {entry.email ?? "this entry"} from the waitlist? This
                               cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
@@ -150,7 +147,7 @@ export function SettingsPageContent({
                             <AlertDialogAction
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               onClick={() =>
-                                deleteEntry.mutate({ id: entry.id })
+                                deleteEntry.mutate({ id: entry.entryId })
                               }
                               disabled={deleteEntry.isPending}
                             >

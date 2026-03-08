@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   TrendingUp,
   Star,
@@ -8,7 +8,6 @@ import {
   MapPin,
   Trophy,
 } from "lucide-react";
-import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,9 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type GrowthTab = "overview" | "survey" | "geo" | "raffle";
-
-const COLORS = ["#6B8F71", "#8aab8f", "#a8c4ab", "#c8d8ca", "#e8ede9"];
+type GrowthTab = "overview" | "raffle";
 
 export default function AdminGrowthPage() {
   const [activeTab, setActiveTab] = useState<GrowthTab>("overview");
@@ -28,16 +25,14 @@ export default function AdminGrowthPage() {
   const [drawing, setDrawing] = useState(false);
 
   const { data: stats } = trpc.waitlist.adminStats.useQuery();
-  const { data: surveyInsights = [] } = trpc.waitlist.adminSurveyInsights.useQuery();
-  const { data: geoData = [] } = trpc.waitlist.adminGeoData.useQuery();
-  const { data: leaderboard = [] } = trpc.waitlist.adminLeaderboard.useQuery();
+  const { data: leaderboard = [] } = trpc.waitlist.leaderboard.useQuery();
   const { data: drawLog = [] } = trpc.waitlist.adminDrawLog.useQuery();
   const drawWinner = trpc.waitlist.adminDrawWinner.useMutation({
     onSuccess: (data) => {
       setWinner({
-        firstName: data.firstName ?? "—",
+        firstName: (data.name ?? "—").split(" ")[0] ?? "—",
         email: data.email ?? "—",
-        raffleEntriesTotal: data.raffleEntriesTotal,
+        raffleEntriesTotal: data.entries ?? 0,
       });
       setDrawing(false);
     },
@@ -47,7 +42,7 @@ export default function AdminGrowthPage() {
   const totalSignups = stats?.totalSignups ?? 0;
   const totalReferrals = stats?.totalReferrals ?? 0;
   const totalEntries = stats?.totalEntries ?? 0;
-  const surveyRate = totalSignups ? ((stats?.surveyCompleted ?? 0) / totalSignups) * 100 : 0;
+  const surveyRate = stats?.surveyCompletionRate ?? 0;
   const distinctZips = stats?.distinctZips ?? 0;
   const viralCoeff = totalSignups ? totalReferrals / totalSignups : 0;
   const avgEntries = totalSignups ? totalEntries / totalSignups : 0;
@@ -59,21 +54,6 @@ export default function AdminGrowthPage() {
     { label: "5 Zip Codes", current: distinctZips, target: 5, unit: "" },
   ];
 
-  const surveyAgg = useMemo(() => {
-    const heard: Record<string, number> = {};
-    const budget: Record<string, number> = {};
-    const freq: Record<string, number> = {};
-    for (const { answers } of surveyInsights) {
-      const a = answers as Record<string, string>;
-      if (a.heard) heard[a.heard] = (heard[a.heard] ?? 0) + 1;
-      if (a.spend) budget[a.spend] = (budget[a.spend] ?? 0) + 1;
-      if (a.freq) freq[a.freq] = (freq[a.freq] ?? 0) + 1;
-    }
-    return { heard, budget, freq };
-  }, [surveyInsights]);
-
-  const maxHeard = Math.max(...Object.values(surveyAgg.heard), 1);
-  const budgetData = Object.entries(surveyAgg.budget).map(([name, value]) => ({ name, value }));
   const prizes = {
     grand: { label: "Grand Prize", value: "$500 Meat Bundle" },
     second: { label: "2nd Prize", value: "$250 Freezer Box" },
@@ -82,8 +62,6 @@ export default function AdminGrowthPage() {
 
   const tabs = [
     { id: "overview" as const, label: "Overview" },
-    { id: "survey" as const, label: "Survey Insights" },
-    { id: "geo" as const, label: "Geo & Sources" },
     { id: "raffle" as const, label: "Raffle Draw" },
   ];
 
@@ -134,97 +112,6 @@ export default function AdminGrowthPage() {
           </div>
         )}
 
-        {activeTab === "survey" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <div className="rounded-xl border border-border bg-card p-5">
-                <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Where They Heard About Us</h2>
-                <div className="space-y-3">
-                  {Object.entries(surveyAgg.heard)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 6)
-                    .map(([label, count]) => (
-                      <div key={label} className="flex items-center gap-3">
-                        <span className="w-[130px] shrink-0 truncate text-xs text-muted-foreground">{label || "Unknown"}</span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                          <div className="h-full rounded-full bg-primary" style={{ width: `${(count / maxHeard) * 100}%` }} />
-                        </div>
-                        <span className="w-6 text-right text-xs font-semibold text-muted-foreground">{count}</span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-              <div className="rounded-xl border border-border bg-card p-5">
-                <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Monthly Budget</h2>
-                {budgetData.length > 0 ? (
-                  <PieChart width={180} height={180}>
-                    <Pie data={budgetData} cx={90} cy={90} innerRadius={50} outerRadius={70} dataKey="value" strokeWidth={0}>
-                      {budgetData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No data yet</p>
-                )}
-              </div>
-              <div className="rounded-xl border border-border bg-card p-5">
-                <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Purchase Frequency</h2>
-                <div className="space-y-2">
-                  {Object.entries(surveyAgg.freq)
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([label, count]) => (
-                      <div key={label} className="flex items-center justify-between rounded-xl bg-muted px-4 py-3">
-                        <span className="text-[13px] text-muted-foreground">{label}</span>
-                        <span className="text-[15px] font-bold text-foreground">{count}</span>
-                      </div>
-                    ))}
-                  {Object.keys(surveyAgg.freq).length === 0 && <p className="text-sm text-muted-foreground">No data yet</p>}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "geo" && (
-          <div className="space-y-6">
-            <div className="rounded-xl border border-border bg-card p-5">
-              <h2 className="mb-4 font-serif text-base font-semibold text-foreground">Zip Code Breakdown</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
-                      <th className="pb-3 pr-4">Zip Code</th>
-                      <th className="pb-3 pr-4">Signups</th>
-                      <th className="pb-3">% of Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {geoData.map((z) => (
-                      <tr key={z.zip} className="border-b border-border/50">
-                        <td className="py-3 pr-4 font-medium text-foreground">{z.zip}</td>
-                        <td className="py-3 pr-4 text-muted-foreground">{z.count}</td>
-                        <td className="py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-[80px] overflow-hidden rounded-full bg-muted">
-                              <div className="h-full rounded-full bg-primary" style={{ width: `${z.pct}%` }} />
-                            </div>
-                            <span className="text-xs text-muted-foreground">{z.pct}%</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {geoData.length === 0 && (
-                      <tr>
-                        <td colSpan={3} className="py-8 text-center text-muted-foreground">No zip data yet</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
         {activeTab === "raffle" && (
           <div className="space-y-6">
             <div className="rounded-xl border border-border bg-card p-5">
@@ -235,33 +122,27 @@ export default function AdminGrowthPage() {
                     <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
                       <th className="pb-3 pr-4">Rank</th>
                       <th className="pb-3 pr-4">Name</th>
-                      <th className="pb-3 pr-4">Email</th>
-                      <th className="pb-3 pr-4">Entries</th>
-                      <th className="pb-3 pr-4">Referrals</th>
-                      <th className="pb-3">Survey</th>
+                      <th className="pb-3">Entries</th>
                     </tr>
                   </thead>
                   <tbody>
                     {leaderboard.slice(0, 10).map((e, i) => (
                       <tr
-                        key={e.customerId}
+                        key={e.code}
                         className={`border-b border-border/50 ${
                           i === 0 ? "bg-amber-500/10 dark:bg-amber-400/10 border-amber-500/20 dark:border-amber-400/20" :
                           i === 1 ? "bg-slate-400/10 dark:bg-slate-400/10" :
                           i === 2 ? "bg-amber-700/10 dark:bg-amber-600/10" : ""
                         }`}
                       >
-                        <td className="py-3 pr-4 font-serif font-bold text-foreground">{i + 1}</td>
-                        <td className="py-3 pr-4 text-foreground">{e.firstName}</td>
-                        <td className="py-3 pr-4 text-muted-foreground">{e.email}</td>
-                        <td className="py-3 pr-4 font-semibold text-primary">{e.raffleEntriesTotal}</td>
-                        <td className="py-3 pr-4 text-muted-foreground">{e.referralCount}</td>
-                        <td className="py-3 text-muted-foreground">—</td>
+                        <td className="py-3 pr-4 font-serif font-bold text-foreground">{e.rank}</td>
+                        <td className="py-3 pr-4 text-foreground">{e.name}</td>
+                        <td className="py-3 font-semibold text-primary">{e.entries}</td>
                       </tr>
                     ))}
                     {leaderboard.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-muted-foreground">No entries yet</td>
+                        <td colSpan={3} className="py-8 text-center text-muted-foreground">No entries yet</td>
                       </tr>
                     )}
                   </tbody>
@@ -291,7 +172,7 @@ export default function AdminGrowthPage() {
                 disabled={drawing}
                 onClick={() => {
                   setDrawing(true);
-                  drawWinner.mutate({ prizeTier });
+                  drawWinner.mutate();
                 }}
               >
                 {drawing ? "Drawing…" : "Draw Winner"}
@@ -312,9 +193,9 @@ export default function AdminGrowthPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {drawLog.map((row) => (
-                      <tr key={String(row.date)} className="border-b border-border/50">
-                        <td className="py-3 pr-4 text-muted-foreground">{new Date(row.date).toLocaleString()}</td>
+                    {drawLog.map((row, i) => (
+                      <tr key={String(row.date ?? "") + i} className="border-b border-border/50">
+                        <td className="py-3 pr-4 text-muted-foreground">{row.date ? new Date(row.date).toLocaleString() : "—"}</td>
                         <td className="py-3 pr-4 text-foreground">{row.prizeTier}</td>
                         <td className="py-3 pr-4 text-foreground">{row.winnerName ?? "—"}</td>
                         <td className="py-3 pr-4 text-muted-foreground">{row.winnerEmail ?? "—"}</td>
