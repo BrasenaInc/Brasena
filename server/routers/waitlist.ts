@@ -719,9 +719,20 @@ export const waitlistRouter = router({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input }) => {
       try {
-        await db
-          .delete(waitlistEntries)
-          .where(eq(waitlistEntries.entryId, input.id));
+        const [entry] = await db
+          .select({ customerId: waitlistEntries.customerId })
+          .from(waitlistEntries)
+          .where(eq(waitlistEntries.entryId, input.id))
+          .limit(1);
+        if (!entry) return { success: true };
+        const customerId = entry.customerId;
+
+        await db.delete(waitlistEntries).where(eq(waitlistEntries.entryId, input.id));
+        await db.delete(referrals).where(eq(referrals.referrerCustomerId, customerId));
+        await db.delete(referrals).where(eq(referrals.referredCustomerId, customerId));
+        await db.delete(surveyResponses).where(eq(surveyResponses.customerId, customerId));
+        await db.delete(eventsLog).where(eq(eventsLog.customerId, customerId));
+        await db.delete(customers).where(eq(customers.customerId, customerId));
         return { success: true };
       } catch (err) {
         console.error("[waitlist.adminDelete] table not ready:", err);
