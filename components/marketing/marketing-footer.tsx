@@ -24,6 +24,18 @@ export function MarketingFooter({
         <span className="text-xs text-white/20">{t.tagline}</span>
         <div className="flex gap-6">
           <Link
+            href="/privacy-policy"
+            className="text-xs uppercase tracking-wider text-white/25 transition-colors hover:text-white/50"
+          >
+            Privacy
+          </Link>
+          <Link
+            href="/terms"
+            className="text-xs uppercase tracking-wider text-white/25 transition-colors hover:text-white/50"
+          >
+            Terms
+          </Link>
+          <Link
             href="/auth/login"
             className="text-xs uppercase tracking-wider text-white/25 transition-colors hover:text-white/50"
           >
