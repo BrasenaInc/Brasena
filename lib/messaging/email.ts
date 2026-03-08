@@ -2,35 +2,40 @@ import React from "react";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
 import { WaitlistConfirmationEmail } from "./templates/waitlist-confirmation";
+import { SurveyCompletionEmail } from "./templates/survey-completion";
+import { ReferralNotificationEmail } from "./templates/referral-notification";
+import { MilestoneNotificationEmail } from "./templates/milestone-notification";
 
-/**
- * Sends a waitlist confirmation email via Resend.
- * Gated by NOTIFICATIONS_LIVE env flag.
- * Never throws — failures are logged only.
- */
+const BASE_URL =
+  process.env.NEXT_PUBLIC_BASE_URL ?? "https://brasenabx.com";
+const FROM_EMAIL =
+  process.env.RESEND_FROM_EMAIL ?? "waitlist@brasenabx.com";
+
+function getResend(): Resend | null {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) {
+    console.error("[Email] RESEND_API_KEY not set");
+    return null;
+  }
+  return new Resend(key);
+}
+
+function isLive(): boolean {
+  return process.env.NOTIFICATIONS_LIVE === "true";
+}
+
 export async function sendWaitlistConfirmationEmail(
   email: string,
   firstName: string,
   referralCode: string,
   entries: number = 1
 ): Promise<void> {
-  if (process.env.NOTIFICATIONS_LIVE !== "true") return;
-
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail =
-    process.env.RESEND_FROM_EMAIL ?? "waitlist@brasenabx.com";
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ?? "https://brasenabx.com";
-
-  if (!apiKey) {
-    console.error("[Email] RESEND_API_KEY not set");
-    return;
-  }
+  if (!isLive()) return;
+  const resend = getResend();
+  if (!resend) return;
 
   try {
-    const resend = new Resend(apiKey);
-    const referralLink = `${baseUrl}/waitlist?ref=${referralCode}`;
-
+    const referralLink = `${BASE_URL}/waitlist?ref=${referralCode}`;
     const html = await render(
       React.createElement(WaitlistConfirmationEmail, {
         firstName,
@@ -39,68 +44,124 @@ export async function sendWaitlistConfirmationEmail(
         entries,
       })
     );
-
     await resend.emails.send({
-      from: `Brasena <${fromEmail}>`,
+      from: `Brasena <${FROM_EMAIL}>`,
       to: email,
-      subject: `You're on the Brasena waitlist, ${firstName}`,
+      subject: "Brasena — You're on the waitlist",
       html,
     });
   } catch (err) {
-    console.error("[Email] Failed to send waitlist confirmation:", err);
+    console.error("[Email] waitlist confirmation failed:", err);
   }
 }
 
-/**
- * Sends a survey completion email with updated entry count.
- * Never throws — failures are logged only.
- */
 export async function sendSurveyCompletionEmail(
   email: string,
   firstName: string,
   referralCode: string,
-  totalEntries: number
+  totalEntries: number,
+  bonusEarned: number = 2
 ): Promise<void> {
-  if (process.env.NOTIFICATIONS_LIVE !== "true") return;
-
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail =
-    process.env.RESEND_FROM_EMAIL ?? "waitlist@brasenabx.com";
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ?? "https://brasenabx.com";
-
-  if (!apiKey) return;
+  if (!isLive()) return;
+  const resend = getResend();
+  if (!resend) return;
 
   try {
-    const resend = new Resend(apiKey);
-    const referralLink = `${baseUrl}/waitlist?ref=${referralCode}`;
-
+    const referralLink = `${BASE_URL}/waitlist?ref=${referralCode}`;
+    const html = await render(
+      React.createElement(SurveyCompletionEmail, {
+        firstName,
+        referralCode,
+        referralLink,
+        totalEntries,
+        bonusEarned,
+      })
+    );
     await resend.emails.send({
-      from: `Brasena <${fromEmail}>`,
+      from: `Brasena <${FROM_EMAIL}>`,
       to: email,
-      subject: `Survey done — you now have ${totalEntries} raffle entries`,
-      html: `
-        <div style="max-width:520px;margin:40px auto;font-family:Georgia,serif;color:#192019;">
-          <div style="background:#192019;padding:24px 36px;border-radius:12px 12px 0 0;">
-            <p style="margin:0;color:rgba(255,255,255,0.4);font-size:12px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;">BRASENA</p>
-          </div>
-          <div style="background:#fff;padding:32px 36px;border:1px solid rgba(0,0,0,0.07);border-top:none;">
-            <h2 style="margin:0 0 12px;font-size:24px;">Thanks for completing the survey, ${firstName}.</h2>
-            <p style="color:#555;line-height:1.7;margin:0 0 24px;">Your responses help us bring the right cuts and bundles to The Bronx. You've earned +2 entries for completing it.</p>
-            <div style="background:#F5F2EC;border-radius:10px;padding:18px 22px;margin-bottom:24px;">
-              <p style="margin:0 0 4px;font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#888;">YOUR TOTAL ENTRIES</p>
-              <p style="margin:0;font-size:36px;font-weight:700;color:#6B8F71;">${totalEntries}</p>
-            </div>
-            <p style="color:#555;font-size:14px;margin:0 0 16px;">Share your referral link to earn even more:</p>
-            <a href="${referralLink}" style="display:inline-block;background:#7a9e80;color:#fff;text-decoration:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:600;">${referralLink}</a>
-          </div>
-          <div style="background:#F9F7F3;border:1px solid rgba(0,0,0,0.07);border-top:none;padding:18px 36px;border-radius:0 0 12px 12px;">
-            <p style="margin:0;font-size:11px;color:#999;line-height:1.6;">The Bronx, NYC · Launching 2026 · © Brasena Inc.</p>
-          </div>
-        </div>
-      `,
+      subject: "Brasena — Survey complete, you've got bonus entries",
+      html,
     });
   } catch (err) {
-    console.error("[Email] Failed to send survey completion email:", err);
+    console.error("[Email] survey completion failed:", err);
+  }
+}
+
+export async function sendReferralNotificationEmail(
+  email: string,
+  firstName: string,
+  referredFirstName: string,
+  referralCode: string,
+  newEntries: number,
+  totalEntries: number,
+  referralCount: number
+): Promise<void> {
+  if (!isLive()) return;
+  const resend = getResend();
+  if (!resend) return;
+
+  try {
+    const referralLink = `${BASE_URL}/waitlist?ref=${referralCode}`;
+    const nextMilestone =
+      referralCount < 5 ? 5 : referralCount < 10 ? 10 : 25;
+    const milestoneBonus =
+      nextMilestone === 5 ? 10 : nextMilestone === 10 ? 25 : 75;
+
+    const html = await render(
+      React.createElement(ReferralNotificationEmail, {
+        firstName,
+        referredFirstName,
+        newEntries,
+        totalEntries,
+        referralCode,
+        referralLink,
+        referralCount,
+        nextMilestone,
+        milestoneBonus,
+      })
+    );
+    await resend.emails.send({
+      from: `Brasena <${FROM_EMAIL}>`,
+      to: email,
+      subject: "Brasena — Someone used your referral link",
+      html,
+    });
+  } catch (err) {
+    console.error("[Email] referral notification failed:", err);
+  }
+}
+
+export async function sendMilestoneNotificationEmail(
+  email: string,
+  firstName: string,
+  referralCode: string,
+  milestone: 5 | 10 | 25,
+  bonusEntries: number,
+  totalEntries: number
+): Promise<void> {
+  if (!isLive()) return;
+  const resend = getResend();
+  if (!resend) return;
+
+  try {
+    const referralLink = `${BASE_URL}/waitlist?ref=${referralCode}`;
+    const html = await render(
+      React.createElement(MilestoneNotificationEmail, {
+        firstName,
+        milestone,
+        bonusEntries,
+        totalEntries,
+        referralLink,
+      })
+    );
+    await resend.emails.send({
+      from: `Brasena <${FROM_EMAIL}>`,
+      to: email,
+      subject: "Brasena — You hit a referral milestone",
+      html,
+    });
+  } catch (err) {
+    console.error("[Email] milestone notification failed:", err);
   }
 }

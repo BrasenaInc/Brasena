@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this repository.
+Development conventions and reference for this repo.
 
 ## Project Overview
 
-A SaaS starter kit built with Next.js 15 (App Router), React 19, Supabase (auth + storage), Drizzle ORM, tRPC, and shadcn/ui.
+Next.js 15 (App Router), React 19, Supabase (auth + storage), Drizzle ORM, tRPC, shadcn/ui. See `PROJECT.md` for architecture and how pieces connect.
 
 ## Architecture
 
@@ -75,22 +75,21 @@ const isActive = data?.isActive ?? false;
 
 ## Key File Locations
 
-| Purpose                            | Path                               |
-| ---------------------------------- | ---------------------------------- |
-| tRPC todos router                  | `server/routers/todos.ts`          |
-| tRPC stripe router                 | `server/routers/stripe.ts`         |
-| tRPC root router                   | `server/routers/index.ts`          |
-| tRPC procedure builder             | `server/trpc.ts`                   |
-| tRPC context                       | `server/context.ts`                |
-| Server-side caller                 | `lib/trpc/server.ts`               |
-| Client provider + hooks            | `lib/trpc/client.tsx`              |
-| Query client factory               | `lib/trpc/query-client.ts`         |
-| tRPC API route                     | `app/api/trpc/[trpc]/route.ts`     |
-| Auth layout (route group)          | `app/(app)/layout.tsx`             |
-| Todos page                         | `app/(app)/todos/page.tsx`         |
-| DB schema                          | `db/schema.ts`                     |
-| Stripe client                      | `lib/stripe.ts`                    |
-| Subscription gate component        | `components/requires-subscription.tsx` |
+| Purpose                  | Path |
+|--------------------------|------|
+| tRPC root                | `server/routers/index.ts` |
+| tRPC waitlist            | `server/routers/waitlist.ts` |
+| tRPC stripe              | `server/routers/stripe.ts` |
+| tRPC procedure builder   | `server/trpc.ts` |
+| tRPC context             | `server/context.ts` |
+| Server caller            | `lib/trpc/server.ts` |
+| Client hooks             | `lib/trpc/client.tsx` |
+| tRPC API route           | `app/api/trpc/[trpc]/route.ts` |
+| Auth layout              | `app/(app)/layout.tsx` |
+| Waitlist page            | `app/waitlist/page.tsx` |
+| DB schema                | `db/schema.ts`, `db/schema/waitlist.ts` |
+| Stripe client            | `lib/stripe.ts` |
+| Subscription gate        | `components/requires-subscription.tsx` |
 
 ## Rules
 

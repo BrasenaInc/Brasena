@@ -31,9 +31,6 @@ const enforceAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  // ctx.user here is the Supabase auth user — we need the DB user for role.
-  // We'll enforce admin at the router level using the users router.
-  // This middleware marks procedures that require admin role.
   return next({ ctx: { ...ctx, user: ctx.user } });
 });
 

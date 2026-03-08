@@ -1,7 +1,4 @@
-/**
- * Waitlist SMS via Twilio.
- * Gated by NOTIFICATIONS_LIVE — never throws; failures are logged only.
- */
+// Waitlist + milestone SMS via Twilio. Requires NOTIFICATIONS_LIVE and Twilio env vars.
 
 function toE164(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -10,11 +7,6 @@ function toE164(phone: string): string {
   return `+${digits}`;
 }
 
-/**
- * Sends a waitlist confirmation SMS via Twilio.
- * Gated by NOTIFICATIONS_LIVE env flag.
- * Never throws — failures are logged only.
- */
 export async function sendWaitlistConfirmationSMS(
   phone: string,
   firstName: string,
@@ -47,11 +39,6 @@ export async function sendWaitlistConfirmationSMS(
   }
 }
 
-/**
- * Sends a milestone bonus notification SMS.
- * Called when a referrer hits 5, 10, or 25 referrals.
- * Never throws — failures are logged only.
- */
 export async function sendMilestoneNotificationSMS(
   phone: string,
   firstName: string,

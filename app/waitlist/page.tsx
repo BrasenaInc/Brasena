@@ -6,16 +6,13 @@ import { useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { CheckIcon, CopyIcon, Share2, MapPin } from "lucide-react";
 
-// ─── Phone formatting ─────────────────────────────────────────────────────────
-
+// Phone input: format as XXX-XXX-XXXX
 function formatPhoneInput(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 10);
   if (digits.length <= 3) return digits;
   if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
   return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type Step = 0 | 1 | 2 | 3;
 type UserType = "b2c" | "b2b";
@@ -36,8 +33,6 @@ interface CompletedState {
   entries: number;
   customerId: string;
 }
-
-// ─── Survey questions ─────────────────────────────────────────────────────────
 
 const SURVEY_QUESTIONS = [
   {
@@ -78,8 +73,6 @@ const SURVEY_QUESTIONS = [
   },
 ];
 
-// ─── Entry ladder ─────────────────────────────────────────────────────────────
-
 const ENTRY_LADDER = [
   { label: "Join the waitlist", bonus: "+1 entry" },
   { label: "Complete the survey", bonus: "+2 entries" },
@@ -89,8 +82,6 @@ const ENTRY_LADDER = [
   { label: "25 referrals", bonus: "+75 bonus" },
 ];
 
-// ─── Raffle prizes ────────────────────────────────────────────────────────────
-
 const PRIZES = [
   { place: "Grand Prize", value: "$500 cash", color: "#d4af37" },
   { place: "2nd Place", value: "$250 gift card", color: "#b0b0b0" },
@@ -98,8 +89,6 @@ const PRIZES = [
 ];
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://brasenabx.com";
-
-// ─── Main content (uses useSearchParams) ───────────────────────────────────────
 
 function WaitlistContent() {
   const searchParams = useSearchParams();
@@ -863,8 +852,6 @@ function WaitlistContent() {
     </div>
   );
 }
-
-// ─── Page with Suspense for useSearchParams ────────────────────────────────────
 
 export default function WaitlistPage() {
   return (

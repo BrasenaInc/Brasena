@@ -1,3 +1,4 @@
+// Waitlist domain: customers, waitlist_entries, survey_responses, referrals, events_log. Re-exported from db/schema.ts.
 import {
   pgTable,
   uuid,

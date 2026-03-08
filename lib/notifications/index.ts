@@ -13,8 +13,6 @@ const getTwilio = () =>
 
 const LIVE = process.env.NOTIFICATIONS_LIVE === "true";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 export type OrderWithCustomer = {
   id: string;
   totalCents: number;
@@ -36,8 +34,6 @@ export type OrderWithCustomer = {
     subtotalCents: number;
   }>;
 };
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatCents(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
@@ -68,8 +64,6 @@ async function logNotification({
     providerId: providerId ?? null,
   });
 }
-
-// ─── Email Templates ─────────────────────────────────────────────────────────
 
 function orderConfirmationHtml(order: OrderWithCustomer, lang: string): string {
   const isEs = lang === "es";
@@ -193,7 +187,6 @@ function statusUpdateHtml(order: OrderWithCustomer, lang: string): string {
   `;
 }
 
-// ─── SMS Templates ────────────────────────────────────────────────────────────
 
 function smsText(order: OrderWithCustomer, lang: string): string {
   const isEs = lang === "es";
@@ -224,7 +217,6 @@ function smsText(order: OrderWithCustomer, lang: string): string {
   );
 }
 
-// ─── Core send functions ──────────────────────────────────────────────────────
 
 async function sendEmail({
   to,
@@ -325,7 +317,6 @@ async function sendSMS({
   }
 }
 
-// ─── Public notification functions ───────────────────────────────────────────
 
 /**
  * Call this immediately after a successful order.create.

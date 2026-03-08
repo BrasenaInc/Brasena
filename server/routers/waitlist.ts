@@ -1,3 +1,8 @@
+/**
+ * Waitlist tRPC router: signup, survey, referral codes, export, unsubscribe, admin stats/draw.
+ * Uses db/schema/waitlist (customers, waitlist_entries, survey_responses, referrals, events_log).
+ * Email/SMS gated by NOTIFICATIONS_LIVE; failures are caught and logged, procedures return null or safe defaults.
+ */
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
@@ -12,8 +17,12 @@ import {
 } from "@/db/schema/waitlist";
 import { customAlphabet } from "nanoid";
 import { sendWaitlistConfirmationSMS } from "@/lib/messaging/sms";
-import { sendWaitlistConfirmationEmail } from "@/lib/messaging/email";
-import { sendSurveyCompletionEmail } from "@/lib/messaging/email";
+import {
+  sendWaitlistConfirmationEmail,
+  sendSurveyCompletionEmail,
+  sendReferralNotificationEmail,
+  sendMilestoneNotificationEmail,
+} from "@/lib/messaging/email";
 
 const referralCodeId = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8);
 
@@ -186,6 +195,11 @@ export const waitlistRouter = router({
         metadata: { source: input.source, referralCode: input.referralCode ?? null },
       });
 
+      let referrerNewTotal = 0;
+      let totalReferralsForEmail = 0;
+      let milestoneEventForEmail: string | null = null;
+      let milestoneBonusForEmail = 0;
+
       if (referrerEntry) {
         const newTotal = (referrerEntry.raffleEntriesTotal ?? 1) + ENTRIES.REFERRAL;
 
@@ -224,6 +238,10 @@ export const waitlistRouter = router({
         await checkMilestone(25, ENTRIES.MILESTONE_25, "milestone_25");
 
         const finalTotal = newTotal + milestoneBonus;
+        referrerNewTotal = finalTotal;
+        totalReferralsForEmail = totalReferrals;
+        milestoneEventForEmail = milestoneEvent;
+        milestoneBonusForEmail = milestoneBonus;
 
         await db
           .update(waitlistEntries)
@@ -251,6 +269,18 @@ export const waitlistRouter = router({
         }
       }
 
+      const [referrerCustomer] =
+        referrerEntry != null
+          ? await db
+              .select({
+                email: customers.email,
+                firstName: customers.firstName,
+              })
+              .from(customers)
+              .where(eq(customers.customerId, referrerEntry.customerId))
+              .limit(1)
+          : [];
+
       await Promise.allSettled([
         input.phone && input.smsOptIn
           ? sendWaitlistConfirmationSMS(input.phone, input.firstName, newReferralCode)
@@ -261,6 +291,27 @@ export const waitlistRouter = router({
           newReferralCode,
           ENTRIES.SIGNUP
         ),
+        referrerEntry && referrerCustomer
+          ? sendReferralNotificationEmail(
+              referrerCustomer.email,
+              referrerCustomer.firstName ?? "",
+              input.firstName,
+              referrerEntry.referralCode,
+              ENTRIES.REFERRAL,
+              referrerNewTotal,
+              totalReferralsForEmail
+            )
+          : Promise.resolve(),
+        milestoneEventForEmail && referrerCustomer && referrerEntry
+          ? sendMilestoneNotificationEmail(
+              referrerCustomer.email,
+              referrerCustomer.firstName ?? "",
+              referrerEntry.referralCode,
+              totalReferralsForEmail as 5 | 10 | 25,
+              milestoneBonusForEmail,
+              referrerNewTotal
+            )
+          : Promise.resolve(),
       ]);
 
       return {
@@ -341,7 +392,8 @@ export const waitlistRouter = router({
               customer.email,
               customer.firstName,
               entry.referralCode,
-              newTotal
+              newTotal,
+              2
             ),
           ]);
         }

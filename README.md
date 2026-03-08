@@ -1,110 +1,340 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+<div align="center">
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+<br />
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+```
+██████╗ ██████╗  █████╗ ███████╗███████╗███╗   ██╗ █████╗
+██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔════╝████╗  ██║██╔══██╗
+██████╔╝██████╔╝███████║███████╗█████╗  ██╔██╗ ██║███████║
+██╔══██╗██╔══██╗██╔══██║╚════██║██╔══╝  ██║╚██╗██║██╔══██║
+██████╔╝██║  ██║██║  ██║███████║███████╗██║ ╚████║██║  ██║
+╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝
+```
 
-## Features
+**Wholesale meat, delivered fresh.**
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Proxy
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+*A full logistics platform connecting wholesale meat distributors to restaurants, lounges, and families — built in The Bronx, NY.*
 
-## Demo
+<br />
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+[![Live Site](https://img.shields.io/badge/Live%20Site-brasenabx.com-4a7c59?style=for-the-badge&logo=vercel&logoColor=white)](https://brasenabx.com)
+[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
+[![Next.js](https://img.shields.io/badge/Next.js%2015-App%20Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
 
-## Deploy to Vercel
+<br />
 
-Vercel deployment will guide you through creating a Supabase account and project.
+</div>
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+---
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+## What is Brasena?
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+Brasena cuts out the middleman between wholesale meat distributors and the people who actually need the product — restaurants ordering by the case, families buying bulk at real prices. Built first for The Bronx, expanding to all five boroughs and beyond.
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+The platform handles the full loop: order placement, vendor routing, driver dispatch, live tracking, and delivery — the same experience you'd expect from a consumer app, built for wholesale volume.
 
-## Clone and run locally
+```
+Customer places order  →  Vendor confirms (<2 min)  →  Driver dispatched  →  Live map tracking  →  Delivery
+```
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+**B2C** — Families and households. From $4.99/lb vs $8–12/lb retail. No membership.  
+**B2B** — Restaurants and lounges. Automatic 15% wholesale pricing. Invoice/Net 30 available.
 
-2. Create a Next.js app using the Supabase Starter template npx command
+---
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+## Tech Stack
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js 15 (App Router) |
+| **Language** | TypeScript |
+| **Styling** | Tailwind CSS |
+| **API Layer** | tRPC v11 |
+| **Database** | Supabase (PostgreSQL) |
+| **ORM** | Drizzle ORM |
+| **Auth** | Supabase Auth |
+| **Email** | Resend + React Email |
+| **SMS** | Twilio |
+| **Deployment** | Vercel |
+| **Fonts** | Playfair Display · DM Sans |
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+---
 
-3. Use `cd` to change into the app's directory
+## Project Structure
 
-   ```bash
-   cd with-supabase-app
-   ```
+```
+brasena/
+├── app/
+│   ├── (marketing)/          # Public-facing pages
+│   │   ├── marketing/        # Landing page — hero, how it works, product catalog
+│   │   ├── waitlist/         # 4-step waitlist flow (type → info → survey → share)
+│   │   ├── privacy-policy/
+│   │   └── terms/
+│   ├── (admin)/              # Protected admin dashboard
+│   │   ├── admin/
+│   │   │   ├── waitlist/     # Waitlist command center
+│   │   │   ├── growth/       # Growth analytics + raffle draw
+│   │   │   └── ...
+│   └── auth/                 # Login / signup
+│
+├── server/
+│   └── routers/
+│       └── waitlist.ts       # tRPC router — all waitlist procedures
+│
+├── lib/
+│   ├── messaging/
+│   │   ├── email.ts          # Resend send functions
+│   │   ├── sms.ts            # Twilio send functions
+│   │   └── templates/        # React Email templates
+│   │       ├── shared/
+│   │       │   └── email-wrapper.tsx
+│   │       ├── waitlist-confirmation.tsx
+│   │       ├── survey-completion.tsx
+│   │       ├── referral-notification.tsx
+│   │       └── milestone-notification.tsx
+│   └── trpc/
+│
+├── db/
+│   └── schema.ts             # Drizzle schema — customers, waitlist_entries, referrals, events_log
+│
+└── components/
+```
 
-4. Rename `.env.example` to `.env.local` and update the following:
+---
 
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
+## Waitlist Growth Engine
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+The waitlist is a full referral system with raffle entry tracking.
 
-5. You can now run the Next.js local development server:
+### Entry Ladder
 
-   ```bash
-   npm run dev
-   ```
+| Action | Entries Earned |
+|---|---|
+| Join the waitlist | +1 |
+| Complete the survey | +2 |
+| Refer a friend | +3 per referral |
+| 5 referrals | +10 bonus |
+| 10 referrals | +25 bonus |
+| 25 referrals | +75 bonus |
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+### Grand Opening Raffle
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+| Prize | Value |
+|---|---|
+| Grand Prize | $500 Meat Bundle |
+| 2nd Place | $250 Freezer Box |
+| 3rd Place | $100 + 20×$25 |
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+### Messaging Triggers
 
-## Feedback and issues
+| Event | Channel | Subject |
+|---|---|---|
+| Signup | Email + SMS | `Brasena — You're on the waitlist` |
+| Survey submitted | Email | `Brasena — Survey complete, you've got bonus entries` |
+| Someone uses your referral link | Email | `Brasena — Someone used your referral link` |
+| Hit 5 / 10 / 25 referrals | Email | `Brasena — You hit a referral milestone` |
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+---
 
-## More Supabase examples
+## Getting Started
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
-# SaaS-Starter-Kit
+### Prerequisites
+
+- Node.js 18+
+- A Supabase project
+- A Resend account with verified domain
+- A Twilio account with a 10DLC-registered phone number
+
+### 1. Clone & install
+
+```bash
+git clone https://github.com/visuxlize/brasena.git
+cd brasena
+npm install
+```
+
+### 2. Environment variables
+
+Create `.env.local` in the project root:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_key
+DATABASE_URL=your_postgres_connection_string
+
+# Email — Resend
+RESEND_API_KEY=re_your_key_here
+RESEND_FROM_EMAIL=waitlist@yourdomain.com
+EMAIL_PROVIDER=resend
+
+# SMS — Twilio
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=+1xxxxxxxxxx
+SMS_PROVIDER=twilio
+
+# App
+NEXT_PUBLIC_BASE_URL=https://yourdomain.com
+NOTIFICATIONS_LIVE=true   # set to false in dev to suppress sends
+```
+
+### 3. Run the database migration
+
+```bash
+npx drizzle-kit push
+```
+
+> If you hit a column type error on `survey_answers`, run this in your Supabase SQL editor first:
+> ```sql
+> UPDATE waitlist_entries SET survey_answers = NULL
+> WHERE survey_answers IS NOT NULL AND survey_answers::text = '';
+>
+> ALTER TABLE waitlist_entries
+> ALTER COLUMN survey_answers TYPE jsonb
+> USING survey_answers::jsonb;
+> ```
+> Then re-run `drizzle-kit push`.
+
+### 4. Start the dev server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000/marketing](http://localhost:3000/marketing).
+
+---
+
+## Key Routes
+
+| Route | Description |
+|---|---|
+| `/marketing` | Public landing page |
+| `/waitlist` | Waitlist signup flow |
+| `/waitlist?ref=CODE` | Referral entry — attributes signup to referrer |
+| `/admin` | Admin dashboard (auth required) |
+| `/admin/waitlist` | Waitlist command center — browse, filter, export signups |
+| `/admin/growth` | Growth analytics + raffle draw |
+| `/auth/login` | Admin login |
+| `/privacy-policy` | Privacy policy (required for Twilio 10DLC) |
+| `/terms` | Terms of service (required for Twilio 10DLC) |
+
+---
+
+## tRPC Procedures
+
+All waitlist logic lives in `server/routers/waitlist.ts`. Every procedure is wrapped in `try/catch` and returns safe defaults on DB errors so the frontend never crashes if the DB is unreachable.
+
+```
+waitlist.signup              →  Creates customer + waitlist entry, fires email + SMS
+waitlist.submitSurvey        →  Saves survey answers, awards +2 entries, fires email
+waitlist.getReferralStatus   →  Looks up entry by referral code (used on page load with ?ref=)
+waitlist.export              →  Returns a single entry by email
+waitlist.leaderboard         →  Top referrers sorted by entries
+waitlist.unsubscribe         →  Marks entry as unsubscribed
+
+waitlist.adminList           →  Paginated list for the admin dashboard
+waitlist.adminStats          →  Aggregate counts — total, B2C, B2B, entries
+waitlist.adminSignupsByDay   →  Time-series data for the growth chart
+waitlist.adminSourceBreakdown→  Pie chart data — direct vs referral vs other
+waitlist.adminGetById        →  Single entry detail view
+waitlist.adminDelete         →  Soft delete a signup
+waitlist.adminClearAll       →  Wipe all entries (dev/reset only)
+waitlist.adminDrawWinner      →  Weighted random draw from active entries
+waitlist.adminDrawLog        →  History of all raffle draws
+```
+
+---
+
+## Email Templates
+
+Templates are React Email components with inline styles only (required for email client compatibility). They are stored in `lib/messaging/templates/` and sent via Resend.
+
+All templates share a base layout (`email-wrapper.tsx`) that includes:
+- Forest green header with subtle grid texture matching the website hero
+- Parchment `#F8F6F2` body background matching the site's light mode
+- Sage green gradient ribbon across the top
+- Playfair Display headings loaded via Google Fonts
+- DM Sans body text
+- Footer with Privacy Policy and Terms links
+
+---
+
+## SMS (Twilio)
+
+SMS notifications are sent via a Twilio 10DLC-registered number (`+1 929-295-4898`, The Bronx area code). All outbound messages include a STOP opt-out instruction as required by 10DLC compliance.
+
+Set `NOTIFICATIONS_LIVE=false` in `.env.local` to suppress all SMS and email sends during local development.
+
+---
+
+## Design System
+
+Pulled directly from the live site:
+
+| Token | Value |
+|---|---|
+| `--forest-green` | `#192019` |
+| `--near-black` | `#0C0F0C` |
+| `--parchment` | `#F8F6F2` |
+| `--sage` | `#7a9e80` |
+| `--sage-dark` | `#6B8F71` |
+| `--gold` | `#d4af37` |
+| `--silver` | `#b0b0b0` |
+| `--bronze` | `#c4885a` |
+| Display font | Playfair Display |
+| Body font | DM Sans |
+
+---
+
+## Deployment
+
+The app is deployed on Vercel at [brasenabx.com](https://brasenabx.com). Production environment variables are managed through the Vercel dashboard.
+
+DNS is managed through Namecheap. Resend domain verification requires 4 DNS records (DKIM TXT, MX, SPF TXT, DMARC TXT) added to the sending subdomain.
+
+To deploy your own fork:
+
+```bash
+# Push to your repo and connect to Vercel
+# Add all environment variables in Vercel → Settings → Environment Variables
+# Run drizzle-kit push once on production DB
+npx drizzle-kit push
+```
+
+---
+
+## Roadmap
+
+- [x] Marketing landing page
+- [x] 4-step waitlist flow (type → info → survey → share)
+- [x] Referral system with entry ladder
+- [x] Twilio SMS — waitlist confirmation
+- [x] Resend email — all 4 email types
+- [x] Admin dashboard — waitlist command center
+- [x] Admin dashboard — growth analytics + raffle draw
+- [x] Privacy policy + Terms (Twilio 10DLC compliance)
+- [ ] QR code generator for physical marketing
+- [ ] Order placement flow (B2C + B2B)
+- [ ] Vendor portal
+- [ ] Driver dispatch + live tracking
+- [ ] Expand to Queens, Brooklyn, Long Island, Connecticut, New Jersey
+
+---
+
+## License
+
+Private. All rights reserved. © 2026 Brasena Inc., The Bronx, New York.
+
+---
+
+<div align="center">
+
+*Launching in The Bronx · 2026*
+
+**[brasenabx.com](https://brasenabx.com) · [@brasenabx](https://instagram.com/brasenabx)**
+
+</div>

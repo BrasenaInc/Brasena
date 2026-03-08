@@ -1,13 +1,4 @@
-/**
- * One-time script: removes all waitlist data (customers, entries, survey responses,
- * referrals, events). This clears all emails and phone numbers from the waitlist tables.
- *
- * Run with: npx tsx scripts/clear-waitlist.ts
- * Requires DATABASE_URL in .env.local (or .env).
- *
- * Uses direct connection (port 5432). If your DATABASE_URL uses pooler port 6543,
- * it is switched to 5432 so the script can connect from your machine.
- */
+// Clears all waitlist data (customers, entries, survey_responses, referrals, events_log). Run: npx tsx scripts/clear-waitlist.ts
 import { config } from "dotenv";
 
 config({ path: ".env.local" });
