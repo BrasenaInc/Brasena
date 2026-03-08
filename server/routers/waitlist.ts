@@ -39,6 +39,14 @@ function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
+/** US 10-digit → E.164 +1XXXXXXXXXX for storage and SMS */
+function toE164(phone: string): string | null {
+  const digits = normalizePhone(phone);
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return digits.length > 0 ? null : null;
+}
+
 export const waitlistRouter = router({
   signup: publicProcedure
     .input(
@@ -142,7 +150,7 @@ export const waitlistRouter = router({
 
       const phoneToStore =
         input.phone && normalizePhone(input.phone).length > 0
-          ? normalizePhone(input.phone)
+          ? (toE164(input.phone) ?? normalizePhone(input.phone))
           : null;
 
       const householdSizeParsed = input.householdSize?.trim();
@@ -281,9 +289,10 @@ export const waitlistRouter = router({
               .limit(1)
           : [];
 
+      const phoneForSMS = phoneToStore && input.smsOptIn ? phoneToStore : null;
       await Promise.allSettled([
-        input.phone && input.smsOptIn
-          ? sendWaitlistConfirmationSMS(input.phone, input.firstName, newReferralCode)
+        phoneForSMS
+          ? sendWaitlistConfirmationSMS(phoneForSMS, input.firstName, newReferralCode)
           : Promise.resolve(),
         sendWaitlistConfirmationEmail(
           input.email,

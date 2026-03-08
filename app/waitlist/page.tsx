@@ -6,12 +6,24 @@ import { useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { CheckIcon, CopyIcon, Share2, MapPin } from "lucide-react";
 
-// Phone input: format as XXX-XXX-XXXX
+// Phone input: US only, format as (XXX) XXX-XXXX with area code
 function formatPhoneInput(value: string): string {
   const digits = value.replace(/\D/g, "").slice(0, 10);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  if (digits.length === 0) return "";
+  if (digits.length <= 3) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+function phoneDigitsOnly(phone: string): string {
+  return phone.replace(/\D/g, "").slice(0, 10);
+}
+
+function toE164(phone: string): string {
+  const digits = phoneDigitsOnly(phone);
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return "";
 }
 
 type Step = 0 | 1 | 2 | 3;
@@ -23,7 +35,6 @@ interface SignupState {
   phone: string;
   birthday: string;
   address: string;
-  smsOptIn: boolean;
 }
 
 interface CompletedState {
@@ -116,7 +127,6 @@ function WaitlistContent() {
     phone: "",
     birthday: "",
     address: "",
-    smsOptIn: false,
   });
 
   const fetchAddressSuggestions = useCallback(async (query: string) => {
@@ -200,14 +210,17 @@ function WaitlistContent() {
     const parts = form.fullName.trim().split(/\s+/);
     const firstName = parts[0] ?? form.fullName;
     const lastName = parts.slice(1).join(" ") || undefined;
+    const phoneTrimmed = form.phone.trim();
+    const phoneForSubmit = phoneTrimmed ? (phoneDigitsOnly(phoneTrimmed).length === 10 ? toE164(phoneTrimmed) : phoneTrimmed) : undefined;
+    const hasValidPhone = phoneDigitsOnly(form.phone).length === 10;
     signupMutation.mutate({
       firstName,
       lastName,
       email: form.email.trim().toLowerCase(),
-      phone: form.phone.trim() || undefined,
+      phone: phoneForSubmit,
       birthday: form.birthday.trim() || undefined,
       address: form.address.trim() || undefined,
-      smsOptIn: form.smsOptIn,
+      smsOptIn: hasValidPhone,
       type: userType,
       referralCode: refCode || undefined,
       source: refCode ? "referral" : "direct",
@@ -507,38 +520,32 @@ function WaitlistContent() {
 
               <div>
                 <label className="block text-[10px] font-semibold tracking-[0.14em] uppercase text-white/40 mb-1.5">
-                  Phone Number
+                  Phone Number (US, include area code)
                 </label>
                 <input
                   type="tel"
                   inputMode="numeric"
-                  autoComplete="tel"
+                  autoComplete="tel-national"
                   value={form.phone}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, phone: formatPhoneInput(e.target.value) }))
                   }
-                  placeholder="212-555-0123"
-                  maxLength={12}
+                  placeholder="(555) 123-4567"
+                  maxLength={14}
                   className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-white/25 outline-none"
                   style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.08)",
                   }}
                 />
-                <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={form.smsOptIn}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, smsOptIn: e.target.checked }))
-                    }
-                    className="accent-[#7a9e80]"
-                  />
-                  <span className="text-xs text-white/40">
-                    Text me launch updates (msg & data rates apply, reply STOP to
-                    unsubscribe)
-                  </span>
-                </label>
+                {phoneDigitsOnly(form.phone).length === 10 && (
+                  <p className="mt-1.5 text-xs text-white/50">
+                    Will register as: <span className="font-medium text-white/70">{toE164(form.phone)}</span>
+                  </p>
+                )}
+                <p className="mt-1.5 text-xs text-white/40">
+                  Optional. If you add your number, we’ll text you launch updates. Reply STOP anytime to opt out.
+                </p>
               </div>
 
               <div>
