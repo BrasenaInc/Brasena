@@ -471,7 +471,7 @@ export default function AdminWaitlistPage() {
                       </td>
                     </tr>
                   ) : (
-                    signupsData.items.map((s) => (
+                    (signupsData?.items ?? []).map((s) => (
                       <tr
                         key={s.entryId}
                         className="cursor-pointer border-b border-black/5 transition-colors hover:bg-black/5 last:border-b-0"

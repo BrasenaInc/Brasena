@@ -1,3 +1,5 @@
+import React from "react";
+import { render } from "@react-email/render";
 import { Resend } from "resend";
 import { WaitlistConfirmationEmail } from "./templates/waitlist-confirmation";
 
@@ -29,16 +31,20 @@ export async function sendWaitlistConfirmationEmail(
     const resend = new Resend(apiKey);
     const referralLink = `${baseUrl}/waitlist?ref=${referralCode}`;
 
-    await resend.emails.send({
-      from: `Brasena <${fromEmail}>`,
-      to: email,
-      subject: `You're on the Brasena waitlist, ${firstName}`,
-      react: WaitlistConfirmationEmail({
+    const html = await render(
+      React.createElement(WaitlistConfirmationEmail, {
         firstName,
         referralCode,
         referralLink,
         entries,
-      }),
+      })
+    );
+
+    await resend.emails.send({
+      from: `Brasena <${fromEmail}>`,
+      to: email,
+      subject: `You're on the Brasena waitlist, ${firstName}`,
+      html,
     });
   } catch (err) {
     console.error("[Email] Failed to send waitlist confirmation:", err);

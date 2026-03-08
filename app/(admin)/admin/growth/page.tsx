@@ -29,10 +29,14 @@ export default function AdminGrowthPage() {
   const { data: drawLog = [] } = trpc.waitlist.adminDrawLog.useQuery();
   const drawWinner = trpc.waitlist.adminDrawWinner.useMutation({
     onSuccess: (data) => {
+      if (!data) {
+        setDrawing(false);
+        return;
+      }
       setWinner({
-        firstName: (data.name ?? "—").split(" ")[0] ?? "—",
-        email: data.email ?? "—",
-        raffleEntriesTotal: data.entries ?? 0,
+        firstName: (data?.name ?? "—").split(" ")[0] ?? "—",
+        email: data?.email ?? "—",
+        raffleEntriesTotal: data?.entries ?? 0,
       });
       setDrawing(false);
     },

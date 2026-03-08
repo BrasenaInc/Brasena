@@ -1,5 +1,7 @@
 /**
- * One-time script: removes all waitlist signups and raffle draw history from the database.
+ * One-time script: removes all waitlist data (customers, entries, survey responses,
+ * referrals, events). This clears all emails and phone numbers from the waitlist tables.
+ *
  * Run with: npx tsx scripts/clear-waitlist.ts
  * Requires DATABASE_URL in .env.local (or .env).
  *
@@ -13,43 +15,56 @@ config();
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { eq } from "drizzle-orm";
-import { waitlistEntries, eventsLog } from "../db/schema";
+import {
+  waitlistCustomers,
+  waitlistEntries,
+  surveyResponses,
+  referrals,
+  eventsLog,
+} from "../db/schema";
 
 async function clearWaitlist() {
   let databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    console.error("DATABASE_URL is not set. Add it to .env.local and run again.");
+    console.error(
+      "DATABASE_URL is not set. Add it to .env.local and run again."
+    );
     process.exit(1);
   }
-  // Use direct connection (5432) so scripts work from local; pooler (6543) often refuses.
   databaseUrl = databaseUrl.replace(":6543", ":5432");
 
   const client = postgres(databaseUrl, { prepare: false, max: 1 });
   const db = drizzle(client);
 
-  console.log("Clearing waitlist and raffle data...");
+  console.log("Clearing all waitlist data (customers, entries, emails, phones)...");
 
   try {
-    await db.delete(eventsLog).where(eq(eventsLog.eventName, "raffle_draw"));
-    console.log("Raffle draw log cleared.");
+    await db.delete(referrals);
+    console.log("  referrals");
+    await db.delete(surveyResponses);
+    console.log("  survey_responses");
+    await db.delete(eventsLog);
+    console.log("  events_log");
+    await db.delete(waitlistEntries);
+    console.log("  waitlist_entries");
+    await db.delete(waitlistCustomers);
+    console.log("  customers");
   } catch (err: unknown) {
-    const cause = (err as { cause?: { code?: string; message?: string } })?.cause;
+    const cause = (err as { cause?: { code?: string } })?.cause;
     const code = cause?.code ?? (err as { code?: string }).code;
-    const msg = (cause?.message ?? (err instanceof Error ? err.message : String(err))).toLowerCase();
+    const msg = String(
+      (err as { message?: string }).message ?? err
+    ).toLowerCase();
     const isMissingTable = code === "42P01" || msg.includes("does not exist");
     if (isMissingTable) {
-      console.log("events_log table not found (migration not run yet); skipping.");
+      console.log("One or more tables not found (migration not run yet).");
     } else {
       throw err;
     }
   }
 
-  await db.delete(waitlistEntries);
-  console.log("All waitlist signups removed.");
-
   await client.end();
-  console.log("Done. Waitlist and Growth dashboards will show no data until new signups come in.");
+  console.log("Done. All waitlist emails and phone numbers have been removed.");
 }
 
 clearWaitlist().catch((e) => {
