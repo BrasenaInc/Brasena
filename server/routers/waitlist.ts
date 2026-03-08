@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
 import { router, adminProcedure, publicProcedure } from "../trpc";
 import { db } from "@/db";
@@ -42,15 +43,19 @@ export const waitlistRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const [existing] = await db
-        .select()
-        .from(customers)
-        .where(eq(customers.email, input.email));
-      if (existing) {
-        throw new Error("This email is already on the waitlist.");
-      }
+      try {
+        const [existing] = await db
+          .select()
+          .from(customers)
+          .where(eq(customers.email, input.email));
+        if (existing) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "This email is already on the waitlist.",
+          });
+        }
 
-      const newReferralCode = `BRAS${nanoid(6).toUpperCase()}`;
+        const newReferralCode = `BRAS${nanoid(6).toUpperCase()}`;
 
       let referrerEntry: { customerId: string; entryId: string; raffleEntriesTotal: number | null } | undefined;
       if (input.referralCode) {
@@ -189,6 +194,14 @@ export const waitlistRouter = router({
         email: input.email,
         phone: input.phone ?? null,
       };
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        console.error("[waitlist.signup]", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "The waitlist is being set up. Please try again in a few minutes.",
+        });
+      }
     }),
 
   submitSurvey: publicProcedure
@@ -199,53 +212,62 @@ export const waitlistRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const [entry] = await db
-        .select()
-        .from(waitlistEntries)
-        .where(eq(waitlistEntries.customerId, input.customerId))
-        .limit(1);
-      if (!entry) throw new Error("Waitlist entry not found.");
-      if (entry.surveyCompleted) return { entries: entry.raffleEntriesTotal ?? 1 };
+      try {
+        const [entry] = await db
+          .select()
+          .from(waitlistEntries)
+          .where(eq(waitlistEntries.customerId, input.customerId))
+          .limit(1);
+        if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "Waitlist entry not found." });
+        if (entry.surveyCompleted) return { entries: entry.raffleEntriesTotal ?? 1 };
 
-      const newTotal = (entry.raffleEntriesTotal ?? 1) + ENTRIES.SURVEY;
+        const newTotal = (entry.raffleEntriesTotal ?? 1) + ENTRIES.SURVEY;
 
-      await db
-        .update(waitlistEntries)
-        .set({
-          surveyCompleted: true,
-          surveyAnswers: input.answers as Record<string, unknown>,
-          raffleEntriesTotal: newTotal,
-        })
-        .where(eq(waitlistEntries.customerId, input.customerId));
+        await db
+          .update(waitlistEntries)
+          .set({
+            surveyCompleted: true,
+            surveyAnswers: input.answers as Record<string, unknown>,
+            raffleEntriesTotal: newTotal,
+          })
+          .where(eq(waitlistEntries.customerId, input.customerId));
 
-      await db.insert(surveyResponses).values({
-        customerId: input.customerId,
-        answers: input.answers as Record<string, unknown>,
-      });
+        await db.insert(surveyResponses).values({
+          customerId: input.customerId,
+          answers: input.answers as Record<string, unknown>,
+        });
 
-      await db.insert(eventsLog).values({
-        customerId: input.customerId,
-        eventName: "survey_complete",
-        metadata: { answers: input.answers },
-      });
+        await db.insert(eventsLog).values({
+          customerId: input.customerId,
+          eventName: "survey_complete",
+          metadata: { answers: input.answers },
+        });
 
-      const [customer] = await db
-        .select()
-        .from(customers)
-        .where(eq(customers.customerId, input.customerId))
-        .limit(1);
-      if (customer) {
-        await Promise.allSettled([
-          sendSurveyCompletionEmail(
-            customer.email,
-            customer.firstName,
-            entry.referralCode,
-            newTotal
-          ),
-        ]);
+        const [customer] = await db
+          .select()
+          .from(customers)
+          .where(eq(customers.customerId, input.customerId))
+          .limit(1);
+        if (customer) {
+          await Promise.allSettled([
+            sendSurveyCompletionEmail(
+              customer.email,
+              customer.firstName,
+              entry.referralCode,
+              newTotal
+            ),
+          ]);
+        }
+
+        return { entries: newTotal };
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        console.error("[waitlist.submitSurvey]", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "The waitlist is being set up. Please try again in a few minutes.",
+        });
       }
-
-      return { entries: newTotal };
     }),
 
   export: publicProcedure

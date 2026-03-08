@@ -829,7 +829,15 @@ function ProgressBar({ step }: { step: string }) {
   );
 }
 
-export function WaitlistCard({ locale, source }: { locale: Locale; source?: string }) {
+export function WaitlistCard({
+  locale,
+  source,
+  referralCode: refCode,
+}: {
+  locale: Locale;
+  source?: string;
+  referralCode?: string;
+}) {
   const [step, setStep] = useState<"type" | "info" | "survey" | "success">(
     "type"
   );
@@ -848,7 +856,14 @@ export function WaitlistCard({ locale, source }: { locale: Locale; source?: stri
       setStep("success");
     },
     onError: (err) => {
-      setSubmitError(err.message === "This email is already on the waitlist." ? err.message : cardT.submitError);
+      const msg = err.message || "";
+      if (msg.includes("already on the waitlist")) {
+        setSubmitError("This email is already on the waitlist.");
+      } else if (msg.includes("relation") || msg.includes("does not exist") || msg.includes("column")) {
+        setSubmitError("The waitlist is being set up. Please try again in a few minutes.");
+      } else {
+        setSubmitError(msg.trim() || cardT.submitError);
+      }
     },
   });
 
@@ -878,7 +893,8 @@ export function WaitlistCard({ locale, source }: { locale: Locale; source?: stri
       birthday: data.birthday?.trim() || undefined,
       address: data.address?.trim() || undefined,
       type,
-      source: source ?? "direct",
+      source: refCode ? "referral" : source ?? "direct",
+      ...(refCode ? { referralCode: refCode } : {}),
     };
     if (Object.keys(answers).length > 0) {
       skipSignupSuccessRef.current = true;
@@ -888,11 +904,14 @@ export function WaitlistCard({ locale, source }: { locale: Locale; source?: stri
             { customerId: res.customerId, answers },
             {
               onSuccess: () => { skipSignupSuccessRef.current = false; },
-              onError: () => { skipSignupSuccessRef.current = false; },
+              onError: (err) => {
+                skipSignupSuccessRef.current = false;
+                setSubmitError(err.message || cardT.submitError);
+              },
             }
           );
         },
-        onError: () => setSubmitError(cardT.submitError),
+        onError: (err) => setSubmitError(err.message || cardT.submitError),
       });
     } else {
       signup.mutate(payload);
