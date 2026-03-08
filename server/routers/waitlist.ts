@@ -124,7 +124,7 @@ export const waitlistRouter = router({
           });
         }
 
-      let referrerEntry: { customerId: string; entryId: string; raffleEntriesTotal: number | null } | undefined;
+      let referrerEntry: { customerId: string; entryId: string; raffleEntriesTotal: number | null; referralCode: string } | undefined;
       if (input.referralCode) {
         try {
           const [ref] = await db
@@ -132,7 +132,7 @@ export const waitlistRouter = router({
             .from(waitlistEntries)
             .where(eq(waitlistEntries.referralCode, input.referralCode))
             .limit(1);
-          if (ref) referrerEntry = { customerId: ref.customerId, entryId: ref.entryId, raffleEntriesTotal: ref.raffleEntriesTotal };
+          if (ref) referrerEntry = { customerId: ref.customerId, entryId: ref.entryId, raffleEntriesTotal: ref.raffleEntriesTotal, referralCode: ref.referralCode };
         } catch (err) {
           console.error("[waitlist.signup] waitlist_entries table not ready:", err);
         }
