@@ -1,10 +1,12 @@
 import { z } from "zod";
+import { nanoid } from "nanoid";
 import { TRPCError } from "@trpc/server";
 import { desc, eq, sql, inArray, gte } from "drizzle-orm";
 import { router, adminProcedure, publicProcedure } from "../trpc";
 import { db } from "@/db";
 import { waitlistEntries, eventsLog } from "@/db/schema";
-import { sendWaitlistConfirmation } from "@/lib/notifications/waitlist-confirmation";
+import { sendWaitlistConfirmationSMS } from "@/lib/messaging/sms";
+import { sendWaitlistConfirmationEmail } from "@/lib/messaging/email";
 
 export const waitlistRouter = router({
   adminList: adminProcedure.query(async () => {
@@ -85,6 +87,7 @@ export const waitlistRouter = router({
           });
         }
 
+        const referralCode = `BRAS${nanoid(6).toUpperCase()}`;
         const payload = {
           name: input.name,
           email: input.email,
@@ -99,16 +102,23 @@ export const waitlistRouter = router({
 
         await db.insert(waitlistEntries).values(payload);
 
-        const raffleNumber = Math.floor(Math.random() * 9000) + 1000;
-        sendWaitlistConfirmation({
-          name: payload.name,
-          email: payload.email,
-          phone: payload.phone,
-          type: payload.type,
-          raffleNumber,
-        }).catch(console.error);
+        const firstName = payload.name.split(" ")[0] ?? payload.name;
+        await Promise.allSettled([
+          sendWaitlistConfirmationSMS(
+            payload.phone,
+            firstName,
+            referralCode
+          ),
+          sendWaitlistConfirmationEmail(
+            payload.email,
+            firstName,
+            referralCode,
+            1
+          ),
+        ]);
 
-        return { success: true, raffleNumber };
+        const raffleDisplay = Math.floor(Math.random() * 9000) + 1000;
+        return { success: true, raffleNumber: raffleDisplay };
       } catch (err) {
         if (err instanceof TRPCError) throw err;
         console.error("[waitlist.export]", err);
