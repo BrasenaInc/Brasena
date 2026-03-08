@@ -7,23 +7,27 @@ function toE164(phone: string): string {
   return `+${digits}`;
 }
 
+function canSendSMS(): boolean {
+  return (
+    process.env.NOTIFICATIONS_LIVE === "true" &&
+    !!process.env.TWILIO_ACCOUNT_SID &&
+    !!process.env.TWILIO_AUTH_TOKEN &&
+    !!process.env.TWILIO_PHONE_NUMBER
+  );
+}
+
 export async function sendWaitlistConfirmationSMS(
   phone: string,
   firstName: string,
   referralCode: string
 ): Promise<void> {
-  if (process.env.NOTIFICATIONS_LIVE !== "true") return;
+  if (!canSendSMS()) return;
 
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+  const accountSid = process.env.TWILIO_ACCOUNT_SID!;
+  const authToken = process.env.TWILIO_AUTH_TOKEN!;
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER!;
   const baseUrl =
     process.env.NEXT_PUBLIC_BASE_URL ?? "https://brasenabx.com";
-
-  if (!accountSid || !authToken || !fromNumber) {
-    console.error("[SMS] Missing Twilio env vars");
-    return;
-  }
 
   try {
     const twilio = require("twilio")(accountSid, authToken);
@@ -46,13 +50,11 @@ export async function sendMilestoneNotificationSMS(
   bonusEntries: number,
   totalEntries: number
 ): Promise<void> {
-  if (process.env.NOTIFICATIONS_LIVE !== "true") return;
+  if (!canSendSMS()) return;
 
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
-
-  if (!accountSid || !authToken || !fromNumber) return;
+  const accountSid = process.env.TWILIO_ACCOUNT_SID!;
+  const authToken = process.env.TWILIO_AUTH_TOKEN!;
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER!;
 
   try {
     const twilio = require("twilio")(accountSid, authToken);

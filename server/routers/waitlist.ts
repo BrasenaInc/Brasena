@@ -594,7 +594,7 @@ export const waitlistRouter = router({
         limit: z.number().default(50),
         offset: z.number().default(0),
         page: z.number().min(1).default(1),
-        pageSize: z.number().min(1).max(100).default(50),
+        pageSize: z.number().min(1).max(500).default(50),
         typeFilter: z.enum(["all", "b2c", "b2b"]).default("all"),
         surveyFilter: z.enum(["all", "completed", "pending"]).default("all"),
       })
